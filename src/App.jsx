@@ -18,6 +18,8 @@ import Settings from './SidebarMenu/Settings';
 import Help from './SidebarMenu/Help';
 import Users from './SidebarMenu/Users';
 import FeedbackPage from './SidebarMenu/Feedback';
+import TotalInterviews from './Interviews/TotalInterviews';
+import UpcomingInterviews from './Interviews/UpcomingInterviews';
 
 const queryClient = new QueryClient();
 
@@ -42,11 +44,8 @@ const App = () => {
           <Route path="/help" element={<Help/>} />
           <Route path="/feedback" element={<FeedbackPage/>} />
           <Route path="/users" element={<Users/>} />
-
-
-
-
-
+          <Route path="/interviews/all" element={<TotalInterviews />} />
+          <Route path="/interviews/upcoming" element={<UpcomingInterviews />} />
 
         </Routes>
       </Router>

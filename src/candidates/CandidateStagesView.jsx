@@ -368,8 +368,8 @@ const CandidateStagesView = () => {
                 <MenuItem onClick={handleCloseMenu}>
                     <ListItemText>Add Notes</ListItemText>
                 </MenuItem>
-                <Divider />
-                <MenuItem onClick={() => handleMoveStage("Sourced")}>
+                
+                {/* <MenuItem onClick={() => handleMoveStage("Sourced")}>
                     <ListItemText>Move to Sourced</ListItemText>
                 </MenuItem>
                 <MenuItem onClick={() => handleMoveStage("Screening")}>
@@ -386,7 +386,7 @@ const CandidateStagesView = () => {
                 </MenuItem>
                 <MenuItem onClick={() => handleMoveStage("Archived")}>
                     <ListItemText>Move to Archived</ListItemText>
-                </MenuItem>
+                </MenuItem> */}
             </Menu>
         </Box>
     );

@@ -13,6 +13,7 @@ import CandidatesTab from "./CandidatesTab";
 import JobInfo from "./JobInfo";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import Checklist from "./Checklist";
 
 const TabPanel = ({ children, value, index }) => {
   return value === index ? (
@@ -49,9 +50,9 @@ const JobDetail = () => {
     "DASHBOARD",
     "CANDIDATES",
     "JOBINFO",
-    "HIRING-SETUP",
-    "WORKFLOW-AUTOMATION",
-    "PUBLISH OPTIONS",
+    // "HIRING-SETUP",
+    // "WORKFLOW-AUTOMATION",
+    // "PUBLISH OPTIONS",
     "SURVEY RESPONSE",
     "ANALYTICS",
   ];
@@ -96,7 +97,7 @@ const JobDetail = () => {
 
           {/* Tab Content */}
           <TabPanel value={activeTab} index={0}>
-            <Typography><strong>Checklist</strong> content for job ID: {id}</Typography>
+            <Checklist/>
           </TabPanel>
 
           <TabPanel value={activeTab} index={1}>
@@ -111,17 +112,17 @@ const JobDetail = () => {
             <JobInfo />
           </TabPanel>
 
-          <TabPanel value={activeTab} index={4}>
+          {/* <TabPanel value={activeTab} index={4}>
             <Typography><strong>Hiring Setup</strong> content for job ID: {id}</Typography>
-          </TabPanel>
-
+          </TabPanel> */}
+{/* 
           <TabPanel value={activeTab} index={5}>
             <Typography><strong>Workflow Automation</strong> content for job ID: {id}</Typography>
           </TabPanel>
 
           <TabPanel value={activeTab} index={6}>
             <Typography><strong>Publish Options</strong> content for job ID: {id}</Typography>
-          </TabPanel>
+          </TabPanel> */}
 
           <TabPanel value={activeTab} index={7}>
             <Typography><strong>Survey Response</strong> content for job ID: {id}</Typography>

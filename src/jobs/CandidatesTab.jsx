@@ -886,7 +886,7 @@ import {
     createCandidate,
     updateCandidate,
     deleteCandidate,
-} from "../utils/api"; // Import the API functions
+} from "../utils/api";
 
 const CandidatesTab = () => {
     const [viewMode, setViewMode] = useState("card");
@@ -916,7 +916,92 @@ const CandidatesTab = () => {
         severity: "success"
     });
 
+    // Filter state
+    const [filters, setFilters] = useState({
+        source: '',
+        experience: '',
+        availableToJoin: '',
+        status: '',
+        searchQuery: ''
+    });
+
     const navigate = useNavigate();
+
+    // Fetch candidates from API
+    useEffect(() => {
+        const loadCandidates = async () => {
+            try {
+                setLoading(true);
+                const data = await fetchCandidates();
+                setCandidates(data);
+            } catch (err) {
+                setError(err.message);
+                showSnackbar(err.message, "error");
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadCandidates();
+    }, []);
+
+    // Filter candidates based on filter criteria
+    const getFilteredCandidates = () => {
+        return candidates.filter(candidate => {
+            // Source filter
+            if (filters.source && candidate.source !== filters.source) {
+                return false;
+            }
+            
+            // Experience filter
+            if (filters.experience) {
+                const [min, max] = filters.experience.split('-').map(Number);
+                const candidateExp = parseFloat(candidate.experience);
+                
+                if (filters.experience === '5+' && candidateExp < 5) {
+                    return false;
+                }
+                if (max && (candidateExp < min || candidateExp > max)) {
+                    return false;
+                }
+            }
+            
+            // Available to join filter
+            if (filters.availableToJoin && candidate.availableToJoin > parseInt(filters.availableToJoin)) {
+                return false;
+            }
+            
+            // Status filter
+            if (filters.status && candidate.stage.toLowerCase() !== filters.status.toLowerCase()) {
+                return false;
+            }
+            
+            // Search query filter
+            if (filters.searchQuery) {
+                const query = filters.searchQuery.toLowerCase();
+                const candidateText = [
+                    candidate.firstName,
+                    candidate.middleName,
+                    candidate.lastName,
+                    candidate.email,
+                    candidate.mobile,
+                    candidate.skills
+                ].join(' ').toLowerCase();
+                
+                if (!candidateText.includes(query)) {
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+    };
+
+    const handleFilterChange = (filterName) => (event) => {
+        setFilters({
+            ...filters,
+            [filterName]: event.target.value
+        });
+    };
 
     const handleAddRemarks = () => {
         handleCloseRemarksMenu();
@@ -949,23 +1034,6 @@ const CandidatesTab = () => {
         }
     };
 
-    // Fetch candidates from API
-    useEffect(() => {
-        const loadCandidates = async () => {
-            try {
-                setLoading(true);
-                const data = await fetchCandidates();
-                setCandidates(data);
-            } catch (err) {
-                setError(err.message);
-                showSnackbar(err.message, "error");
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadCandidates();
-    }, []);
-
     const showSnackbar = (message, severity = "success") => {
         setSnackbar({ open: true, message, severity });
     };
@@ -974,8 +1042,8 @@ const CandidatesTab = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 
-    // Calculate candidate stages count
-    const candidateStages = candidates.reduce((acc, candidate) => {
+    // Calculate candidate stages count for filtered candidates
+    const candidateStages = getFilteredCandidates().reduce((acc, candidate) => {
         const stage = candidate.stage.toLowerCase();
         acc[stage] = (acc[stage] || 0) + 1;
         return acc;
@@ -996,7 +1064,7 @@ const CandidatesTab = () => {
 
     const handleSelectAllCandidates = (event) => {
         if (event.target.checked) {
-            const allIds = candidates.map((c) => c._id);
+            const allIds = getFilteredCandidates().map((c) => c._id);
             setSelectedCandidates(allIds);
         } else {
             setSelectedCandidates([]);
@@ -1092,7 +1160,6 @@ const CandidatesTab = () => {
         try {
             const updatedCandidate = await updateCandidate(currentCandidate, {
                 stage: newStage,
-               
             });
     
             setCandidates(
@@ -1110,12 +1177,6 @@ const CandidatesTab = () => {
             showSnackbar(error.message, "error");
         }
     };
-    
-
-    // const handleAddRemarks = () => {
-    //     console.log(`Adding remarks for candidate ${currentCandidate}`);
-    //     handleCloseRemarksMenu();
-    // };
 
     const handleBulkAction = async (action) => {
         if (action === "delete") {
@@ -1169,6 +1230,7 @@ const CandidatesTab = () => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+            
             {/* Header */}
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                 <Typography variant="h5" sx={{ fontWeight: 600 }}>
@@ -1192,7 +1254,6 @@ const CandidatesTab = () => {
                         Add Candidate
                     </Button>
                 </Box>
-                
             </Box>
 
             {/* Add Candidate Dialog */}
@@ -1209,41 +1270,40 @@ const CandidatesTab = () => {
             />
 
             {/* Stages Summary */}
-            {/* Stages Summary */}
-    <Card sx={{ mb: 2, overflow: "hidden" }}>
-        <CardContent sx={{ p: 2 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, overflowX: "auto", py: 2 }}>
-                {Object.entries(candidateStages).map(([stage, count]) => (
-                    <Card
-                        key={stage}
-                        onClick={() => navigate(`/candidates/stage/${stage}`)}
-                        sx={{
-                            backgroundColor: "#f5f5f5",
-                            width: "150px",
-                            textAlign: "center",
-                            borderRadius: 2,
-                            p: 2,
-                            boxShadow: 2,
-                            flexShrink: 0,
-                            cursor: "pointer",
-                            transition: "transform 0.2s",
-                            ":hover": {
-                                transform: "translateY(-4px)",
-                                boxShadow: 4,
-                            }
-                        }}
-                    >
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                            {count}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            {stage.charAt(0).toUpperCase() + stage.slice(1)}
-                        </Typography>
-                    </Card>
-                ))}
-            </Box>
-        </CardContent>
-    </Card>
+            <Card sx={{ mb: 2, overflow: "hidden" }}>
+                <CardContent sx={{ p: 2 }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, overflowX: "auto", py: 2 }}>
+                        {Object.entries(candidateStages).map(([stage, count]) => (
+                            <Card
+                                key={stage}
+                                onClick={() => navigate(`/candidates/stage/${stage}`)}
+                                sx={{
+                                    backgroundColor: "#f5f5f5",
+                                    width: "150px",
+                                    textAlign: "center",
+                                    borderRadius: 2,
+                                    p: 2,
+                                    boxShadow: 2,
+                                    flexShrink: 0,
+                                    cursor: "pointer",
+                                    transition: "transform 0.2s",
+                                    ":hover": {
+                                        transform: "translateY(-4px)",
+                                        boxShadow: 4,
+                                    }
+                                }}
+                            >
+                                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                    {count}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    {stage.charAt(0).toUpperCase() + stage.slice(1)}
+                                </Typography>
+                            </Card>
+                        ))}
+                    </Box>
+                </CardContent>
+            </Card>
             
             {/* Filters */}
             <Card sx={{ mb: 2 }}>
@@ -1254,18 +1314,27 @@ const CandidatesTab = () => {
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                         <FormControl size="small" sx={{ minWidth: 180 }}>
                             <InputLabel>Source</InputLabel>
-                            <Select label="Source">
+                            <Select 
+                                label="Source"
+                                value={filters.source}
+                                onChange={handleFilterChange('source')}
+                            >
+                                <MenuItem value="">All Sources</MenuItem>
                                 <MenuItem value="linkedin">LinkedIn</MenuItem>
                                 <MenuItem value="referral">Referral</MenuItem>
                                 <MenuItem value="job-board">Job Board</MenuItem>
-                                <MenuItem value="job-board">Naukari</MenuItem>
-
+                                <MenuItem value="naukari">Naukari</MenuItem>
                             </Select>
                         </FormControl>
 
                         <FormControl size="small" sx={{ minWidth: 180 }}>
                             <InputLabel>Experience</InputLabel>
-                            <Select label="Experience">
+                            <Select 
+                                label="Experience"
+                                value={filters.experience}
+                                onChange={handleFilterChange('experience')}
+                            >
+                                <MenuItem value="">All Experience</MenuItem>
                                 <MenuItem value="0-2">0-2 years</MenuItem>
                                 <MenuItem value="3-5">3-5 years</MenuItem>
                                 <MenuItem value="5+">5+ years</MenuItem>
@@ -1274,8 +1343,13 @@ const CandidatesTab = () => {
 
                         <FormControl size="small" sx={{ minWidth: 250 }}>
                             <InputLabel>Available to join (In Days)</InputLabel>
-                            <Select label="Available to join(In Days)">
-                                <MenuItem value="15">Within 7 days</MenuItem>
+                            <Select 
+                                label="Available to join(In Days)"
+                                value={filters.availableToJoin}
+                                onChange={handleFilterChange('availableToJoin')}
+                            >
+                                <MenuItem value="">Any Availability</MenuItem>
+                                <MenuItem value="7">Within 7 days</MenuItem>
                                 <MenuItem value="15">Within 15 days</MenuItem>
                                 <MenuItem value="30">Within 30 days</MenuItem>
                                 <MenuItem value="60">Within 60 days</MenuItem>
@@ -1284,16 +1358,23 @@ const CandidatesTab = () => {
 
                         <FormControl size="small" sx={{ minWidth: 150 }}>
                             <InputLabel>Status</InputLabel>
-                            <Select label="Status">
-                                <MenuItem value="active">Rejected</MenuItem>
-                                <MenuItem value="active">On Hold</MenuItem>
-                                <MenuItem value="inactive">Closed Own</MenuItem>
+                            <Select 
+                                label="Status"
+                                value={filters.status}
+                                onChange={handleFilterChange('status')}
+                            >
+                                <MenuItem value="">All Statuses</MenuItem>
+                                <MenuItem value="rejected">Rejected</MenuItem>
+                                <MenuItem value="on-hold">On Hold</MenuItem>
+                                <MenuItem value="closed">Closed Own</MenuItem>
                             </Select>
                         </FormControl>
 
                         <TextField
                             size="small"
                             placeholder="Search candidates..."
+                            value={filters.searchQuery}
+                            onChange={handleFilterChange('searchQuery')}
                             sx={{ flexGrow: 1, maxWidth: 400 }}
                             InputProps={{
                                 endAdornment: (
@@ -1320,12 +1401,7 @@ const CandidatesTab = () => {
                         >
                             <MenuItem value="email">Send email</MenuItem>
                             <MenuItem value="delete">Delete</MenuItem>
-                            <MenuItem value="move-to-sourced">Move to Sourced</MenuItem>
-                            <MenuItem value="move-to-screening">Move to Screening</MenuItem>
-                            <MenuItem value="move-to-interview">Move to Interview</MenuItem>
-                            <MenuItem value="move-to-preboarding">Move to Preboarding</MenuItem>
-                            <MenuItem value="move-to-hired">Move to Hired</MenuItem>
-                            <MenuItem value="move-to-archived">Move to Archived</MenuItem>
+                            <MenuItem value="move-to-sourced" >Move to another Stage</MenuItem>
                         </Select>
                     </FormControl>
                 </Box>
@@ -1460,28 +1536,27 @@ const CandidatesTab = () => {
                         padding: 3,
                     }}
                 >
-                    {candidates.map((candidate) => (
+                    {getFilteredCandidates().map((candidate) => (
                         <Card
-                        key={candidate._id}
-                        sx={{
-                            borderRadius: 3,
-                            boxShadow: 6,
-                            transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                            ":hover": {
-                                transform: "translateY(-8px)",
-                                boxShadow: 12,
-                            },
-                            display: "flex",
-                            flexDirection: "column",
-                            height: "100%",
-                            bgcolor: "background.paper",
-                        }}
-                        onClick={() => handleOpenDetails(candidate)}
-                    >
+                            key={candidate._id}
+                            sx={{
+                                borderRadius: 3,
+                                boxShadow: 6,
+                                transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                                ":hover": {
+                                    transform: "translateY(-8px)",
+                                    boxShadow: 12,
+                                },
+                                display: "flex",
+                                flexDirection: "column",
+                                height: "100%",
+                                bgcolor: "background.paper",
+                            }}
+                            onClick={() => handleOpenDetails(candidate)}
+                        >
                             <CardContent
                                 sx={{ display: "flex", flexDirection: "column", gap: 3, padding: 3 }}
                                 onClick={(e) => {
-                                    // Only open details if the click wasn't on an action button
                                     if (!e.target.closest('.action-button')) {
                                         handleOpenDetails(candidate);
                                     }
@@ -1492,7 +1567,7 @@ const CandidatesTab = () => {
                                     <Checkbox
                                         checked={selectedCandidates.includes(candidate._id)}
                                         onChange={(e) => {
-                                            e.stopPropagation(); // Prevent card click
+                                            e.stopPropagation();
                                             handleSelectCandidate(candidate._id);
                                         }}
                                         color="primary"
@@ -1521,7 +1596,7 @@ const CandidatesTab = () => {
                                         className="action-button"
                                         sx={{ color: "text.secondary" }}
                                         onClick={(e) => {
-                                            e.stopPropagation(); // Prevent card click
+                                            e.stopPropagation();
                                             handleRemarksClick(e, candidate._id);
                                         }}
                                     >
@@ -1564,12 +1639,12 @@ const CandidatesTab = () => {
                                 {/* Action Buttons */}
                                 <Box
                                     sx={{ display: "flex", justifyContent: "space-between", marginTop: 3 }}
-                                    onClick={(e) => e.stopPropagation()} // Prevent card click for the entire button container
+                                    onClick={(e) => e.stopPropagation()}
                                 >
                                     <IconButton
                                         className="action-button"
                                         onClick={(e) => {
-                                            e.stopPropagation(); // Prevent card click
+                                            e.stopPropagation();
                                             handleInterviewClick(e, candidate._id);
                                         }}
                                         sx={{
@@ -1586,7 +1661,7 @@ const CandidatesTab = () => {
                                     <IconButton
                                         className="action-button"
                                         onClick={(e) => {
-                                            e.stopPropagation(); // Prevent card click
+                                            e.stopPropagation();
                                             handleStageClick(e, candidate._id);
                                         }}
                                         sx={{
@@ -1613,7 +1688,7 @@ const CandidatesTab = () => {
                                 <TableCell padding="checkbox">
                                     <Checkbox
                                         onChange={handleSelectAllCandidates}
-                                        checked={selectedCandidates.length === candidates.length}
+                                        checked={selectedCandidates.length === getFilteredCandidates().length}
                                         sx={{ color: '#3f51b5' }}
                                     />
                                 </TableCell>
@@ -1644,7 +1719,7 @@ const CandidatesTab = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {candidates.map((candidate) => (
+                            {getFilteredCandidates().map((candidate) => (
                                 <TableRow
                                     key={candidate._id}
                                     hover

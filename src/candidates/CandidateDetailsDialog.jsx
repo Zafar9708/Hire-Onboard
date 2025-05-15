@@ -627,7 +627,18 @@ const CandidateDetailsPage = () => {
                       <List dense>
                         <ListItem>
                           <ListItemIcon><DateIcon color="primary" /></ListItemIcon>
-                          <ListItemText primary="Date of Birth" secondary={candidate.dob || 'Not specified'} />
+                          <ListItemText
+                            primary="Date of Birth"
+                            secondary={
+                              candidate.dob
+                                ? new Date(candidate.dob).toLocaleDateString(undefined, {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })
+                                : 'Not specified'
+                            }
+                          />
                         </ListItem>
                         <ListItem>
                           <ListItemIcon><LocationIcon color="primary" /></ListItemIcon>
@@ -639,7 +650,7 @@ const CandidateDetailsPage = () => {
                       <List dense>
                         <ListItem>
                           <ListItemIcon><NoticePeriodIcon color="primary" /></ListItemIcon>
-                          <ListItemText primary="Notice Period" secondary={`${candidate.noticePeriod} days`} />
+                          <ListItemText primary="Notice Period" secondary={`${candidate.availableToJoin} days`} />
                         </ListItem>
                         <ListItem>
                           <ListItemIcon><SalaryIcon color="primary" /></ListItemIcon>
@@ -672,6 +683,7 @@ const CandidateDetailsPage = () => {
                 </CardContent>
               </GlassCard>
             </Box>
+
           )}
 
           {tabValue === 1 && (
@@ -683,7 +695,7 @@ const CandidateDetailsPage = () => {
                     Download
                   </Button>
                 </Box>
-                
+
                 <ResumeViewer>
                   <ResumeToolbar>
                     <Box sx={{ display: 'flex', gap: 1 }}>
@@ -700,14 +712,14 @@ const CandidateDetailsPage = () => {
                     <Typography variant="h6" color="text.secondary" gutterBottom>
                       {candidate.currentJobTitle} | {candidate.currentCompany}
                     </Typography>
-                    
+
                     <Box sx={{ my: 3 }}>
                       <Typography variant="h5" gutterBottom>Professional Summary</Typography>
                       <Typography variant="body1">
                         {candidate.summary || "Experienced professional with expertise in relevant technologies..."}
                       </Typography>
                     </Box>
-                    
+
                     <Box sx={{ my: 3 }}>
                       <Typography variant="h5" gutterBottom>Work Experience</Typography>
                       {candidate.experienceHistory?.map((exp, i) => (

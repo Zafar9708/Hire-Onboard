@@ -1,131 +1,13 @@
 
-// import React, { useEffect, useState } from "react";
-// import { Box, Tabs, Tab, Button, Typography } from "@mui/material";
-// import { useNavigate } from "react-router-dom";
-// import Sidebar from "./Sidebar";
-// import Header from "./Header";
-// import JobCard from "../jobs/JobCard";
-
-// const Dashboard = () => {
-//     const navigate = useNavigate();
-
-//     // States to store user details from localStorage
-//     const [userName, setUserName] = useState(localStorage.getItem("user_name") || "Loading...");
-//     const [userEmail, setUserEmail] = useState(localStorage.getItem("user_email") || "Loading...");
-//     const [selectedTab, setSelectedTab] = useState(0);
-//     const [subTab, setSubTab] = useState(0); // State for sub-tabs under HOME
-
-//     useEffect(() => {
-//         // Check if user is logged in, if not, redirect to login
-//         if (!localStorage.getItem("access_token")) {
-//             navigate("/login");
-//         }
-//     }, [navigate]);
-
-//     // Extract initials from user name
-//     const getInitials = (name) => {
-//         const nameParts = name.split(" ");
-//         const initials = nameParts.map(part => part[0].toUpperCase()).join("");
-//         return initials;
-//     };
-
-//     // Handle tab change
-//     const handleTabChange = (event, newValue) => {
-//         setSelectedTab(newValue);
-//     };
-
-//     // Handle sub-tab change under HOME
-//     const handleSubTabChange = (newValue) => {
-//         setSubTab(newValue);
-//     };
-
-//     return (
-//         <div className="flex min-h-screen">
-//             {/* Sidebar */}
-//             <Sidebar />
-
-//             {/* Main Content */}
-//             <Box className="flex-1 p-0 mr-2 bg-gray-100">
-//                 {/* Header Section */}
-//                 <Header userName={userName} getInitials={getInitials} />
-
-//                 {/* Tabs for Navigation */}
-//                 <Box className="mb-6">
-//                     <Tabs value={selectedTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto" className="shadow-md">
-//                         <Tab label="HOME" />
-//                         <Tab label="JOBS" />
-//                         <Tab label="CANDIDATES" />
-//                         <Tab label="PREONBOARDING" />
-//                         <Tab label="REPORTS" />
-//                         <Tab label="CAREERSITE" />
-//                         <Tab label="APPS" />
-//                         <Tab label="SETTINGS" />
-//                     </Tabs>
-//                 </Box>
-
-//                 {/* Conditionally render content based on selected tab */}
-//                 <Box className="p-4">
-//                     {selectedTab === 0 && (
-//                         <div>
-//                             {/* HOME Tab Content */}
-//                             <div className="flex space-x-4 mb-6">
-//                                 {/* Sub-tabs under HOME */}
-//                                 <Button
-//                                     onClick={() => handleSubTabChange(0)}
-//                                     className={`text-blue-500 ${subTab === 0 ? "font-bold" : ""}`}
-//                                 >
-//                                     Dashboard
-//                                 </Button>
-//                                 <Button
-//                                     onClick={() => handleSubTabChange(1)}
-//                                     className={`text-blue-500 ${subTab === 1 ? "font-bold" : ""}`}
-//                                 >
-//                                     Insights
-//                                 </Button>
-//                                 <Button
-//                                     onClick={() => handleSubTabChange(2)}
-//                                     className={`text-blue-500 ${subTab === 2 ? "font-bold" : ""}`}
-//                                 >
-//                                     Interviews
-//                                 </Button>
-//                                 <Button
-//                                     onClick={() => handleSubTabChange(3)}
-//                                     className={`text-blue-500 ${subTab === 3 ? "font-bold" : ""}`}
-//                                 >
-//                                     Product Updates
-//                                 </Button>
-//                             </div>
-
-//                             {/* Content based on selected sub-tab under HOME */}
-//                             {subTab === 0 && (
-//                                 <div>
-//                                     <Typography variant="h6" className="text-gray-800">Dashboard Content</Typography>
-//                                     <Typography className="text-gray-600 mt-2">This is your dashboard where you can monitor various metrics and activities.</Typography>
-//                                 </div>
-//                             )}
-//                             {/* Additional sub-tab content */}
-//                         </div>
-//                     )}
-
-//                     {selectedTab === 1 && <JobCard />}
-//                     {/* Add content for other tabs as needed */}
-//                 </Box>
-//             </Box>
-//         </div>
-//     );
-// };
-
-// export default Dashboard;
-
-
-//-----------------------------
-
 import React, { useEffect, useState } from "react";
 import { Box, Tabs, Tab, Button, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import JobCard from "../jobs/JobCard";
+import SettingsPanel from "../SidebarMenu/Settings";
+import Reports from "../SidebarMenu/Reports";
+import Task from "./Task";
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -239,16 +121,7 @@ const Dashboard = () => {
                                         p: 3,
                                         boxShadow: 1
                                     }}>
-                                        <Typography variant="h6" sx={{ 
-                                            color: 'text.primary',
-                                            mb: 2
-                                        }}>
-                                            Dashboard Overview
-                                        </Typography>
-                                        <Typography>
-                                            Your dashboard content goes here. All content will be properly aligned 
-                                            within the container with consistent spacing and width.
-                                        </Typography>
+                                        <Task/>
                                     </Box>
                                 )}
                             </Box>
@@ -261,6 +134,26 @@ const Dashboard = () => {
                                 overflow: 'hidden'
                             }}>
                                 <JobCard />
+                            </Box>
+                        )}
+                        {selectedTab === 4 && (
+                            <Box sx={{
+                                mr:120,
+                                width: '100%',
+                                maxWidth: '100%',
+                                overflow: 'hidden'
+                            }}>
+                                <Reports />
+                            </Box>
+                        )}
+
+                          {selectedTab === 7 && (
+                            <Box sx={{
+                                width: '100%',
+                                maxWidth: '100%',
+                                overflow: 'hidden'
+                            }}>
+                                <SettingsPanel />
                             </Box>
                         )}
                     </Box>

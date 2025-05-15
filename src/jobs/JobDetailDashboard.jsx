@@ -1,383 +1,1030 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import axios from "axios";
 
-import { Box, Typography, Card, CardContent, Divider, Button, TextField, Avatar, Stack, IconButton } from "@mui/material";
-import { AccessTime as TimeIcon, HowToReg as OfferIcon, WorkOutline as PositionIcon, People as CandidateIcon, RateReview as ReviewIcon, Description as JobDescIcon, NoteAdd as NoteIcon, ChevronRight as ArrowIcon, Add as AddIcon, Close as CloseIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { 
+  Box, Typography, Card, CardContent, Divider, Button, 
+  TextField, Avatar, Stack, IconButton, Paper, LinearProgress, 
+  Chip, useTheme, styled, alpha, CircularProgress
+} from "@mui/material";
+import {
+  AccessTime as TimeIcon,
+  RecordVoiceOver as InterviewIcon,
+  HowToReg as OfferIcon,
+  WorkOutline as PositionIcon,
+  People as CandidateIcon,
+  RateReview as ReviewIcon,
+  Description as JobDescIcon,
+  NoteAdd as NoteIcon,
+  ChevronRight as ArrowIcon,
+  Add as AddIcon,
+  Close as CloseIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  CalendarToday as CalendarIcon,
+  CheckCircle as CheckCircleIcon,
+  Group as GroupIcon,
+  Timeline as TimelineIcon,
+  BarChart as BarChartIcon,
+  Assignment as AssignmentIcon,
+  Search as SearchIcon,
+  Notifications as NotificationsIcon,
+  AccountCircle as AccountIcon,
+  MoreVert as MoreIcon
+} from "@mui/icons-material";
+
+// Custom styled components
+const GlassCard = styled(Card)(({ theme }) => ({
+  background: alpha(theme.palette.background.paper, 0.85),
+  backdropFilter: 'blur(12px)',
+  borderRadius: '16px',
+  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+  boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.1)}`,
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: `0 12px 40px ${alpha(theme.palette.common.black, 0.15)}`,
+    borderColor: alpha(theme.palette.primary.main, 0.3)
+  }
+}));
+
+const GradientButton = styled(Button)(({ theme }) => ({
+  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+  color: theme.palette.common.white,
+  fontWeight: 600,
+  textTransform: 'none',
+  padding: '8px 20px',
+  borderRadius: '12px',
+  boxShadow: 'none',
+  '&:hover': {
+    background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`,
+    boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`
+  }
+}));
 
 const Dashboard = () => {
-    const [notes, setNotes] = useState([]);
-    const [newNote, setNewNote] = useState("");
-    const [showNoteForm, setShowNoteForm] = useState(false);
-    const {id: jobId } = useParams(); // 👈 get the job ID from URL
-    const [job, setJob] = useState(null);
+  const [notes, setNotes] = useState([]);
+  const [newNote, setNewNote] = useState("");
+  const [showNoteForm, setShowNoteForm] = useState(false);
+  const { id: jobId } = useParams();
+  const [job, setJob] = useState(null);
+  const [interviews, setInterviews] = useState({ 
+    online: 0,
+    offline: 0,
+    upcoming: 0,
+    upcomingInterviews: [] 
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const theme = useTheme();
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchJobById = async () => {
-            try {
-                const response = await axios.get(`http://localhost:5000/api/jobs/byId/${jobId}`);
-                console.log(response.data); 
-                setJob(response.data.job);
-            } catch (error) {
-                console.error("Error fetching job:", error);
-            }
-        };
-
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
         if (jobId) {
-            fetchJobById();
+          const jobResponse = await axios.get(`http://localhost:5000/api/jobs/byId/${jobId}`);
+          setJob(jobResponse.data.job);
         }
-    }, [jobId]);
+
+        const [onlineInterviewsRes, offlineInterviewsRes, upcomingInterviewsRes] = await Promise.all([
+            axios.get('http://localhost:5000/api/interviews/schedule'),
+            axios.get('http://localhost:5000/api/offline-interviews/get'),
+            axios.get('http://localhost:5000/api/interviews/upcoming')
+          ]);
+          
+          // Count offline interviews from the array
+          const offlineInterviewsCount = offlineInterviewsRes.data.data ? offlineInterviewsRes.data.data.length : 0;
+          
+          setInterviews({
+            online: onlineInterviewsRes.data.count || 0,
+            offline: offlineInterviewsCount, // Use the counted value
+            upcoming: upcomingInterviewsRes.data.count || 0,
+            upcomingInterviews: upcomingInterviewsRes.data.data || []
+          });
 
 
-    // Mock data - replace with real data
-    const stats = {
-        upcomingInterviews: 3,
-        timeToHire: "15 days",
-        targetHireDate: "2023-12-15",
-        offerAcceptanceRate: "78%",
-        offeredPositions: 12,
-        openPositions: 18,
-        pipeline: {
-            sourced: 24,
-            screening: 18,
-            interviews: 12,
-            preboarding: 6,
-            hired: 15,
-            archived: 9,
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to load data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [jobId]);
+
+  // Calculate total interviews safely
+const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
+
+  // Stats data with NaN protection
+  const stats = {
+    upcomingInterviews: interviews.upcoming || 0,
+  totalInterviews: totalInterviews,
+  onlineInterviews: interviews.online || 0,
+  offlineInterviews: interviews.offline || 0,
+    targetHireDate: "2023-12-15",
+    offerAcceptanceRate: "78%",
+    offeredPositions: 12,
+    openPositions: 18,
+    pipeline: {
+      sourced: 24,
+      screening: 18,
+      interviews: totalInterviews,
+      preboarding: 6,
+      hired: 15,
+      archived: 9,
+    },
+    pendingReview: {
+      sourced: 5,
+      screening: 3,
+      interviews: 2,
+    },
+  };
+
+  // Safe pipeline stages calculation
+  const pipelineStages = Object.entries(stats.pipeline).map(([stage, count]) => {
+    const maxValue = Math.max(...Object.values(stats.pipeline).filter(Number.isFinite));
+    const percentage = maxValue > 0 ? Math.round((count / maxValue) * 100) : 0;
+    return {
+      stage,
+      count: count || 0,
+      percentage
+    };
+  });
+
+  const handleAddNote = () => {
+    if (newNote.trim()) {
+      setNotes([
+        ...notes,
+        {
+          id: Date.now(),
+          content: newNote,
+          date: new Date().toLocaleDateString(),
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          author: "You",
         },
-        pendingReview: {
-            sourced: 5,
-            screening: 3,
-            interviews: 2,
-        },
-    };
+      ]);
+      setNewNote("");
+      setShowNoteForm(false);
+    }
+  };
 
+  const handleDeleteNote = (id) => {
+    setNotes(notes.filter(note => note.id !== id));
+  };
 
-
-    const handleAddNote = () => {
-        if (newNote.trim()) {
-            setNotes([
-                ...notes,
-                {
-                    id: Date.now(),
-                    content: newNote,
-                    date: new Date().toLocaleDateString(),
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                },
-            ]);
-            setNewNote("");
-            setShowNoteForm(false);
-        }
-    };
-
-    const handleDeleteNote = (id) => {
-        setNotes(notes.filter(note => note.id !== id));
-    };
-
+  if (loading) {
     return (
-        <Box
-            sx={{
-                display: "flex",
-                flexDirection: { xs: "column", lg: "row" },
-                gap: 2,
-                p: 0,
-                height: "100vh",
-                overflow: "hidden",
-            }}
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        background: alpha(theme.palette.background.default, 0.8),
+        backdropFilter: 'blur(8px)'
+      }}>
+        <CircularProgress size={60} thickness={4} />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        flexDirection: 'column',
+        gap: 3,
+        textAlign: 'center',
+        p: 3
+      }}>
+        <Typography variant="h5" color="error" sx={{ fontWeight: 600 }}>
+          {error}
+        </Typography>
+        <Button 
+          variant="contained" 
+          color="primary"
+          onClick={() => window.location.reload()}
+          sx={{ borderRadius: 2, px: 4, py: 1.5 }}
         >
-            {/* Main Content - 70% width */}
-            <Box sx={{ flex: { xs: 1, lg: 7 }, display: "flex", flexDirection: "column", gap: 2 }}>
-                {/* Stats Cards - Compact Grid */}
-                <Box
-                    sx={{
-                        display: "grid",
-                        gridTemplateColumns: {
-                            xs: "1fr",
-                            sm: "repeat(2, 1fr)",
-                            md: "repeat(4, 1fr)",
-                        },
-                        gap: 2,
-                    }}
-                >
-                    {[
-                        {
-                            title: "Upcoming Interviews",
-                            value: stats.upcomingInterviews,
-                            icon: <TimeIcon color="primary" />
-                        },
-                        {
-                            title: "Time to Hire",
-                            value: stats.timeToHire,
-                            subtitle: `Target: ${stats.targetHireDate}`,
-                            icon: <TimeIcon color="primary" />
-                        },
-                        {
-                            title: "Offer Acceptance Rate",
-                            value: stats.offerAcceptanceRate,
-                            icon: <OfferIcon color="primary" />
-                        },
-                        {
-                            
-                            title: "Offered/Open",
-                            value: `${stats.offeredPositions}/${stats.openPositions}`,
-                            icon: <PositionIcon color="primary" />
-                        },
-                    ].map((stat, index) => (
-                        <Card key={index} sx={{ minHeight: 120 }}>
-                            <CardContent sx={{ p: 2 }}>
-                                <Typography variant="body2" color="text.secondary" gutterBottom>
-                                    {stat.title}
-                                </Typography>
-                                <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                                    {stat.value}
-                                </Typography>
-                                {stat.subtitle && (
-                                    <Typography variant="caption" color="text.secondary">
-                                        {stat.subtitle}
-                                    </Typography>
-                                )}
-                                <Box sx={{ position: 'absolute', right: 16, bottom: 16, opacity: 0.2 }}>
-                                    {stat.icon}
-                                </Box>
-                            </CardContent>
-                        </Card>
-                    ))}
+          Retry
+        </Button>
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        backgroundColor: theme.palette.grey[50],
+        p: 0,
+        overflow: 'hidden'
+      }}
+    >
+      {/* App Bar */}
+      <Paper elevation={0} sx={{
+        p: 2,
+        borderRadius: 0,
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        background: alpha(theme.palette.background.paper, 0.8),
+        backdropFilter: 'blur(12px)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
+          RecruitPro
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <IconButton>
+            <SearchIcon />
+          </IconButton>
+          <IconButton>
+            <NotificationsIcon />
+          </IconButton>
+          <Avatar sx={{ width: 36, height: 36, bgcolor: theme.palette.secondary.main }}>
+            <AccountIcon />
+          </Avatar>
+        </Box>
+      </Paper>
+
+      {/* Main Content */}
+      <Box sx={{
+        display: "flex",
+        flexDirection: { xs: "column", lg: "row" },
+        gap: 3,
+        p: 3,
+        flex: 1,
+        overflow: 'auto'
+      }}>
+        {/* Left Content - 70% */}
+        <Box sx={{ 
+          flex: { xs: 1, lg: 7 }, 
+          display: "flex", 
+          flexDirection: "column", 
+          gap: 3 
+        }}>
+          {/* Header */}
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+              Hiring Dashboard
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {job?.jobTitle || "Loading position..."} • {job?.department || "Department"}
+            </Typography>
+          </Box>
+
+          {/* Stats Grid */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(4, 1fr)",
+              },
+              gap: 3,
+            }}
+          >
+            {[
+             {
+                title: "Total Interviews",
+                value: stats.totalInterviews,
+                subtitle: `${stats.onlineInterviews} online • ${stats.offlineInterviews} offline`,
+                icon: <InterviewIcon />,
+                color: theme.palette.warning.main,
+                trend: totalInterviews > 0 ? "up" : "neutral",
+                change: totalInterviews > 0 ? `+${totalInterviews}` : null,
+                onClick: () => navigate('/interviews/all')
+              },,
+              {
+                title: "Upcoming Interviews",
+                value: stats.upcomingInterviews,
+                icon: <TimeIcon />,
+                color: theme.palette.warning.main,
+                trend: interviews.upcoming > 0 ? "up" : "neutral",
+                change: interviews.upcoming > 0 ? `+${interviews.upcoming}` : null,
+                onClick: () => navigate('/interviews/upcoming')
+              },
+              {
+                title: "Acceptance Rate",
+                value: stats.offerAcceptanceRate,
+                icon: <CheckCircleIcon />,
+                color: theme.palette.success.main,
+                trend: "up",
+                change: "+5%"
+              },
+              {
+                title: "Positions",
+                value: `${stats.offeredPositions}/${stats.openPositions}`,
+                icon: <GroupIcon />,
+                color: theme.palette.primary.main,
+                trend: "neutral"
+              },
+            ].map((stat, index) => (
+              <GlassCard 
+                key={index} 
+                onClick={stat.onClick || undefined}
+                sx={{ 
+                  cursor: stat.onClick ? 'pointer' : 'default',
+                  '&:hover': {
+                    transform: stat.onClick ? 'translateY(-4px)' : 'none',
+                    boxShadow: stat.onClick ? `0 12px 40px ${alpha(theme.palette.common.black, 0.15)}` : 'none',
+                    borderColor: stat.onClick ? alpha(theme.palette.primary.main, 0.3) : 'none'
+                  }
+                }}
+              >
+                <CardContent sx={{ p: 2.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                      {stat.title}
+                    </Typography>
+                    {stat.change && (
+                      <Chip 
+                        label={stat.change} 
+                        size="small" 
+                        sx={{ 
+                          height: 20,
+                          fontSize: '0.65rem',
+                          bgcolor: stat.trend === 'up' ? `${theme.palette.success.light}80` : 
+                                  stat.trend === 'down' ? `${theme.palette.error.light}80` : 
+                                  `${theme.palette.grey[300]}80`,
+                          color: stat.trend === 'up' ? theme.palette.success.dark : 
+                                stat.trend === 'down' ? theme.palette.error.dark : 
+                                theme.palette.text.secondary
+                        }} 
+                      />
+                    )}
+                  </Box>
+                  <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
+                    {stat.value}
+                  </Typography>
+                  {stat.subtitle && (
+                    <Typography variant="caption" color="text.secondary">
+                      {stat.subtitle}
+                    </Typography>
+                  )}
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'flex-end',
+                    mt: 1
+                  }}>
+                    <Avatar sx={{ 
+                      bgcolor: `${stat.color}20`, 
+                      color: stat.color,
+                      width: 36,
+                      height: 36
+                    }}>
+                      {stat.icon}
+                    </Avatar>
+                  </Box>
+                </CardContent>
+              </GlassCard>
+            ))}
+          </Box>
+
+          {/* Upcoming Interviews List */}
+          {interviews.upcoming > 0 && (
+            <GlassCard>
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ 
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 3
+                }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    <CalendarIcon sx={{ mr: 1.5, color: theme.palette.primary.main }} /> 
+                    Upcoming Interviews
+                  </Typography>
+                  <GradientButton 
+                    size="small" 
+                    endIcon={<ArrowIcon />}
+                    onClick={() => navigate('/interviews/upcoming')}
+                  >
+                    View All
+                  </GradientButton>
                 </Box>
 
-                {/* Candidate Pipeline */}
-                <Card>
-                    <CardContent sx={{ p: 2 }}>
-                        <Box
-                            sx={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                mb: 1,
-                            }}
-                        >
-                            <Typography variant="subtitle1" sx={{ display: "flex", alignItems: "center", fontWeight: 600 }}>
-                                <CandidateIcon sx={{ mr: 1, fontSize: 20 }} /> Candidate Pipeline
-                            </Typography>
-                            <Button size="small" endIcon={<ArrowIcon />}>View all</Button>
-                        </Box>
-
-                        <Box
-                            sx={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                textAlign: "center",
-                                gap: 1,
-                            }}
-                        >
-                            {Object.entries(stats.pipeline).map(([stage, count]) => (
-                                <Box key={stage} sx={{ p: 1 }}>
-                                    <Typography variant="h6" sx={{ fontWeight: 600 }}>{count}</Typography>
-                                    <Typography variant="caption" color="text.secondary">
-                                        {stage.charAt(0).toUpperCase() + stage.slice(1)}
-                                    </Typography>
-                                </Box>
-                            ))}
-                        </Box>
-                    </CardContent>
-                </Card>
-
-                {/* Pending Review */}
-                <Card>
-                    <CardContent sx={{ p: 2 }}>
-                        <Typography variant="subtitle1" sx={{ display: "flex", alignItems: "center", mb: 1, fontWeight: 600 }}>
-                            <ReviewIcon sx={{ mr: 1, fontSize: 20 }} /> Pending Review
+                <Stack spacing={2}>
+                  {interviews.upcomingInterviews.slice(0, 3).map((interview) => (
+                    <Paper 
+                      key={interview._id}
+                      elevation={0}
+                      sx={{ 
+                        p: 2.5,
+                        borderRadius: 2,
+                        background: alpha(theme.palette.background.paper, 0.7),
+                        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
+                          borderColor: alpha(theme.palette.primary.main, 0.3)
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                          {interview.candidate?.name || 'No name'}
                         </Typography>
+                        <Chip 
+                          label={interview.status || 'scheduled'} 
+                          size="small" 
+                          sx={{ 
+                            fontWeight: 600,
+                            bgcolor: interview.status === 'scheduled' ? 
+                                    `${theme.palette.info.light}30` : 
+                                    `${theme.palette.success.light}30`,
+                            color: interview.status === 'scheduled' ? 
+                                  theme.palette.info.dark : 
+                                  theme.palette.success.dark
+                          }} 
+                        />
+                      </Box>
 
-                        <Box
-                            sx={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                textAlign: "center",
-                                gap: 1,
-                            }}
-                        >
-                            {Object.entries(stats.pendingReview).map(([stage, count]) => (
-                                <Box key={stage} sx={{ p: 1 }}>
-                                    <Typography variant="h6" sx={{ fontWeight: 600 }}>{count}</Typography>
-                                    <Typography variant="caption" color="text.secondary">
-                                        {stage.charAt(0).toUpperCase() + stage.slice(1)}
-                                    </Typography>
-                                </Box>
-                            ))}
+                      <Box sx={{ display: 'flex', gap: 2, mb: 1.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <CalendarIcon fontSize="small" sx={{ 
+                            mr: 1, 
+                            color: theme.palette.text.secondary 
+                          }} />
+                          <Typography variant="body2">
+                            {interview.date ? new Date(interview.date).toLocaleDateString() : 'No date'}
+                          </Typography>
                         </Box>
-                    </CardContent>
-                </Card>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <TimeIcon fontSize="small" sx={{ 
+                            mr: 1, 
+                            color: theme.palette.text.secondary 
+                          }} />
+                          <Typography variant="body2">
+                            {interview.startTime || 'No time'} ({interview.timezone || 'UTC'})
+                          </Typography>
+                        </Box>
+                      </Box>
 
-                {/* Job Descriptions */}
-                <Card
-                    elevation={3}
-                    sx={{
-                        borderRadius: 3,
-                        mb: 3,
-                        backgroundColor: "#fafafa",
-                    }}
-                >
-                    <CardContent sx={{ p: 3 }}>
-                        <Typography
-                            variant="h6"
-                            sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                mb: 2,
-                                fontWeight: 600,
-                                color: "#333",
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
+                        {interview.interviewers?.map((interviewer) => (
+                          <Chip
+                            key={interviewer._id}
+                            avatar={<Avatar alt={interviewer.name} sx={{ width: 24, height: 24 }}>
+                              {interviewer.name?.charAt(0) || '?'}
+                            </Avatar>}
+                            label={interviewer.name || 'Interviewer'}
+                            size="small"
+                            sx={{ 
+                              borderRadius: 1,
+                              background: alpha(theme.palette.primary.light, 0.1)
                             }}
+                          />
+                        ))}
+                      </Box>
+
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          endIcon={<ArrowIcon />}
+                          sx={{ 
+                            textTransform: 'none',
+                            borderRadius: 2,
+                            px: 2,
+                            py: 0.5
+                          }}
+                          onClick={() => navigate(`/interviews/${interview._id}`)}
                         >
-                            <JobDescIcon sx={{ mr: 1, fontSize: 22, color: "primary.main" }} />
-                            Job Descriptions
+                          Details
+                        </Button>
+                      </Box>
+                    </Paper>
+                  ))}
+                </Stack>
+              </CardContent>
+            </GlassCard>
+          )}
+
+          {/* Pipeline Visualization */}
+          <GlassCard>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ 
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 3
+              }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  <BarChartIcon sx={{ mr: 1.5, color: theme.palette.primary.main }} /> 
+                  Candidate Pipeline
+                </Typography>
+                <GradientButton size="small" endIcon={<ArrowIcon />}>
+                  View Details
+                </GradientButton>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={60} 
+                  sx={{ 
+                    height: 6, 
+                    borderRadius: 3,
+                    mb: 4,
+                    background: alpha(theme.palette.grey[300], 0.5),
+                    '& .MuiLinearProgress-bar': {
+                      background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                      borderRadius: 3
+                    }
+                  }} 
+                />
+                
+                <Box sx={{ 
+                  display: "flex",
+                  justifyContent: "space-between",
+                  textAlign: "center",
+                  gap: 2,
+                }}>
+                  {pipelineStages.map(({ stage, count, percentage }) => (
+                    <Box key={stage} sx={{ flex: 1 }}>
+                      <Box sx={{ 
+                        height: 120,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-end',
+                        mb: 1,
+                        position: 'relative'
+                      }}>
+                        <Box sx={{ 
+                          height: `${percentage}%`,
+                          background: `linear-gradient(to top, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                          borderRadius: '6px 6px 0 0',
+                          transition: 'height 0.5s ease',
+                          position: 'relative',
+                          '&:after': {
+                            content: '""',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: '100%',
+                            background: 'linear-gradient(to top, rgba(255,255,255,0.3), transparent)',
+                            borderRadius: '6px 6px 0 0'
+                          }
+                        }}>
+                          <Typography 
+                            variant="caption" 
+                            sx={{
+                              position: 'absolute',
+                              top: -24,
+                              left: 0,
+                              right: 0,
+                              textAlign: 'center',
+                              color: theme.palette.text.primary,
+                              fontWeight: 700,
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            {count}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Typography variant="caption" sx={{ 
+                        fontWeight: 600,
+                        color: theme.palette.text.secondary,
+                        textTransform: 'capitalize',
+                        fontSize: '0.75rem'
+                      }}>
+                        {stage}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </CardContent>
+          </GlassCard>
+
+          {/* Bottom Row */}
+          <Box sx={{ 
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: 3
+          }}>
+            {/* Pending Review */}
+            <GlassCard sx={{ flex: 1 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
+                  <ReviewIcon sx={{ mr: 1.5, color: theme.palette.warning.main }} /> 
+                  Pending Review
+                </Typography>
+
+                <Box sx={{ 
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(3, 1fr)",
+                  },
+                  gap: 2,
+                }}>
+                  {Object.entries(stats.pendingReview).map(([stage, count]) => (
+                    <Paper 
+                      key={stage} 
+                      elevation={0}
+                      sx={{ 
+                        p: 2,
+                        borderRadius: 2,
+                        background: alpha(theme.palette.background.paper, 0.7),
+                        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
+                          borderColor: alpha(theme.palette.primary.main, 0.3)
+                        }
+                      }}
+                    >
+                      <Typography variant="h3" sx={{ 
+                        fontWeight: 800,
+                        color: count > 0 ? theme.palette.error.main : theme.palette.success.main,
+                        mb: 1
+                      }}>
+                        {count}
+                      </Typography>
+                      <Typography variant="body2" sx={{ 
+                        color: theme.palette.text.secondary,
+                        textTransform: 'capitalize',
+                        mb: 1.5
+                      }}>
+                        {stage.replace(/([A-Z])/g, ' $1')}
+                      </Typography>
+                      <Button 
+                        variant="text"
+                        size="small"
+                        endIcon={<ArrowIcon fontSize="small" />}
+                        sx={{ 
+                          textTransform: 'none',
+                          fontSize: '0.75rem',
+                          p: 0,
+                          color: theme.palette.primary.main,
+                          '&:hover': {
+                            background: 'none'
+                          }
+                        }}
+                      >
+                        Review now
+                      </Button>
+                    </Paper>
+                  ))}
+                </Box>
+              </CardContent>
+            </GlassCard>
+
+            {/* Job Details */}
+            <GlassCard sx={{ flex: 1 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
+                  <AssignmentIcon sx={{ mr: 1.5, color: theme.palette.secondary.main }} /> 
+                  Job Details
+                </Typography>
+
+                {job && (
+                  <Box>
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                        Job Title
+                      </Typography>
+                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                        {job.jobTitle}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                          Department
                         </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                          {job.department}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                          Posted Date
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                          {new Date().toLocaleDateString()}
+                        </Typography>
+                      </Box>
+                    </Box>
 
-                        {job && (
-                            <Box sx={{ mb: 1 }}>
-                                <Typography
-                                    variant="subtitle1"
-                                    sx={{
-                                        fontWeight: 700,
-                                        color: "#2c3e50",
-                                        mb: 0.5,
-                                    }}
-                                >JobTitle : {job.jobTitle}
-                                </Typography>
-                                <Typography
-                                    variant="subtitle1"
-                                    sx={{  fontWeight: 700, mb: 1 }}
-                                >Depatment : {job.department} 
-                                </Typography>
-                                <Typography
-                                    variant="subtitle1"
-                                    sx={{
-                                        color: "#555",
-                                        lineHeight: 1.6,
-                                        mb: 1.5,
-                                        fontWeight: 700, mb: 1
-                                    }}
-                                >Description : {job.jobDesc}
-                                </Typography>
-                                <Divider sx={{ mt: 1.5, borderColor: "#e0e0e0" }} />
-                            </Box>
-                        )}
-                    </CardContent>
-                </Card>
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                        Description
+                      </Typography>
+                      <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
+                        {job.jobDesc}
+                      </Typography>
+                    </Box>
 
-            </Box>
-
-            {/* Notes Section - 30% width */}
-            <Box
-                sx={{
-                    flex: { xs: 1, lg: 3 },
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
-                    minWidth: 300,
-                }}
-            >
-                <Card sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <CardContent sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                        <Box
-                            sx={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                mb: 2,
-                            }}
-                        >
-                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                                <NoteIcon sx={{ mr: 1, fontSize: 20 }} /> My Notes
-                            </Typography>
-                            <IconButton
-                                size="small"
-                                color="primary"
-                                onClick={() => setShowNoteForm(true)}
-                                sx={{ border: '1px solid', borderColor: 'primary.main' }}
-                            >
-                                <AddIcon fontSize="small" />
-                            </IconButton>
-                        </Box>
-
-                        {showNoteForm && (
-                            <Box sx={{ mb: 2, bgcolor: 'rgba(0, 0, 0, 0.02)', p: 2, borderRadius: 1 }}>
-                                <TextField
-                                    fullWidth
-                                    multiline
-                                    rows={3}
-                                    value={newNote}
-                                    onChange={(e) => setNewNote(e.target.value)}
-                                    placeholder="Write your note here..."
-                                    variant="outlined"
-                                    sx={{ mb: 1 }}
-                                />
-                                <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
-                                    <Button
-                                        size="small"
-                                        startIcon={<CloseIcon />}
-                                        onClick={() => setShowNoteForm(false)}
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        size="small"
-                                        variant="contained"
-                                        startIcon={<NoteIcon />}
-                                        onClick={handleAddNote}
-                                    >
-                                        Save Note
-                                    </Button>
-                                </Box>
-                            </Box>
-                        )}
-
-                        <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }}>
-                            {notes.length > 0 ? (
-                                <Stack spacing={2}>
-                                    {notes.map((note) => (
-                                        <Card key={note.id} variant="outlined" sx={{ p: 1.5 }}>
-                                            <Typography variant="body2" sx={{ mb: 1 }}>
-                                                {note.content}
-                                            </Typography>
-                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <Typography variant="caption" color="text.secondary">
-                                                    {note.date} • {note.time}
-                                                </Typography>
-                                                <IconButton
-                                                    size="small"
-                                                    color="error"
-                                                    onClick={() => handleDeleteNote(note.id)}
-                                                >
-                                                    <DeleteIcon fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </Card>
-                                    ))}
-                                </Stack>
-                            ) : (
-                                <Box sx={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    height: '100%',
-                                    textAlign: 'center',
-                                    p: 3,
-                                    color: 'text.secondary'
-                                }}>
-                                    <NoteIcon sx={{ fontSize: 40, mb: 1, opacity: 0.5 }} />
-                                    <Typography variant="body2">
-                                        No notes yet. Click the + button to add your first note!
-                                    </Typography>
-                                </Box>
-                            )}
-                        </Box>
-                    </CardContent>
-                </Card>
-            </Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Chip 
+                        label="Active" 
+                        color="success" 
+                        size="small" 
+                        sx={{ fontWeight: 600 }}
+                      />
+                      <Chip 
+                        label="Full-time" 
+                        size="small" 
+                        sx={{ fontWeight: 600 }}
+                      />
+                      <Chip 
+                        label="On-site" 
+                        size="small" 
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </Box>
+                  </Box>
+                )}
+              </CardContent>
+            </GlassCard>
+          </Box>
         </Box>
-    );
+
+        {/* Right Sidebar - 30% */}
+        <Box sx={{ 
+          flex: { xs: 1, lg: 3 }, 
+          display: "flex", 
+          flexDirection: "column", 
+          gap: 3,
+          minWidth: 320
+        }}>
+          {/* Notes Card */}
+          <GlassCard sx={{ flex: 1 }}>
+            <CardContent sx={{ 
+              p: 3, 
+              flex: 1, 
+              display: 'flex', 
+              flexDirection: 'column'
+            }}>
+              <Box sx={{ 
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 3
+              }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  <NoteIcon sx={{ mr: 1.5, color: theme.palette.info.main }} /> 
+                  My Notes
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => setShowNoteForm(true)}
+                  sx={{ 
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                    color: theme.palette.common.white,
+                    '&:hover': {
+                      background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`
+                    }
+                  }}
+                >
+                  <AddIcon fontSize="small" />
+                </IconButton>
+              </Box>
+
+              {showNoteForm && (
+                <Paper 
+                  elevation={0}
+                  sx={{ 
+                    mb: 3, 
+                    p: 2.5, 
+                    borderRadius: 2,
+                    background: alpha(theme.palette.background.paper, 0.7),
+                    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+                  }}
+                >
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    placeholder="Write your note here..."
+                    variant="outlined"
+                    sx={{ mb: 2 }}
+                    InputProps={{
+                      sx: {
+                        borderRadius: 1,
+                        background: theme.palette.background.paper
+                      }
+                    }}
+                  />
+                  <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5 }}>
+                    <Button
+                      size="small"
+                      startIcon={<CloseIcon />}
+                      onClick={() => setShowNoteForm(false)}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      Cancel
+                    </Button>
+                    <GradientButton
+                      size="small"
+                      startIcon={<NoteIcon />}
+                      onClick={handleAddNote}
+                    >
+                      Save Note
+                    </GradientButton>
+                  </Box>
+                </Paper>
+              )}
+
+              <Box sx={{ 
+                flex: 1, 
+                overflowY: 'auto', 
+                pr: 1,
+                '&::-webkit-scrollbar': {
+                  width: '6px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: alpha(theme.palette.primary.main, 0.5),
+                  borderRadius: '3px',
+                }
+              }}>
+                {notes.length > 0 ? (
+                  <Stack spacing={2}>
+                    {notes.map((note) => (
+                      <Paper 
+                        key={note.id} 
+                        elevation={0}
+                        sx={{ 
+                          p: 2.5,
+                          borderRadius: 2,
+                          background: alpha(theme.palette.background.paper, 0.7),
+                          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            transform: 'translateY(-2px)',
+                            boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
+                            borderColor: alpha(theme.palette.primary.main, 0.3)
+                          }
+                        }}
+                      >
+                        <Typography variant="body2" sx={{ mb: 2 }}>
+                          {note.content}
+                        </Typography>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'center'
+                        }}>
+                          <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                              {note.author} • {note.date}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {note.time}
+                            </Typography>
+                          </Box>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteNote(note.id)}
+                            sx={{
+                              color: theme.palette.error.main,
+                              '&:hover': {
+                                backgroundColor: alpha(theme.palette.error.main, 0.1)
+                              }
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Paper>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Box sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%',
+                    textAlign: 'center',
+                    p: 3,
+                    color: 'text.secondary'
+                  }}>
+                    <Box sx={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: '50%',
+                      background: alpha(theme.palette.primary.main, 0.1),
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mb: 2
+                    }}>
+                      <NoteIcon sx={{ 
+                        fontSize: 40, 
+                        color: theme.palette.primary.main
+                      }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                      No notes yet
+                    </Typography>
+                    <Typography variant="body2" sx={{ mb: 2, maxWidth: '80%' }}>
+                      Add notes to track important information about candidates or hiring process
+                    </Typography>
+                    <GradientButton
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={() => setShowNoteForm(true)}
+                    >
+                      Add your first note
+                    </GradientButton>
+                  </Box>
+                )}
+              </Box>
+            </CardContent>
+          </GlassCard>
+
+          {/* Quick Actions */}
+          <GlassCard>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
+                Quick Actions
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <Button 
+                  variant="outlined" 
+                  size="medium" 
+                  startIcon={<CalendarIcon />}
+                  onClick={() => navigate('/interviews/schedule')}
+                  sx={{ 
+                    justifyContent: 'flex-start',
+                    textTransform: 'none',
+                    p: 1.5,
+                    borderRadius: 2,
+                    borderColor: alpha(theme.palette.divider, 0.2),
+                    '&:hover': {
+                      borderColor: theme.palette.primary.main,
+                      background: alpha(theme.palette.primary.main, 0.05)
+                    }
+                  }}
+                >
+                  Schedule Interview
+                </Button>
+                <Button 
+                  variant="outlined" 
+                  size="medium" 
+                  startIcon={<EditIcon />}
+                  sx={{ 
+                    justifyContent: 'flex-start',
+                    textTransform: 'none',
+                    p: 1.5,
+                    borderRadius: 2,
+                    borderColor: alpha(theme.palette.divider, 0.2),
+                    '&:hover': {
+                      borderColor: theme.palette.primary.main,
+                      background: alpha(theme.palette.primary.main, 0.05)
+                    }
+                  }}
+                >
+                  Update Job Posting
+                </Button>
+                <Button 
+                  variant="outlined" 
+                  size="medium" 
+                  startIcon={<PositionIcon />}
+                  sx={{ 
+                    justifyContent: 'flex-start',
+                    textTransform: 'none',
+                    p: 1.5,
+                    borderRadius: 2,
+                    borderColor: alpha(theme.palette.divider, 0.2),
+                    '&:hover': {
+                      borderColor: theme.palette.primary.main,
+                      background: alpha(theme.palette.primary.main, 0.05)
+                    }
+                  }}
+                >
+                  Create New Position
+                </Button>
+              </Box>
+            </CardContent>
+          </GlassCard>
+        </Box>
+      </Box>
+    </Box>
+  );
 };
 
 export default Dashboard;
-
