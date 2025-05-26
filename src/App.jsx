@@ -20,6 +20,10 @@ import Users from './SidebarMenu/Users';
 import FeedbackPage from './SidebarMenu/Feedback';
 import TotalInterviews from './Interviews/TotalInterviews';
 import UpcomingInterviews from './Interviews/UpcomingInterviews';
+import Profile from './components/Profile';
+import ProfileSettings from './components/Settings';
+
+
 
 const queryClient = new QueryClient();
 
@@ -46,6 +50,8 @@ const App = () => {
           <Route path="/users" element={<Users/>} />
           <Route path="/interviews/all" element={<TotalInterviews />} />
           <Route path="/interviews/upcoming" element={<UpcomingInterviews />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/profilesettings" element={<ProfileSettings />} />
 
         </Routes>
       </Router>

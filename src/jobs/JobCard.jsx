@@ -108,14 +108,15 @@ import React from "react";
 import ActiveJobsHeader from "./ActiveJobsHeader";
 import JobFilters from "./JobFilters";
 import JobList from "./JobList";
+import JobsPage from "./JobsPage";
 
 const JobCard = () => {
   return (
     <>
-    <h1>HI you are here</h1>
-      <ActiveJobsHeader />
+      {/* <ActiveJobsHeader />
       <JobFilters />
-      <JobList /> {/* jobs are handled internally here now */}
+      <JobList />  */}
+      <JobsPage />
     </>
   );
 };

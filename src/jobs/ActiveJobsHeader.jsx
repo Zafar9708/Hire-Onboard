@@ -41,25 +41,6 @@ const ActiveJobsHeader = ({ onViewChange, onPriorityToggle }) => {
     fetchJobCount();
   }, []);
 
-  // useEffect(() => {
-  //     const fetchJobCount = async () => {
-  //       try {
-  //         const response = await api.get('/jobs');
-  //         setJobs(response.data.jobs); // ✅ this sets jobs state
-  //         setLoading(false);           // ✅ stop showing loader
-  //       } catch (error) {
-  //         console.error('Failed to fetch jobs:', error);
-  //         if (error.response?.status === 401) {
-  //           localStorage.removeItem('token');
-  //           navigate('/login');
-  //         }
-  //         setLoading(false); // Still stop loader even on error
-  //       }
-  //     };
-      
-  //     fetchJobCount();
-      
-  //   }, []);
 
   const handleCreateJobClick = () => {
     navigate("/create-job");
@@ -174,8 +155,6 @@ const ActiveJobsHeader = ({ onViewChange, onPriorityToggle }) => {
             <MenuItem onClick={() => handleMenuItemClick("duplicate")}>Closed Own</MenuItem>
             <MenuItem onClick={() => handleMenuItemClick("duplicate")}>On Hold</MenuItem>
             <MenuItem onClick={() => handleMenuItemClick("duplicate")}>Archived</MenuItem>
-
-
           </Menu>
         </Box>
       </Box>

@@ -95,23 +95,7 @@ export const fetchJobFormOptions = async () => {
   
 
 
-//for candidates 
 
-// create candidate
-// export const createCandidate = async (candidateData) => {
-//   try {
-//     // For FormData, we need to override the Content-Type
-//     const response = await api.post("/candidates", candidateData, {
-//       headers: {
-//         "Content-Type": "multipart/form-data",
-//       },
-//     });
-//     return response.data;
-//   } catch (err) {
-//     throw new Error(err.response?.data?.error || err.message);
-//   }
-// };
-// In your api.js file
 export const createCandidate = async (formData) => {
   try {
     const response = await api.post('/candidates', formData, {

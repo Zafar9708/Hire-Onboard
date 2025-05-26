@@ -1,4 +1,5 @@
 
+// // src/components/Header.jsx
 // import React, { useState, useRef, useEffect } from 'react';
 // import { useNavigate } from 'react-router-dom';
 
@@ -25,10 +26,7 @@
 //     }, []);
 
 //     const handleLogout = () => {
-//         // Clear token or session data
-//         localStorage.removeItem("token"); // or sessionStorage, or cookies depending on your auth strategy
-
-//         // Navigate to login page
+//         localStorage.removeItem("token");
 //         navigate("/login");
 //     };
 
@@ -71,10 +69,8 @@
 
 // export default Header;
 
+//------------------
 
-//--------------------------
-
-// src/components/Header.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -105,6 +101,16 @@ const Header = ({ userName, getInitials }) => {
         navigate("/login");
     };
 
+    const handleProfileClick = () => {
+        navigate("/profile");
+        setIsDropdownOpen(false);
+    };
+
+    const handleSettingsClick = () => {
+        navigate("/profilesettings");
+        setIsDropdownOpen(false);
+    };
+
     return (
         <div className="fixed top-0 left-[190px] right-0 flex justify-between items-center px-4 py-1 bg-blue-950 shadow-md z-[1100] h-16">
             <h1 className="text-white font-bold text-md">{userName}</h1>
@@ -127,8 +133,18 @@ const Header = ({ userName, getInitials }) => {
 
                 {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 bg-white border rounded shadow-lg py-2 w-40 z-50">
-                        <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Profile</button>
-                        <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Settings</button>
+                        <button 
+                            onClick={handleProfileClick}
+                            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        >
+                            Profile
+                        </button>
+                        <button 
+                            onClick={handleSettingsClick}
+                            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        >
+                            Settings
+                        </button>
                         <button
                             onClick={handleLogout}
                             className="block w-full text-left px-4 py-2 hover:bg-gray-100"
