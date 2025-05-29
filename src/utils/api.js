@@ -229,3 +229,25 @@ export const deleteStageRecord = async (stageChangeId) => {
     throw error.response?.data || error;
   }
 };
+
+
+export const sendBulkEmails = async (emailData) => {
+  try {
+      const response = await fetch('http://localhost:5000/api/candidates/send-bulk-emails', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(emailData),
+      });
+
+      if (!response.ok) {
+          throw new Error('Failed to send bulk emails');
+      }
+
+      return await response.json();
+  } catch (error) {
+      console.error('Error sending bulk emails:', error);
+      throw error;
+  }
+};

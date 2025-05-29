@@ -22,6 +22,7 @@ import TotalInterviews from './Interviews/TotalInterviews';
 import UpcomingInterviews from './Interviews/UpcomingInterviews';
 import Profile from './components/Profile';
 import ProfileSettings from './components/Settings';
+import Home from './components/Home';
 
 
 
@@ -32,7 +33,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          <Route path="/" element={<JobList />} />
+          <Route path="/" element={<Home />} />
           <Route path="/jobs/:id/*" element={<JobDetail />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />

@@ -1,4 +1,3 @@
-
 // import React, { useState, useEffect } from "react";
 // import {
 //     Box,
@@ -45,6 +44,7 @@
 //     AssignmentInd as InterviewIcon,
 //     ArrowForward as StageIcon,
 //     NoteAdd as RemarksIcon,
+//     Email as EmailIcon,
 // } from "@mui/icons-material";
 // import AddCandidateForm from "./AddCandidateForm";
 // import ScheduleOnlineInterviewForm from "../Interviews/ScheduleOnlineInterviewForm";
@@ -57,7 +57,7 @@
 //     createCandidate,
 //     updateCandidate,
 //     deleteCandidate,
-// } from "../utils/api"; // Import the API functions
+// } from "../utils/api";
 
 // const CandidatesTab = () => {
 //     const [viewMode, setViewMode] = useState("card");
@@ -79,10 +79,23 @@
 //     const [moveCandidate, setMoveCandidate] = useState(null);
 //     const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 //     const [selectedCandidate, setSelectedCandidate] = useState(null);
+//     const [remarksDialogOpen, setRemarksDialogOpen] = useState(false);
+//     const [remarksText, setRemarksText] = useState('');
 //     const [snackbar, setSnackbar] = useState({
 //         open: false,
 //         message: "",
 //         severity: "success"
+//     });
+//     const [bulkMoveDialogOpen, setBulkMoveDialogOpen] = useState(false);
+//     const [newStage, setNewStage] = useState('');
+
+//     // Filter state
+//     const [filters, setFilters] = useState({
+//         source: '',
+//         experience: '',
+//         availableToJoin: '',
+//         status: '',
+//         searchQuery: ''
 //     });
 
 //     const navigate = useNavigate();
@@ -104,6 +117,96 @@
 //         loadCandidates();
 //     }, []);
 
+//     // Filter candidates based on filter criteria
+//     const getFilteredCandidates = () => {
+//         return candidates.filter(candidate => {
+//             // Source filter
+//             if (filters.source && candidate.source !== filters.source) {
+//                 return false;
+//             }
+            
+//             // Experience filter
+//             if (filters.experience) {
+//                 const [min, max] = filters.experience.split('-').map(Number);
+//                 const candidateExp = parseFloat(candidate.experience);
+                
+//                 if (filters.experience === '5+' && candidateExp < 5) {
+//                     return false;
+//                 }
+//                 if (max && (candidateExp < min || candidateExp > max)) {
+//                     return false;
+//                 }
+//             }
+            
+//             // Available to join filter
+//             if (filters.availableToJoin && candidate.availableToJoin > parseInt(filters.availableToJoin)) {
+//                 return false;
+//             }
+            
+//             // Status filter
+//             if (filters.status && candidate.stage.toLowerCase() !== filters.status.toLowerCase()) {
+//                 return false;
+//             }
+            
+//             // Search query filter
+//             if (filters.searchQuery) {
+//                 const query = filters.searchQuery.toLowerCase();
+//                 const candidateText = [
+//                     candidate.firstName,
+//                     candidate.middleName,
+//                     candidate.lastName,
+//                     candidate.email,
+//                     candidate.mobile,
+//                     candidate.skills
+//                 ].join(' ').toLowerCase();
+                
+//                 if (!candidateText.includes(query)) {
+//                     return false;
+//                 }
+//             }
+            
+//             return true;
+//         });
+//     };
+
+//     const handleFilterChange = (filterName) => (event) => {
+//         setFilters({
+//             ...filters,
+//             [filterName]: event.target.value
+//         });
+//     };
+
+//     const handleAddRemarks = () => {
+//         handleCloseRemarksMenu();
+//         setRemarksDialogOpen(true);
+//     };
+
+//     const handleSubmitRemarks = async () => {
+//         try {
+//             const response = await fetch('http://localhost:5000/api/remarks', {
+//                 method: 'POST',
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                 },
+//                 body: JSON.stringify({
+//                     text: remarksText,
+//                     // Add other necessary fields
+//                 }),
+//             });
+
+//             if (!response.ok) throw new Error('Failed to save remarks');
+            
+//             const data = await response.json();
+//             console.log('Remarks saved:', data);
+            
+//             setRemarksDialogOpen(false);
+//             setRemarksText('');
+            
+//         } catch (error) {
+//             console.error('Error saving remarks:', error);
+//         }
+//     };
+
 //     const showSnackbar = (message, severity = "success") => {
 //         setSnackbar({ open: true, message, severity });
 //     };
@@ -112,8 +215,8 @@
 //         setSnackbar(prev => ({ ...prev, open: false }));
 //     };
 
-//     // Calculate candidate stages count
-//     const candidateStages = candidates.reduce((acc, candidate) => {
+//     // Calculate candidate stages count for filtered candidates
+//     const candidateStages = getFilteredCandidates().reduce((acc, candidate) => {
 //         const stage = candidate.stage.toLowerCase();
 //         acc[stage] = (acc[stage] || 0) + 1;
 //         return acc;
@@ -134,7 +237,7 @@
 
 //     const handleSelectAllCandidates = (event) => {
 //         if (event.target.checked) {
-//             const allIds = candidates.map((c) => c._id);
+//             const allIds = getFilteredCandidates().map((c) => c._id);
 //             setSelectedCandidates(allIds);
 //         } else {
 //             setSelectedCandidates([]);
@@ -230,7 +333,6 @@
 //         try {
 //             const updatedCandidate = await updateCandidate(currentCandidate, {
 //                 stage: newStage,
-               
 //             });
     
 //             setCandidates(
@@ -248,11 +350,55 @@
 //             showSnackbar(error.message, "error");
 //         }
 //     };
-    
 
-//     const handleAddRemarks = () => {
-//         console.log(`Adding remarks for candidate ${currentCandidate}`);
-//         handleCloseRemarksMenu();
+//     const handleBulkStageMove = async () => {
+//         try {
+//             // Update all selected candidates
+//             const updatePromises = selectedCandidates.map(candidateId => 
+//                 updateCandidate(candidateId, { stage: newStage })
+//             );
+            
+//             await Promise.all(updatePromises);
+            
+//             // Refresh the candidates list
+//             const data = await fetchCandidates();
+//             setCandidates(data);
+            
+//             setSelectedCandidates([]);
+//             setBulkMoveDialogOpen(false);
+//             showSnackbar("Candidates moved successfully!");
+//         } catch (error) {
+//             console.error("Error moving candidates:", error);
+//             showSnackbar(error.message, "error");
+//         }
+//     };
+
+//     const handleBulkEmail = async () => {
+//         try {
+//             // Get selected candidates' emails
+//             const selectedEmails = candidates
+//                 .filter(c => selectedCandidates.includes(c._id))
+//                 .map(c => c.email);
+            
+//             if (selectedEmails.length === 0) {
+//                 showSnackbar("No candidates selected", "error");
+//                 return;
+//             }
+            
+//             // Simulate sending email (in a real app, you would call your email API)
+//             console.log("Sending email to:", selectedEmails);
+            
+//             // Construct mailto link
+//             const mailtoLink = `mailto:${selectedEmails.join(',')}?bcc=Zafarekhlaque9708@gmail.com`;
+            
+//             // Open default email client
+//             window.location.href = mailtoLink;
+            
+//             showSnackbar(`Email ready to be sent to ${selectedEmails.length} candidates`);
+//         } catch (error) {
+//             console.error("Error sending bulk email:", error);
+//             showSnackbar(error.message, "error");
+//         }
 //     };
 
 //     const handleBulkAction = async (action) => {
@@ -276,6 +422,10 @@
 //                 console.error("Bulk delete failed:", error);
 //                 showSnackbar(error.message, "error");
 //             }
+//         } else if (action === "email") {
+//             handleBulkEmail();
+//         } else if (action === "move-to-sourced") {
+//             setBulkMoveDialogOpen(true);
 //         }
 //     };
 
@@ -307,6 +457,7 @@
 //                     {snackbar.message}
 //                 </Alert>
 //             </Snackbar>
+            
 //             {/* Header */}
 //             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
 //                 <Typography variant="h5" sx={{ fontWeight: 600 }}>
@@ -330,7 +481,6 @@
 //                         Add Candidate
 //                     </Button>
 //                 </Box>
-                
 //             </Box>
 
 //             {/* Add Candidate Dialog */}
@@ -346,42 +496,73 @@
 //                 onMove={handleStageMove}
 //             />
 
-//             {/* Stages Summary */}
-//             {/* Stages Summary */}
-//     <Card sx={{ mb: 2, overflow: "hidden" }}>
-//         <CardContent sx={{ p: 2 }}>
-//             <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, overflowX: "auto", py: 2 }}>
-//                 {Object.entries(candidateStages).map(([stage, count]) => (
-//                     <Card
-//                         key={stage}
-//                         onClick={() => navigate(`/candidates/stage/${stage}`)}
-//                         sx={{
-//                             backgroundColor: "#f5f5f5",
-//                             width: "150px",
-//                             textAlign: "center",
-//                             borderRadius: 2,
-//                             p: 2,
-//                             boxShadow: 2,
-//                             flexShrink: 0,
-//                             cursor: "pointer",
-//                             transition: "transform 0.2s",
-//                             ":hover": {
-//                                 transform: "translateY(-4px)",
-//                                 boxShadow: 4,
-//                             }
-//                         }}
+//             {/* Bulk Move Dialog */}
+//             <Dialog open={bulkMoveDialogOpen} onClose={() => setBulkMoveDialogOpen(false)}>
+//                 <DialogTitle>Move Selected Candidates to Another Stage</DialogTitle>
+//                 <DialogContent>
+//                     <FormControl fullWidth margin="normal">
+//                         <InputLabel>New Stage</InputLabel>
+//                         <Select
+//                             value={newStage}
+//                             onChange={(e) => setNewStage(e.target.value)}
+//                             label="New Stage"
+//                         >
+//                             <MenuItem value="Sourced">Sourced</MenuItem>
+//                             <MenuItem value="Screening">Screening</MenuItem>
+//                             <MenuItem value="Interview">Interview</MenuItem>
+//                             <MenuItem value="Preboarding">Preboarding</MenuItem>
+//                             <MenuItem value="Hired">Hired</MenuItem>
+//                             <MenuItem value="Archived">Archived</MenuItem>
+//                         </Select>
+//                     </FormControl>
+//                 </DialogContent>
+//                 <DialogActions>
+//                     <Button onClick={() => setBulkMoveDialogOpen(false)}>Cancel</Button>
+//                     <Button 
+//                         onClick={handleBulkStageMove} 
+//                         variant="contained"
+//                         disabled={!newStage}
 //                     >
-//                         <Typography variant="h6" sx={{ fontWeight: 600 }}>
-//                             {count}
-//                         </Typography>
-//                         <Typography variant="body2" color="text.secondary">
-//                             {stage.charAt(0).toUpperCase() + stage.slice(1)}
-//                         </Typography>
-//                     </Card>
-//                 ))}
-//             </Box>
-//         </CardContent>
-//     </Card>
+//                         Move Candidates
+//                     </Button>
+//                 </DialogActions>
+//             </Dialog>
+
+//             {/* Stages Summary */}
+//             <Card sx={{ mb: 2, overflow: "hidden" }}>
+//                 <CardContent sx={{ p: 2 }}>
+//                     <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, overflowX: "auto", py: 2 }}>
+//                         {Object.entries(candidateStages).map(([stage, count]) => (
+//                             <Card
+//                                 key={stage}
+//                                 onClick={() => navigate(`/candidates/stage/${stage}`)}
+//                                 sx={{
+//                                     backgroundColor: "#f5f5f5",
+//                                     width: "150px",
+//                                     textAlign: "center",
+//                                     borderRadius: 2,
+//                                     p: 2,
+//                                     boxShadow: 2,
+//                                     flexShrink: 0,
+//                                     cursor: "pointer",
+//                                     transition: "transform 0.2s",
+//                                     ":hover": {
+//                                         transform: "translateY(-4px)",
+//                                         boxShadow: 4,
+//                                     }
+//                                 }}
+//                             >
+//                                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
+//                                     {count}
+//                                 </Typography>
+//                                 <Typography variant="body2" color="text.secondary">
+//                                     {stage.charAt(0).toUpperCase() + stage.slice(1)}
+//                                 </Typography>
+//                             </Card>
+//                         ))}
+//                     </Box>
+//                 </CardContent>
+//             </Card>
             
 //             {/* Filters */}
 //             <Card sx={{ mb: 2 }}>
@@ -392,18 +573,27 @@
 //                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
 //                         <FormControl size="small" sx={{ minWidth: 180 }}>
 //                             <InputLabel>Source</InputLabel>
-//                             <Select label="Source">
+//                             <Select 
+//                                 label="Source"
+//                                 value={filters.source}
+//                                 onChange={handleFilterChange('source')}
+//                             >
+//                                 <MenuItem value="">All Sources</MenuItem>
 //                                 <MenuItem value="linkedin">LinkedIn</MenuItem>
 //                                 <MenuItem value="referral">Referral</MenuItem>
 //                                 <MenuItem value="job-board">Job Board</MenuItem>
-//                                 <MenuItem value="job-board">Naukari</MenuItem>
-
+//                                 <MenuItem value="naukari">Naukari</MenuItem>
 //                             </Select>
 //                         </FormControl>
 
 //                         <FormControl size="small" sx={{ minWidth: 180 }}>
 //                             <InputLabel>Experience</InputLabel>
-//                             <Select label="Experience">
+//                             <Select 
+//                                 label="Experience"
+//                                 value={filters.experience}
+//                                 onChange={handleFilterChange('experience')}
+//                             >
+//                                 <MenuItem value="">All Experience</MenuItem>
 //                                 <MenuItem value="0-2">0-2 years</MenuItem>
 //                                 <MenuItem value="3-5">3-5 years</MenuItem>
 //                                 <MenuItem value="5+">5+ years</MenuItem>
@@ -412,8 +602,13 @@
 
 //                         <FormControl size="small" sx={{ minWidth: 250 }}>
 //                             <InputLabel>Available to join (In Days)</InputLabel>
-//                             <Select label="Available to join(In Days)">
-//                                 <MenuItem value="15">Within 7 days</MenuItem>
+//                             <Select 
+//                                 label="Available to join(In Days)"
+//                                 value={filters.availableToJoin}
+//                                 onChange={handleFilterChange('availableToJoin')}
+//                             >
+//                                 <MenuItem value="">Any Availability</MenuItem>
+//                                 <MenuItem value="7">Within 7 days</MenuItem>
 //                                 <MenuItem value="15">Within 15 days</MenuItem>
 //                                 <MenuItem value="30">Within 30 days</MenuItem>
 //                                 <MenuItem value="60">Within 60 days</MenuItem>
@@ -422,16 +617,23 @@
 
 //                         <FormControl size="small" sx={{ minWidth: 150 }}>
 //                             <InputLabel>Status</InputLabel>
-//                             <Select label="Status">
-//                                 <MenuItem value="active">Rejected</MenuItem>
-//                                 <MenuItem value="active">On Hold</MenuItem>
-//                                 <MenuItem value="inactive">Closed Own</MenuItem>
+//                             <Select 
+//                                 label="Status"
+//                                 value={filters.status}
+//                                 onChange={handleFilterChange('status')}
+//                             >
+//                                 <MenuItem value="">All Statuses</MenuItem>
+//                                 <MenuItem value="rejected">Rejected</MenuItem>
+//                                 <MenuItem value="on-hold">On Hold</MenuItem>
+//                                 <MenuItem value="closed">Closed Own</MenuItem>
 //                             </Select>
 //                         </FormControl>
 
 //                         <TextField
 //                             size="small"
 //                             placeholder="Search candidates..."
+//                             value={filters.searchQuery}
+//                             onChange={handleFilterChange('searchQuery')}
 //                             sx={{ flexGrow: 1, maxWidth: 400 }}
 //                             InputProps={{
 //                                 endAdornment: (
@@ -456,14 +658,19 @@
 //                             defaultValue=""
 //                             onChange={(e) => handleBulkAction(e.target.value)}
 //                         >
-//                             <MenuItem value="email">Send email</MenuItem>
+//                             <MenuItem value="email">
+//                                 <ListItemIcon>
+//                                     <EmailIcon fontSize="small" />
+//                                 </ListItemIcon>
+//                                 <ListItemText>Send email</ListItemText>
+//                             </MenuItem>
 //                             <MenuItem value="delete">Delete</MenuItem>
-//                             <MenuItem value="move-to-sourced">Move to Sourced</MenuItem>
-//                             <MenuItem value="move-to-screening">Move to Screening</MenuItem>
-//                             <MenuItem value="move-to-interview">Move to Interview</MenuItem>
-//                             <MenuItem value="move-to-preboarding">Move to Preboarding</MenuItem>
-//                             <MenuItem value="move-to-hired">Move to Hired</MenuItem>
-//                             <MenuItem value="move-to-archived">Move to Archived</MenuItem>
+//                             <MenuItem value="move-to-sourced">
+//                                 <ListItemIcon>
+//                                     <StageIcon fontSize="small" />
+//                                 </ListItemIcon>
+//                                 <ListItemText>Move to another Stage</ListItemText>
+//                             </MenuItem>
 //                         </Select>
 //                     </FormControl>
 //                 </Box>
@@ -565,6 +772,29 @@
 //                 </MenuItem>
 //             </Menu>
 
+//             <Dialog open={remarksDialogOpen} onClose={() => setRemarksDialogOpen(false)}>
+//                 <DialogTitle>Add Remarks</DialogTitle>
+//                 <DialogContent>
+//                     <TextField
+//                         autoFocus
+//                         margin="dense"
+//                         id="remarks"
+//                         label="Remarks"
+//                         type="text"
+//                         fullWidth
+//                         variant="standard"
+//                         multiline
+//                         rows={4}
+//                         value={remarksText}
+//                         onChange={(e) => setRemarksText(e.target.value)}
+//                     />
+//                 </DialogContent>
+//                 <DialogActions>
+//                     <Button onClick={() => setRemarksDialogOpen(false)}>Cancel</Button>
+//                     <Button onClick={handleSubmitRemarks}>Save</Button>
+//                 </DialogActions>
+//             </Dialog>
+
 //             {/* Candidate Views */}
 //             {viewMode === "table" ? (
 //                 <Box
@@ -575,28 +805,27 @@
 //                         padding: 3,
 //                     }}
 //                 >
-//                     {candidates.map((candidate) => (
+//                     {getFilteredCandidates().map((candidate) => (
 //                         <Card
-//                         key={candidate._id}
-//                         sx={{
-//                             borderRadius: 3,
-//                             boxShadow: 6,
-//                             transition: "transform 0.3s ease, box-shadow 0.3s ease",
-//                             ":hover": {
-//                                 transform: "translateY(-8px)",
-//                                 boxShadow: 12,
-//                             },
-//                             display: "flex",
-//                             flexDirection: "column",
-//                             height: "100%",
-//                             bgcolor: "background.paper",
-//                         }}
-//                         onClick={() => handleOpenDetails(candidate)}
-//                     >
+//                             key={candidate._id}
+//                             sx={{
+//                                 borderRadius: 3,
+//                                 boxShadow: 6,
+//                                 transition: "transform 0.3s ease, box-shadow 0.3s ease",
+//                                 ":hover": {
+//                                     transform: "translateY(-8px)",
+//                                     boxShadow: 12,
+//                                 },
+//                                 display: "flex",
+//                                 flexDirection: "column",
+//                                 height: "100%",
+//                                 bgcolor: "background.paper",
+//                             }}
+//                             onClick={() => handleOpenDetails(candidate)}
+//                         >
 //                             <CardContent
 //                                 sx={{ display: "flex", flexDirection: "column", gap: 3, padding: 3 }}
 //                                 onClick={(e) => {
-//                                     // Only open details if the click wasn't on an action button
 //                                     if (!e.target.closest('.action-button')) {
 //                                         handleOpenDetails(candidate);
 //                                     }
@@ -607,7 +836,7 @@
 //                                     <Checkbox
 //                                         checked={selectedCandidates.includes(candidate._id)}
 //                                         onChange={(e) => {
-//                                             e.stopPropagation(); // Prevent card click
+//                                             e.stopPropagation();
 //                                             handleSelectCandidate(candidate._id);
 //                                         }}
 //                                         color="primary"
@@ -636,7 +865,7 @@
 //                                         className="action-button"
 //                                         sx={{ color: "text.secondary" }}
 //                                         onClick={(e) => {
-//                                             e.stopPropagation(); // Prevent card click
+//                                             e.stopPropagation();
 //                                             handleRemarksClick(e, candidate._id);
 //                                         }}
 //                                     >
@@ -679,12 +908,12 @@
 //                                 {/* Action Buttons */}
 //                                 <Box
 //                                     sx={{ display: "flex", justifyContent: "space-between", marginTop: 3 }}
-//                                     onClick={(e) => e.stopPropagation()} // Prevent card click for the entire button container
+//                                     onClick={(e) => e.stopPropagation()}
 //                                 >
 //                                     <IconButton
 //                                         className="action-button"
 //                                         onClick={(e) => {
-//                                             e.stopPropagation(); // Prevent card click
+//                                             e.stopPropagation();
 //                                             handleInterviewClick(e, candidate._id);
 //                                         }}
 //                                         sx={{
@@ -701,7 +930,7 @@
 //                                     <IconButton
 //                                         className="action-button"
 //                                         onClick={(e) => {
-//                                             e.stopPropagation(); // Prevent card click
+//                                             e.stopPropagation();
 //                                             handleStageClick(e, candidate._id);
 //                                         }}
 //                                         sx={{
@@ -728,7 +957,7 @@
 //                                 <TableCell padding="checkbox">
 //                                     <Checkbox
 //                                         onChange={handleSelectAllCandidates}
-//                                         checked={selectedCandidates.length === candidates.length}
+//                                         checked={selectedCandidates.length === getFilteredCandidates().length}
 //                                         sx={{ color: '#3f51b5' }}
 //                                     />
 //                                 </TableCell>
@@ -759,7 +988,7 @@
 //                             </TableRow>
 //                         </TableHead>
 //                         <TableBody>
-//                             {candidates.map((candidate) => (
+//                             {getFilteredCandidates().map((candidate) => (
 //                                 <TableRow
 //                                     key={candidate._id}
 //                                     hover
@@ -824,9 +1053,7 @@
 // export default CandidatesTab;
 
 
-//--------------------------------
-
-
+//--this is for send email in bulk actions 
 
 import React, { useState, useEffect } from "react";
 import {
@@ -874,6 +1101,7 @@ import {
     AssignmentInd as InterviewIcon,
     ArrowForward as StageIcon,
     NoteAdd as RemarksIcon,
+    Email as EmailIcon,
 } from "@mui/icons-material";
 import AddCandidateForm from "./AddCandidateForm";
 import ScheduleOnlineInterviewForm from "../Interviews/ScheduleOnlineInterviewForm";
@@ -886,6 +1114,7 @@ import {
     createCandidate,
     updateCandidate,
     deleteCandidate,
+    sendBulkEmails,
 } from "../utils/api";
 
 const CandidatesTab = () => {
@@ -915,6 +1144,12 @@ const CandidatesTab = () => {
         message: "",
         severity: "success"
     });
+    const [bulkMoveDialogOpen, setBulkMoveDialogOpen] = useState(false);
+    const [newStage, setNewStage] = useState('');
+    const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+    const [emailSubject, setEmailSubject] = useState('');
+    const [emailBody, setEmailBody] = useState('');
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
 
     // Filter state
     const [filters, setFilters] = useState({
@@ -1178,6 +1413,71 @@ const CandidatesTab = () => {
         }
     };
 
+    const handleBulkStageMove = async () => {
+        try {
+            // Update all selected candidates
+            const updatePromises = selectedCandidates.map(candidateId => 
+                updateCandidate(candidateId, { stage: newStage })
+            );
+            
+            await Promise.all(updatePromises);
+            
+            // Refresh the candidates list
+            const data = await fetchCandidates();
+            setCandidates(data);
+            
+            setSelectedCandidates([]);
+            setBulkMoveDialogOpen(false);
+            showSnackbar("Candidates moved successfully!");
+        } catch (error) {
+            console.error("Error moving candidates:", error);
+            showSnackbar(error.message, "error");
+        }
+    };
+
+    const handleBulkEmail = async () => {
+        setEmailDialogOpen(true);
+    };
+
+    const handleSendBulkEmail = async () => {
+        if (!emailSubject || !emailBody) {
+            showSnackbar("Please enter both subject and body", "error");
+            return;
+        }
+
+        try {
+            setIsSendingEmail(true);
+            const selectedCandidateEmails = candidates
+                .filter(c => selectedCandidates.includes(c._id))
+                .map(c => c.email);
+
+            if (selectedCandidateEmails.length === 0) {
+                showSnackbar("No candidates selected", "error");
+                return;
+            }
+
+            const response = await sendBulkEmails({
+                recipients: selectedCandidateEmails,
+                subject: emailSubject,
+                body: emailBody
+            });
+
+            if (response.success) {
+                showSnackbar(`Email sent to ${selectedCandidateEmails.length} candidates`, "success");
+                setEmailDialogOpen(false);
+                setEmailSubject('');
+                setEmailBody('');
+            } else {
+                throw new Error(response.message || "Failed to send emails");
+            }
+        } catch (error) {
+            console.error("Error sending bulk email:", error);
+            showSnackbar(error.message, "error");
+        } finally {
+            setIsSendingEmail(false);
+        }
+    };
+
     const handleBulkAction = async (action) => {
         if (action === "delete") {
             try {
@@ -1199,6 +1499,10 @@ const CandidatesTab = () => {
                 console.error("Bulk delete failed:", error);
                 showSnackbar(error.message, "error");
             }
+        } else if (action === "email") {
+            handleBulkEmail();
+        } else if (action === "move-to-sourced") {
+            setBulkMoveDialogOpen(true);
         }
     };
 
@@ -1268,6 +1572,81 @@ const CandidatesTab = () => {
                 candidate={candidates.find(c => c._id === currentCandidate)}
                 onMove={handleStageMove}
             />
+
+            {/* Bulk Move Dialog */}
+            <Dialog open={bulkMoveDialogOpen} onClose={() => setBulkMoveDialogOpen(false)}>
+                <DialogTitle>Move Selected Candidates to Another Stage</DialogTitle>
+                <DialogContent>
+                    <FormControl fullWidth margin="normal">
+                        <InputLabel>New Stage</InputLabel>
+                        <Select
+                            value={newStage}
+                            onChange={(e) => setNewStage(e.target.value)}
+                            label="New Stage"
+                        >
+                            <MenuItem value="Sourced">Sourced</MenuItem>
+                            <MenuItem value="Screening">Screening</MenuItem>
+                            <MenuItem value="Interview">Interview</MenuItem>
+                            <MenuItem value="Preboarding">Preboarding</MenuItem>
+                            <MenuItem value="Hired">Hired</MenuItem>
+                            <MenuItem value="Archived">Archived</MenuItem>
+                        </Select>
+                    </FormControl>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setBulkMoveDialogOpen(false)}>Cancel</Button>
+                    <Button 
+                        onClick={handleBulkStageMove} 
+                        variant="contained"
+                        disabled={!newStage}
+                    >
+                        Move Candidates
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Bulk Email Dialog */}
+            <Dialog open={emailDialogOpen} onClose={() => setEmailDialogOpen(false)} maxWidth="md" fullWidth>
+                <DialogTitle>Send Email to Selected Candidates</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Subject"
+                        type="text"
+                        fullWidth
+                        variant="outlined"
+                        value={emailSubject}
+                        onChange={(e) => setEmailSubject(e.target.value)}
+                        sx={{ mb: 3 }}
+                    />
+                    <TextField
+                        margin="dense"
+                        label="Email Body"
+                        type="text"
+                        fullWidth
+                        variant="outlined"
+                        multiline
+                        rows={10}
+                        value={emailBody}
+                        onChange={(e) => setEmailBody(e.target.value)}
+                    />
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        This email will be sent from Zafarekhlaque9708@gmail.com to {selectedCandidates.length} selected candidates.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setEmailDialogOpen(false)}>Cancel</Button>
+                    <Button 
+                        onClick={handleSendBulkEmail} 
+                        variant="contained"
+                        disabled={isSendingEmail || !emailSubject || !emailBody}
+                        startIcon={isSendingEmail ? <CircularProgress size={20} /> : null}
+                    >
+                        {isSendingEmail ? 'Sending...' : 'Send Email'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Stages Summary */}
             <Card sx={{ mb: 2, overflow: "hidden" }}>
@@ -1399,9 +1778,19 @@ const CandidatesTab = () => {
                             defaultValue=""
                             onChange={(e) => handleBulkAction(e.target.value)}
                         >
-                            <MenuItem value="email">Send email</MenuItem>
+                            <MenuItem value="email">
+                                <ListItemIcon>
+                                    <EmailIcon fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText>Send email</ListItemText>
+                            </MenuItem>
                             <MenuItem value="delete">Delete</MenuItem>
-                            <MenuItem value="move-to-sourced" >Move to another Stage</MenuItem>
+                            <MenuItem value="move-to-sourced">
+                                <ListItemIcon>
+                                    <StageIcon fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText>Move to another Stage</ListItemText>
+                            </MenuItem>
                         </Select>
                     </FormControl>
                 </Box>

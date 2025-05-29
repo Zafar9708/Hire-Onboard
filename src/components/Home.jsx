@@ -1,0 +1,284 @@
+import React from 'react';
+import {
+  Box,
+  Button,
+  Container,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  Paper,
+  AppBar,
+  Toolbar,
+  Avatar,
+  Divider,
+  useTheme,
+  useMediaQuery
+} from '@mui/material';
+import { Link } from 'react-router-dom';
+import { LockOpen, PersonAdd } from '@mui/icons-material';
+
+// Direct image URLs
+const heroImage = 'https://via.placeholder.com/1600x900?text=Hero+Image';
+const feature1 = 'https://www.ismartrecruit.com/assets/frontend/images/isr-landing_page/new-hiring_software.webp';
+const feature2 = 'https://via.placeholder.com/400x300?text=Interview+Scheduling';
+const feature3 = 'https://via.placeholder.com/400x300?text=Onboarding+Tools';
+
+const Home = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* Header/Navbar */}
+      <AppBar position="static" color="primary" elevation={0}>
+        <Toolbar>
+          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+            <Avatar 
+              src="https://via.placeholder.com/50" // Replace with your logo URL
+              alt="Hire&Onboard Logo"
+              sx={{ width: 50, height: 50, mr: 2 }}
+            />
+            <Typography variant="h5" component="div" sx={{ fontWeight: 700 }}>
+              Hire&Onboard
+            </Typography>
+          </Box>
+          <Box>
+            <Button 
+              component={Link} 
+              to="/login" 
+              color="inherit" 
+              startIcon={<LockOpen />}
+              sx={{ mr: 2 }}
+            >
+              Login
+            </Button>
+            <Button 
+              component={Link} 
+              to="/register" 
+              variant="contained" 
+              color="secondary"
+              startIcon={<PersonAdd />}
+            >
+              Register
+            </Button>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* Hero Section */}
+      <Box 
+        sx={{ 
+          position: 'relative',
+          height: '80vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          textAlign: 'center',
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0,0,0,0.5)), url(${heroImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        <Container maxWidth="md">
+          <Typography variant={isMobile ? 'h3' : 'h2'} component="h1" gutterBottom sx={{ fontWeight: 700 }}>
+            Revolutionize Your Hiring Process
+          </Typography>
+          <Typography variant={isMobile ? 'h6' : 'h5'} component="p" sx={{ mb: 4 }}>
+            Streamline recruitment, simplify onboarding, and build your dream team with our all-in-one platform
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+            <Button 
+              component={Link} 
+              to="/register" 
+              variant="contained" 
+              color="secondary"
+              size="large"
+              startIcon={<PersonAdd />}
+            >
+              Get Started
+            </Button>
+            <Button 
+              variant="outlined" 
+              color="inherit"
+              size="large"
+            >
+              Learn More
+            </Button>
+          </Box>
+        </Container>
+      </Box>
+
+      {/* Features Section */}
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Typography variant="h4" component="h2" align="center" gutterBottom sx={{ fontWeight: 700, mb: 6 }}>
+          Why Choose Hire&Onboard?
+        </Typography>
+        <Grid container spacing={4}>
+          {[{ title: 'Smart Candidate Management', description: 'Organize, track, and communicate with candidates through every stage of your hiring pipeline.', image: feature1 },
+            { title: 'Effortless Interview Scheduling', description: 'Automate interview scheduling with calendar integrations and real-time availability.', image: feature2 },
+            { title: 'Seamless Onboarding', description: 'Transition new hires smoothly with automated workflows and document management.', image: feature3 }]
+            .map((feature, idx) => (
+              <Grid item xs={12} md={4} key={idx}>
+                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <CardMedia component="img" image={feature.image} alt={feature.title} height="200" />
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Typography gutterBottom variant="h5" component="h3" sx={{ fontWeight: 600 }}>
+                      {feature.title}
+                    </Typography>
+                    <Typography>{feature.description}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+        </Grid>
+      </Container>
+
+      {/* Stats Section */}
+      <Box sx={{ backgroundColor: theme.palette.primary.main, color: 'white', py: 8 }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={4} justifyContent="center">
+            {[{ label: 'Happy Companies', value: '500+' },
+              { label: 'Candidates Hired', value: '10K+' },
+              { label: 'Client Satisfaction', value: '95%' },
+              { label: 'Support Available', value: '24/7' }]
+              .map((stat, idx) => (
+                <Grid item xs={6} sm={3} textAlign="center" key={idx}>
+                  <Typography variant="h3" sx={{ fontWeight: 700 }}>{stat.value}</Typography>
+                  <Typography variant="h6">{stat.label}</Typography>
+                </Grid>
+              ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* How It Works Section */}
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Typography variant="h4" component="h2" align="center" gutterBottom sx={{ fontWeight: 700, mb: 6 }}>
+          How It Works
+        </Typography>
+        <Grid container spacing={4}>
+          {[{ number: '1', title: 'Create Your Account', description: 'Sign up and set up your company profile in minutes' },
+            { number: '2', title: 'Post Job Openings', description: 'Create detailed job listings with requirements and benefits' },
+            { number: '3', title: 'Manage Applicants', description: 'Screen, interview, and track candidates through the pipeline' },
+            { number: '4', title: 'Make Offers & Onboard', description: 'Send offers and onboard new hires seamlessly' }]
+            .map((step, idx) => (
+              <Grid item xs={12} sm={6} md={3} key={idx}>
+                <Paper elevation={3} sx={{ p: 3, height: '100%', textAlign: 'center' }}>
+                  <Avatar sx={{
+                    bgcolor: theme.palette.secondary.main,
+                    color: 'white',
+                    width: 60,
+                    height: 60,
+                    fontSize: '1.5rem',
+                    mx: 'auto',
+                    mb: 2
+                  }}>
+                    {step.number}
+                  </Avatar>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>{step.title}</Typography>
+                  <Typography>{step.description}</Typography>
+                </Paper>
+              </Grid>
+            ))}
+        </Grid>
+      </Container>
+
+      {/* Testimonials */}
+      <Box sx={{ backgroundColor: theme.palette.grey[100], py: 8 }}>
+        <Container maxWidth="lg">
+          <Typography variant="h4" align="center" sx={{ fontWeight: 700, mb: 6 }}>
+            What Our Clients Say
+          </Typography>
+          <Grid container spacing={4}>
+            {[{ name: 'Sarah Johnson', role: 'HR Director, TechCorp', quote: 'Hire&Onboard reduced our time-to-hire by 40% and improved candidate experience dramatically.' },
+              { name: 'Michael Chen', role: 'Talent Acquisition, StartUp Inc', quote: 'The onboarding automation saved us hundreds of hours in paperwork and manual processes.' },
+              { name: 'David Wilson', role: 'CEO, Growth Ventures', quote: 'Best recruitment platform we\'ve used. The analytics alone are worth the investment.' }]
+              .map((t, i) => (
+                <Grid item xs={12} md={4} key={i}>
+                  <Card sx={{ height: '100%' }}>
+                    <CardContent>
+                      <Typography fontStyle="italic" sx={{ mb: 3 }}>"{t.quote}"</Typography>
+                      <Divider sx={{ my: 2 }} />
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{t.name}</Typography>
+                      <Typography variant="body2" color="text.secondary">{t.role}</Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* CTA Section */}
+      <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
+          Ready to Transform Your Hiring Process?
+        </Typography>
+        <Typography variant="h6" sx={{ mb: 4 }}>
+          Join thousands of companies who have streamlined their recruitment with Hire&Onboard
+        </Typography>
+        <Button
+          component={Link}
+          to="/register"
+          variant="contained"
+          color="secondary"
+          size="large"
+          startIcon={<PersonAdd />}
+          sx={{ px: 6, py: 2 }}
+        >
+          Get Started for Free
+        </Button>
+      </Container>
+
+      {/* Footer */}
+      <Box component="footer" sx={{ bgcolor: theme.palette.grey[900], color: 'white', py: 6 }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar 
+                  src="https://via.placeholder.com/50" 
+                  alt="Hire&Onboard Logo"
+                  sx={{ width: 50, height: 50, mr: 2 }}
+                />
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  Hire&Onboard
+                </Typography>
+              </Box>
+              <Typography variant="body2">
+                Revolutionizing recruitment and onboarding for modern businesses.
+              </Typography>
+            </Grid>
+            {[
+              { title: 'Product', items: ['Features', 'Pricing', 'Integrations'] },
+              { title: 'Company', items: ['About Us', 'Careers', 'Contact'] },
+              { title: 'Resources', items: ['Blog', 'Help Center', 'Webinars'] },
+              { title: 'Legal', items: ['Privacy', 'Terms', 'Security'] }
+            ].map((section, idx) => (
+              <Grid item xs={6} md={2} key={idx}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                  {section.title}
+                </Typography>
+                {section.items.map((item, index) => (
+                  <Typography key={index} variant="body2" sx={{ display: 'block', mb: 1 }}>
+                    {item}
+                  </Typography>
+                ))}
+              </Grid>
+            ))}
+          </Grid>
+          <Divider sx={{ my: 4, bgcolor: 'rgba(255,255,255,0.1)' }} />
+          <Typography variant="body2" align="center">
+            © {new Date().getFullYear()} Hire&Onboard. All rights reserved.
+          </Typography>
+        </Container>
+      </Box>
+    </Box>
+  );
+};
+
+export default Home;
