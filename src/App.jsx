@@ -23,6 +23,7 @@ import UpcomingInterviews from './Interviews/UpcomingInterviews';
 import Profile from './components/Profile';
 import ProfileSettings from './components/Settings';
 import Home from './components/Home';
+import VendorLogin from './components/VendorLogin';
 
 
 
@@ -53,6 +54,8 @@ const App = () => {
           <Route path="/interviews/upcoming" element={<UpcomingInterviews />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profilesettings" element={<ProfileSettings />} />
+          <Route path="/vendor-login" element={<VendorLogin />} />
+
 
         </Routes>
       </Router>

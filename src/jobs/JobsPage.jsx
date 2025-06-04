@@ -664,7 +664,10 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  TextField,
+  Snackbar,
+  Alert
 } from "@mui/material";
 import {
   Star as StarIcon,
@@ -681,7 +684,10 @@ import {
   ArrowDropDown as ArrowDropDownIcon,
   FilterList as FilterListIcon,
   MoreVert as MoreVertIcon,
-  Archive as ArchiveIcon
+  Archive as ArchiveIcon,
+  Close as CloseIcon,
+  FileUpload as FileUploadIcon,
+  ContentCopy as ContentCopyIcon
 } from "@mui/icons-material";
 import { parseISO, format } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -690,8 +696,9 @@ import api from "../utils/api";
 const statusOptions = {
   'Active': ['Closed Own', 'Closed Lost', 'On Hold', 'Archived'],
   'On Hold': ['Active', 'Closed Own', 'Closed Lost', 'Archived'],
-  'Closed Own': ['Active', 'On Hold', 'Archived'],
-  'Closed Lost': ['Active', 'On Hold', 'Archived'],
+  'Closed Own': ['Active', 'On Hold', 'Closed Lost', 'Archived'],
+  'Closed Lost': ['Active', 'On Hold', 'Closed Own', 'Archived'],
+  'Archived': ['Active'], // Added this line for archived jobs
   'Default': ['Active', 'Closed Own', 'Closed Lost', 'On Hold', 'Archived']
 };
 
@@ -728,6 +735,9 @@ const JobsPage = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [jobToArchive, setJobToArchive] = useState(null);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importFile, setImportFile] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -871,20 +881,36 @@ const JobsPage = () => {
       if (newStatus === 'Archived') {
         // Move job from active to archived
         const jobToArchive = jobs.find(job => job._id === currentJobId);
-        setJobs(jobs.filter(job => job._id !== currentJobId));
-        setArchivedJobs([...archivedJobs, {...jobToArchive, status: 'Archived'}]);
+        if (jobToArchive) {
+          setJobs(jobs.filter(job => job._id !== currentJobId));
+          setArchivedJobs([...archivedJobs, {...jobToArchive, status: 'Archived'}]);
+        } else {
+          // If job is already in archived, just update its status
+          setArchivedJobs(archivedJobs.map(job => 
+            job._id === currentJobId ? { ...job, status: newStatus } : job
+          ));
+        }
       } else {
         // Update status in active jobs
         setJobs(jobs.map(job => 
           job._id === currentJobId ? { ...job, status: newStatus } : job
         ));
+        
+        // If moving from archived to active
+        if (archivedJobs.some(job => job._id === currentJobId)) {
+          const jobToActivate = archivedJobs.find(job => job._id === currentJobId);
+          setArchivedJobs(archivedJobs.filter(job => job._id !== currentJobId));
+          setJobs([...jobs, {...jobToActivate, status: newStatus}]);
+        }
       }
       
       handleStatusMenuClose();
+      setSnackbar({ open: true, message: `Job status updated to ${newStatus}`, severity: "success" });
     } catch (error) {
       console.error('Failed to update job status:', error);
+      setSnackbar({ open: true, message: 'Failed to update job status', severity: "error" });
     }
-  };
+};
 
   const handleArchiveConfirm = async () => {
     try {
@@ -897,8 +923,10 @@ const JobsPage = () => {
       
       setShowArchiveDialog(false);
       setJobToArchive(null);
+      setSnackbar({ open: true, message: 'Job archived successfully', severity: "success" });
     } catch (error) {
       console.error('Failed to archive job:', error);
+      setSnackbar({ open: true, message: 'Failed to archive job', severity: "error" });
     }
   };
 
@@ -906,6 +934,79 @@ const JobsPage = () => {
     setShowArchived(!showArchived);
     setFilters({});
     setSearchTerm("");
+  };
+
+  const handleImportClick = () => {
+    setShowImportDialog(true);
+    handleMenuClose();
+  };
+
+  const handleImportDialogClose = () => {
+    setShowImportDialog(false);
+    setImportFile(null);
+  };
+
+  const handleFileChange = (e) => {
+    setImportFile(e.target.files[0]);
+  };
+
+  const handleImportSubmit = async () => {
+    if (!importFile) {
+      setSnackbar({ open: true, message: 'Please select a file to import', severity: "error" });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', importFile);
+
+    try {
+      setLoading(true);
+      const response = await api.post('/jobs/import', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      // Refresh jobs list
+      const allJobs = response.data.jobs;
+      const activeJobs = allJobs.filter(job => job.status !== 'Archived');
+      const archived = allJobs.filter(job => job.status === 'Archived');
+      
+      setJobs(activeJobs);
+      setArchivedJobs(archived);
+      
+      setShowImportDialog(false);
+      setImportFile(null);
+      setSnackbar({ open: true, message: 'Jobs imported successfully', severity: "success" });
+    } catch (error) {
+      console.error('Failed to import jobs:', error);
+      setSnackbar({ open: true, message: 'Failed to import jobs', severity: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDuplicateJob = async () => {
+    handleMenuClose();
+    
+    if (!currentJobId) {
+      setSnackbar({ open: true, message: 'No job selected for duplication', severity: "error" });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await api.post(`/jobs/duplicate/${currentJobId}`);
+      
+      // Add the new job to the active jobs list
+      setJobs([response.data.job, ...jobs]);
+      setSnackbar({ open: true, message: 'Job duplicated successfully', severity: "success" });
+    } catch (error) {
+      console.error('Failed to duplicate job:', error);
+      setSnackbar({ open: true, message: 'Failed to duplicate job', severity: "error" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -937,6 +1038,10 @@ const JobsPage = () => {
     navigate(`/jobs/${jobId}`);
   };
 
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -960,6 +1065,71 @@ const JobsPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Import Jobs Dialog */}
+      <Dialog open={showImportDialog} onClose={handleImportDialogClose}>
+        <DialogTitle>Import Jobs</DialogTitle>
+        <DialogContent>
+          <Box sx={{ minWidth: 400, p: 2 }}>
+            <Typography variant="body1" gutterBottom>
+              Upload a CSV file containing job data. The file should include columns for:
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              jobTitle, jobName, department, location, BusinessUnit, Client, openings, targetHireDate, etc.
+            </Typography>
+            <input
+              accept=".csv"
+              style={{ display: 'none' }}
+              id="import-file"
+              type="file"
+              onChange={handleFileChange}
+            />
+            <label htmlFor="import-file">
+              <Button
+                variant="outlined"
+                component="span"
+                startIcon={<FileUploadIcon />}
+                fullWidth
+                sx={{ mb: 2 }}
+              >
+                Select CSV File
+              </Button>
+            </label>
+            {importFile && (
+              <Typography variant="body2">
+                Selected file: {importFile.name}
+              </Typography>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleImportDialogClose}>Cancel</Button>
+          <Button 
+            onClick={handleImportSubmit} 
+            color="primary" 
+            variant="contained"
+            disabled={!importFile}
+          >
+            Import
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleSnackbarClose} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
 
       {/* Header Section */}
       <Paper elevation={0} sx={{
@@ -1054,10 +1224,23 @@ const JobsPage = () => {
                   open={Boolean(anchorEl)}
                   onClose={handleMenuClose}
                 >
-                  <MenuItem onClick={handleMenuClose}>Import Jobs</MenuItem>
-                  <MenuItem onClick={handleMenuClose}>Duplicate Job</MenuItem>
-                  <MenuItem onClick={handleMenuClose}>Closed Own</MenuItem>
+                  <MenuItem onClick={handleImportClick}>
+                    <FileUploadIcon fontSize="small" sx={{ mr: 1 }} />
+                    Import Jobs
+                  </MenuItem>
+                  <MenuItem onClick={handleDuplicateJob}>
+                    <ContentCopyIcon fontSize="small" sx={{ mr: 1 }} />
+                    Duplicate Job
+                  </MenuItem>
                   <MenuItem onClick={handleMenuClose}>On Hold</MenuItem>
+                  <MenuItem onClick={handleMenuClose}>Closed Own</MenuItem>
+                  <MenuItem onClick={() => {
+                    handleMenuClose();
+                    setShowArchived(true);
+                  }}>
+                    <ArchiveIcon fontSize="small" sx={{ mr: 1 }} />
+                    Archived
+                  </MenuItem>
                 </Menu>
               </>
             )}
@@ -1135,7 +1318,7 @@ const JobsPage = () => {
                 <TableCell sx={{ fontWeight: 'bold' }}>Hire Date</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Priority</TableCell>
-                {!showArchived && <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -1143,6 +1326,7 @@ const JobsPage = () => {
                 const jobForm = job.jobFormId || {};
                 const targetDate = jobForm.targetHireDate ? parseISO(jobForm.targetHireDate) : null;
                 const status = getJobStatus(job);
+                const availableStatusChanges = getAvailableStatusChanges(status);
 
                 return (
                   <TableRow 
@@ -1181,19 +1365,40 @@ const JobsPage = () => {
                         "-"
                       )}
                     </TableCell>
-                    {!showArchived && (
-                      <TableCell align="center">
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleArchiveClick(e, job._id);
-                          }}
-                        >
-                          <ArchiveIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                    )}
+                    <TableCell align="center">
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentJobId(job._id);
+                          handleStatusMenuClick(e, job._id);
+                        }}
+                      >
+                        <MoreVertIcon fontSize="small" />
+                      </IconButton>
+                      <Menu
+                        anchorEl={statusMenuAnchorEl}
+                        open={Boolean(statusMenuAnchorEl && currentJobId === job._id)}
+                        onClose={handleStatusMenuClose}
+                      >
+                        <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
+                          Change {status} to:
+                        </Typography>
+                        {availableStatusChanges.map(status => (
+                          <MenuItem 
+                            key={status} 
+                            onClick={() => handleStatusChange(status)}
+                            sx={{ minWidth: 150 }}
+                          >
+                            <CheckCircleIcon 
+                              color={getStatusColor(status)} 
+                              sx={{ mr: 1, fontSize: '1rem' }} 
+                            />
+                            {status}
+                          </MenuItem>
+                        ))}
+                      </Menu>
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -1246,17 +1451,15 @@ const JobsPage = () => {
                       {jobForm.markPriority && (
                         <StarIcon color="primary" fontSize="small" sx={{ mr: 1 }} />
                       )}
-                      {!showArchived && (
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStatusMenuClick(e, job._id);
-                          }}
-                        >
-                          <MoreVertIcon fontSize="small" />
-                        </IconButton>
-                      )}
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusMenuClick(e, job._id);
+                        }}
+                      >
+                        <MoreVertIcon fontSize="small" />
+                      </IconButton>
                     </Box>
                   </Box>
 
@@ -1336,31 +1539,29 @@ const JobsPage = () => {
                 </CardContent>
 
                 {/* Status change menu */}
-                {!showArchived && (
-                  <Menu
-                    anchorEl={statusMenuAnchorEl}
-                    open={Boolean(statusMenuAnchorEl && currentJobId === job._id)}
-                    onClose={handleStatusMenuClose}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
-                      Change {status} to:
-                    </Typography>
-                    {availableStatusChanges.map(status => (
-                      <MenuItem 
-                        key={status} 
-                        onClick={() => handleStatusChange(status)}
-                        sx={{ minWidth: 150 }}
-                      >
-                        <CheckCircleIcon 
-                          color={getStatusColor(status)} 
-                          sx={{ mr: 1, fontSize: '1rem' }} 
-                        />
-                        {status}
-                      </MenuItem>
-                    ))}
-                  </Menu>
-                )}
+                <Menu
+                  anchorEl={statusMenuAnchorEl}
+                  open={Boolean(statusMenuAnchorEl && currentJobId === job._id)}
+                  onClose={handleStatusMenuClose}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
+                    Change {status} to:
+                  </Typography>
+                  {availableStatusChanges.map(status => (
+                    <MenuItem 
+                      key={status} 
+                      onClick={() => handleStatusChange(status)}
+                      sx={{ minWidth: 150 }}
+                    >
+                      <CheckCircleIcon 
+                        color={getStatusColor(status)} 
+                        sx={{ mr: 1, fontSize: '1rem' }} 
+                      />
+                      {status}
+                    </MenuItem>
+                  ))}
+                </Menu>
               </Card>
             );
           })}

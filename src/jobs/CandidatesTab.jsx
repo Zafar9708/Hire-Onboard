@@ -1245,7 +1245,7 @@ const CandidatesTab = () => {
 
     const handleSubmitRemarks = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/remarks', {
+            const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/remarks', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

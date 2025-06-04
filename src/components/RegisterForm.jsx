@@ -40,7 +40,7 @@ const RegisterForm = () => {
     setErrorMessage("");
 
     try {
-      const response = await fetch("http://localhost:5000/user/register/", {
+      const response = await fetch("https://hire-onboardbackend-13.onrender.com/user/register/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -56,7 +56,6 @@ const RegisterForm = () => {
           navigate("/login");
         }, 5000);
       } else {
-        // ✅ Corrected to check for actual backend error
         const errorMsg = data?.error?.toLowerCase() || "";
 
         if (errorMsg.includes("email already in use")) {

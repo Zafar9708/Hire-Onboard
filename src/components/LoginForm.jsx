@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 
 const LoginForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // Track the loading state
+  const [isLoading, setIsLoading] = useState(false); 
   const navigate = useNavigate();
 
   const validationSchema = Yup.object({
@@ -29,10 +29,10 @@ const LoginForm = () => {
   });
 
   const handleSubmit = async (values) => {
-    setIsLoading(true); // Set loading to true when submitting the form
+    setIsLoading(true); 
     setErrorMessage("");
     try {
-      const response = await fetch("http://localhost:5000/user/login/", {
+      const response = await fetch("https://hire-onboardbackend-13.onrender.com/user/login/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,7 +46,7 @@ const LoginForm = () => {
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("refresh_token", data.refresh_token);
 
-        const userDetailsResponse = await fetch("http://localhost:5000/user/details/", {
+        const userDetailsResponse = await fetch("https://hire-onboardbackend-13.onrender.com/user/details/", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${data.access_token}`,
@@ -73,7 +73,7 @@ const LoginForm = () => {
       console.error("Login error:", error);
       setErrorMessage("Something went wrong. Please try again.");
     } finally {
-      setIsLoading(false); // Stop the loader after the process is complete
+      setIsLoading(false); 
     }
   };
 
@@ -99,7 +99,6 @@ const LoginForm = () => {
           maxWidth: 400,
         }}
       >
-        {/* Logo and Branding */}
         <Box textAlign="center" mb={2}>
           <img
             src="https://cdn-icons-png.flaticon.com/512/295/295128.png"
@@ -164,7 +163,6 @@ const LoginForm = () => {
                   </Box>
                 </Grid>
 
-                {/* Show Loader during login */}
                 {isLoading ? (
                   <Grid item xs={12} textAlign="center">
                     <CircularProgress size={50} color="primary" />

@@ -18,7 +18,6 @@ const Profile = () => {
         contactPerson: ''
     });
 
-    // Function to decode JWT token
     const decodeToken = (token) => {
         try {
             return jwtDecode(token);
@@ -28,12 +27,9 @@ const Profile = () => {
         }
     };
 
-    // Load organization data from localStorage and token
     useEffect(() => {
-        // Extract from userProfile (which contains some org data in your example)
         const storedProfile = JSON.parse(localStorage.getItem('userProfile'));
         
-        // Get from token
         const token = localStorage.getItem('access_token');
         let tokenData = null;
         

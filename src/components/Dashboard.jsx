@@ -29,7 +29,7 @@ const Dashboard = () => {
         <Box sx={{ 
             display: 'flex', 
             minHeight: '100vh',
-            overflow: 'hidden' // Prevent double scrollbars
+            overflow: 'hidden' 
         }}>
             <Header userName={userName} getInitials={getInitials} />
             <Sidebar />
@@ -43,12 +43,12 @@ const Dashboard = () => {
                     marginTop: '64px',
                     backgroundColor: '#f5f5f5',
                     height: 'calc(100vh - 64px)',
-                    overflowY: 'auto', // Enable scrolling
-                    '&::-webkit-scrollbar': { // Hide scrollbar but keep functionality
+                    overflowY: 'auto', 
+                    '&::-webkit-scrollbar': { 
                         display: 'none'
                     },
-                    msOverflowStyle: 'none', // IE and Edge
-                    scrollbarWidth: 'none' // Firefox
+                    msOverflowStyle: 'none', 
+                    scrollbarWidth: 'none' 
                 }}
             >
                 <Box sx={{ 

@@ -2,7 +2,7 @@
 import axios from "axios";
 
 // Base URL for the API
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = "https://hire-onboardbackend-13.onrender.com/api";
 
 // Create an axios instance
 const api = axios.create({
@@ -233,7 +233,7 @@ export const deleteStageRecord = async (stageChangeId) => {
 
 export const sendBulkEmails = async (emailData) => {
   try {
-      const response = await fetch('http://localhost:5000/api/candidates/send-bulk-emails', {
+      const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/candidates/send-bulk-emails', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
