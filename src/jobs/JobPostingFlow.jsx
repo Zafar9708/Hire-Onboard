@@ -13,7 +13,6 @@ const JobPostingFlow = () => {
     if (direction === 'back') {
       setActiveStep(prev => prev - 1);
     } else {
-      // Mark current step as completed
       if (!completedSteps.includes(activeStep)) {
         setCompletedSteps(prev => [...prev, activeStep]);
       }

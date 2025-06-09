@@ -1,360 +1,4 @@
 
-// import React from "react";
-// import {
-//     Box,
-//     Avatar,
-//     Typography,
-//     Divider,
-//     Chip,
-//     Tabs,
-//     Tab,
-//     Button,
-//     Container,
-//     Stack,
-//     Card,
-//     CardContent,
-//     TextField,
-//     Grid,
-//     IconButton,
-//     CircularProgress,
-// } from "@mui/material";
-// import {
-//     Email as EmailIcon,
-//     Phone as PhoneIcon,
-//     Work as WorkIcon,
-//     School as EducationIcon,
-//     LocationOn as LocationIcon,
-//     CalendarToday as DateIcon,
-//     Person as PersonIcon,
-//     Description as NotesIcon,
-//     ArrowBack as BackIcon,
-//     Add as AddIcon,
-//     FileDownload as DownloadIcon,
-//     Schedule as ScheduleIcon,
-//     MoreVert as MoreIcon,
-//     Chat as MessageIcon,
-//     WhatsApp as WhatsAppIcon,
-//     Label as TagIcon,
-//     AttachFile as AttachFileIcon,
-// } from "@mui/icons-material";
-// import { useParams, useNavigate } from "react-router-dom";
-// import { useQuery } from "@tanstack/react-query";
-// import { fetchCandidateById } from "../utils/api"; // Adjust path as needed
-
-// const CandidateDetailsPage = () => {
-//     const { id } = useParams();
-//     const navigate = useNavigate();
-//     const [tabValue, setTabValue] = React.useState(0);
-//     const [resumeTabValue, setResumeTabValue] = React.useState(0);
-
-//     const { data: candidate, isLoading, error } = useQuery({
-//         queryKey: ['candidate', id],
-//         queryFn: () => fetchCandidateById(id),
-//     });
-
-//     const handleTabChange = (event, newValue) => {
-//         setTabValue(newValue);
-//     };
-
-//     const handleResumeTabChange = (event, newValue) => {
-//         setResumeTabValue(newValue);
-//     };
-
-//     if (isLoading) {
-//         return (
-//             <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-//                 <CircularProgress />
-//             </Box>
-//         );
-//     }
-
-//     if (error) {
-//         return (
-//             <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-//                 <Typography color="error">{error.message}</Typography>
-//             </Box>
-//         );
-//     }
-
-//     if (!candidate) return null;
-
-//     return (
-//         <Container maxWidth="xl" sx={{ py: 4, px: 0, ml: 15 }}>
-//             <Button
-//                 startIcon={<BackIcon />}
-//                 onClick={() => navigate(-1)}
-//                 sx={{ mb: 3, ml: 2 }}
-//             >
-//                 Back to Candidates
-//             </Button>
-
-//             <Grid container spacing={2} sx={{ px: 2 }}>
-//                 <Grid item xs={12} md={8}>
-//                     <Card sx={{ mb: 3 }}>
-//                         <CardContent>
-//                             <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-//                                 <Avatar
-//                                     sx={{
-//                                         width: 80,
-//                                         height: 80,
-//                                         bgcolor: "primary.main",
-//                                         fontSize: "2rem",
-//                                     }}
-//                                 >
-//                                     {candidate.firstName.charAt(0)}
-//                                 </Avatar>
-//                                 <Box>
-//                                     <Typography variant="h4" fontWeight="bold">
-//                                         {`${candidate.firstName} ${candidate.middleName || ""} ${candidate.lastName}`}
-//                                     </Typography>
-//                                     <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}>
-//                                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-//                                             <EmailIcon fontSize="small" color="primary" />
-//                                             <Typography variant="body2">{candidate.email}</Typography>
-//                                         </Box>
-//                                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-//                                             <PhoneIcon fontSize="small" color="primary" />
-//                                             <Typography variant="body2">{candidate.mobile}</Typography>
-//                                         </Box>
-//                                     </Box>
-//                                 </Box>
-//                             </Box>
-//                         </CardContent>
-//                     </Card>
-
-//                     <Tabs
-//                         value={tabValue}
-//                         onChange={handleTabChange}
-//                         sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
-//                     >
-//                         <Tab label="Profile" />
-//                         <Tab label="Messages" />
-//                         <Tab label="Feedback" />
-//                         <Tab label="Documents" />
-//                         <Tab label="Engagement" />
-//                         <Tab label="Activity" />
-//                     </Tabs>
-
-//                     {tabValue === 0 && (
-//                         <Box>
-//                             <Card sx={{ mb: 3 }}>
-//                                 <CardContent>
-//                                     <Stack direction="row" spacing={4} sx={{ alignItems: 'center' }}>
-//                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-//                                             <DateIcon color="primary" />
-//                                             <Typography>Available to join (in Days) - {candidate.availableToJoin} days</Typography>
-//                                         </Box>
-//                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-//                                             <WorkIcon color="primary" />
-//                                             <Typography>Experience - {candidate.experience}</Typography>
-//                                         </Box>
-//                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-//                                             <LocationIcon color="primary" />
-//                                             <Typography>{candidate.currentLocation}</Typography>
-//                                         </Box>
-//                                     </Stack>
-//                                 </CardContent>
-//                             </Card>
-
-//                             <Card sx={{ mb: 3 }}>
-//                                 <CardContent>
-//                                     <Stack direction="row" spacing={2}>
-//                                         <Button
-//                                             variant="outlined"
-//                                             startIcon={<AddIcon />}
-//                                             endIcon={<WorkIcon />}
-//                                             fullWidth
-//                                         >
-//                                             Add Experience
-//                                         </Button>
-//                                         <Button
-//                                             variant="outlined"
-//                                             startIcon={<AddIcon />}
-//                                             endIcon={<EducationIcon />}
-//                                             fullWidth
-//                                         >
-//                                             Add Education
-//                                         </Button>
-//                                     </Stack>
-//                                 </CardContent>
-//                             </Card>
-
-//                             <Card sx={{ mb: 3 }}>
-//                                 <CardContent>
-//                                     <Typography variant="h6" gutterBottom fontWeight="bold">
-//                                         Skills
-//                                     </Typography>
-//                                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-//                                         {candidate.skills?.map((skill, index) => (
-//                                             <Chip
-//                                                 key={index}
-//                                                 label={skill}
-//                                                 color="primary"
-//                                                 variant="outlined"
-//                                                 size="small"
-//                                             />
-//                                         ))}
-//                                     </Box>
-//                                 </CardContent>
-//                             </Card>
-
-//                             <Card sx={{ mb: 3 }}>
-//                                 <CardContent>
-//                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-//                                         <TagIcon color="primary" />
-//                                         <Typography variant="h6" fontWeight="bold">Tags</Typography>
-//                                         <Button size="small" startIcon={<AddIcon />}>Add Tag</Button>
-//                                     </Box>
-//                                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-//                                         {candidate.tags?.map((tag, index) => (
-//                                             <Chip
-//                                                 key={index}
-//                                                 label={tag}
-//                                                 color="secondary"
-//                                                 size="small"
-//                                                 onDelete={() => { }}
-//                                             />
-//                                         ))}
-//                                     </Box>
-//                                 </CardContent>
-//                             </Card>
-
-//                             <Card sx={{ mb: 3 }}>
-//                                 <CardContent>
-//                                     <Tabs
-//                                         value={resumeTabValue}
-//                                         onChange={handleResumeTabChange}
-//                                     >
-//                                         <Tab label="Resume" />
-//                                         <Tab label="Application Form" />
-//                                     </Tabs>
-//                                     <Divider sx={{ my: 2 }} />
-//                                     <Box>
-//                                         {resumeTabValue === 0 && (
-//                                             <Box>
-//                                                 <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-//                                                     <Button
-//                                                         variant="outlined"
-//                                                         startIcon={<DownloadIcon />}
-//                                                         sx={{ mb: 2 }}
-//                                                     >
-//                                                         Download Resume
-//                                                     </Button>
-//                                                 </Box>
-//                                                 <Typography variant="body1">
-//                                                     {candidate.resume?.path?.split(/[/\\]/).pop()}
-//                                                 </Typography>
-//                                             </Box>
-//                                         )}
-//                                         {resumeTabValue === 1 && (
-//                                             <Box>
-//                                                 <Typography variant="body1">
-//                                                     This is where the application form would be displayed.
-//                                                 </Typography>
-//                                             </Box>
-//                                         )}
-//                                     </Box>
-//                                 </CardContent>
-//                             </Card>
-//                         </Box>
-//                     )}
-
-//                     {tabValue >= 1 && tabValue <= 5 && (
-//                         <Card>
-//                             <CardContent>
-//                                 <Typography variant="h6">
-//                                     {["Messages", "Feedback", "Documents", "Engagement", "Activity"][tabValue - 1]} content will go here
-//                                 </Typography>
-//                             </CardContent>
-//                         </Card>
-//                     )}
-//                 </Grid>
-
-//                 <Grid item xs={12} md={4}>
-//                     <Card sx={{ mb: 2 }}>
-//                         <CardContent>
-//                             <Grid container spacing={2}>
-//                                 <Grid item xs={6}>
-//                                     <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-//                                         Hiring Stage
-//                                     </Typography>
-//                                     <Stack direction="row" spacing={1}>
-//                                         <Chip
-//                                             label={candidate.stage}
-//                                             color={
-//                                                 candidate.stage === "Hired"
-//                                                     ? "success"
-//                                                     : candidate.stage === "Archived"
-//                                                         ? "default"
-//                                                         : "primary"
-//                                             }
-//                                             sx={{ fontWeight: "bold", minWidth: 100 }}
-//                                         />
-//                                         <Button variant="outlined" color="secondary" size="small">
-//                                             Archive
-//                                         </Button>
-//                                     </Stack>
-//                                 </Grid>
-//                                 <Grid item xs={6}>
-//                                     <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-//                                         Interactions
-//                                     </Typography>
-//                                     <Stack direction="row" spacing={1} alignItems="center">
-//                                         <Button variant="contained" startIcon={<ScheduleIcon />} size="small">
-//                                             Schedule
-//                                         </Button>
-//                                         <IconButton size="small"><MessageIcon color="primary" /></IconButton>
-//                                         <IconButton size="small"><WhatsAppIcon color="success" /></IconButton>
-//                                         <IconButton size="small"><MoreIcon /></IconButton>
-//                                     </Stack>
-//                                 </Grid>
-//                             </Grid>
-//                         </CardContent>
-//                     </Card>
-
-//                     <Card sx={{ maxWidth: 600, margin: "auto", mt: 6, p: 3 }}>
-//                         <CardContent>
-//                             <Typography variant="h6" gutterBottom fontWeight="bold" align="center">
-//                                 Add Note
-//                             </Typography>
-//                             <TextField
-//                                 multiline
-//                                 rows={8}
-//                                 fullWidth
-//                                 placeholder="Add your notes here..."
-//                                 InputProps={{
-//                                     startAdornment: <NotesIcon color="primary" sx={{ mr: 1 }} />,
-//                                 }}
-//                                 sx={{
-//                                     backgroundColor: 'background.paper',
-//                                     borderRadius: 1,
-//                                     boxShadow: 1,
-//                                     mb: 3,
-//                                 }}
-//                             />
-//                             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-//                                 <Button variant="contained" sx={{ width: "200px" }}>
-//                                     Save Note
-//                                 </Button>
-//                             </Box>
-//                         </CardContent>
-//                     </Card>
-//                 </Grid>
-//             </Grid>
-
-//             <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3, px: 2 }}>
-//                 <Button variant="outlined" color="secondary">Archive</Button>
-//                 <Button variant="contained" color="primary">Edit Profile</Button>
-//             </Box>
-//         </Container>
-//     );
-// };
-
-// export default CandidateDetailsPage;
-
-
-//------
-
 import React from "react";
 import {
   Box,
@@ -423,7 +67,7 @@ import {
 } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchCandidateById } from "../utils/api";
+import { fetchCandidateById, fetchCandidateResume } from "../utils/api";
 import { styled } from '@mui/material/styles';
 
 // Custom styled components
@@ -515,12 +159,47 @@ const CandidateDetailsPage = () => {
     queryFn: () => fetchCandidateById(id),
   });
 
+  const { data: resume, isLoading: resumeLoading } = useQuery({
+    queryKey: ['resume', id],
+    queryFn: () => fetchCandidateResume(id),
+    enabled: !!candidate && tabValue === 1 // Only fetch when candidate is loaded and on resume tab
+  });
+
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
   const handleDownloadResume = () => {
-    console.log("Downloading resume...");
+    if (resume?.path) {
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement('a');
+      link.href = `https://hire-onboardbackend-13.onrender.com/${resume.path.replace(/\\/g, '/')}`;
+      link.download = `${candidate.firstName}_${candidate.lastName}_Resume.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const handleShareResume = () => {
+    if (resume?.path) {
+      const resumeUrl = `https://hire-onboardbackend-13.onrender.com/${resume.path.replace(/\\/g, '/')}`;
+      
+      if (navigator.share) {
+        navigator.share({
+          title: `${candidate.firstName} ${candidate.lastName}'s Resume`,
+          text: `Check out ${candidate.firstName}'s resume`,
+          url: resumeUrl,
+        }).catch(console.error);
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        navigator.clipboard.writeText(resumeUrl).then(() => {
+          alert('Resume link copied to clipboard!');
+        }).catch(() => {
+          alert(`Resume URL: ${resumeUrl}`);
+        });
+      }
+    }
   };
 
   if (isLoading) {
@@ -542,6 +221,10 @@ const CandidateDetailsPage = () => {
   }
 
   if (!candidate) return null;
+
+  const resumeUrl = resume?.path 
+    ? `https://hire-onboardbackend-13.onrender.com/${resume.path.replace(/\\/g, '/')}`
+    : null;
 
   return (
     <Container maxWidth="lg" sx={{ py: 3, px: { xs: 2, sm: 3 } }}>
@@ -683,7 +366,6 @@ const CandidateDetailsPage = () => {
                 </CardContent>
               </GlassCard>
             </Box>
-
           )}
 
           {tabValue === 1 && (
@@ -691,8 +373,13 @@ const CandidateDetailsPage = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Typography variant="h6" fontWeight="bold">Resume</Typography>
-                  <Button variant="contained" startIcon={<DownloadIcon />} onClick={handleDownloadResume}>
-                    Download
+                  <Button 
+                    variant="contained" 
+                    startIcon={<DownloadIcon />} 
+                    onClick={handleDownloadResume}
+                    disabled={!resume?.path || resumeLoading}
+                  >
+                    {resumeLoading ? 'Loading...' : 'Download'}
                   </Button>
                 </Box>
 
@@ -703,35 +390,43 @@ const CandidateDetailsPage = () => {
                       <Button size="small" variant="outlined" startIcon={<PdfIcon />}>PDF</Button>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton size="small"><DownloadIcon fontSize="small" /></IconButton>
-                      <IconButton size="small"><ShareIcon fontSize="small" /></IconButton>
+                      <IconButton 
+                        size="small" 
+                        onClick={handleDownloadResume}
+                        disabled={!resume?.path || resumeLoading}
+                      >
+                        <DownloadIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton 
+                        size="small" 
+                        onClick={handleShareResume}
+                        disabled={!resume?.path || resumeLoading}
+                      >
+                        <ShareIcon fontSize="small" />
+                      </IconButton>
                     </Box>
                   </ResumeToolbar>
                   <ResumeContent>
-                    <Typography variant="h4" gutterBottom>{candidate.firstName} {candidate.lastName}</Typography>
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
-                      {candidate.currentJobTitle} | {candidate.currentCompany}
-                    </Typography>
-
-                    <Box sx={{ my: 3 }}>
-                      <Typography variant="h5" gutterBottom>Professional Summary</Typography>
-                      <Typography variant="body1">
-                        {candidate.summary || "Experienced professional with expertise in relevant technologies..."}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ my: 3 }}>
-                      <Typography variant="h5" gutterBottom>Work Experience</Typography>
-                      {candidate.experienceHistory?.map((exp, i) => (
-                        <Box key={i} sx={{ mb: 2 }}>
-                          <Typography variant="h6">{exp.jobTitle}</Typography>
-                          <Typography variant="subtitle1" color="text.secondary">
-                            {exp.company} | {exp.startDate} - {exp.endDate || 'Present'}
-                          </Typography>
-                          <Typography variant="body2" sx={{ mt: 1 }}>{exp.description}</Typography>
-                        </Box>
-                      ))}
-                    </Box>
+                    {resumeLoading ? (
+                      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                        <CircularProgress />
+                      </Box>
+                    ) : resumeUrl ? (
+                      <iframe 
+                        src={`https://docs.google.com/gview?url=${encodeURIComponent(resumeUrl)}&embedded=true`}
+                        style={{ width: '100%', height: '100%', border: 'none' }}
+                        title="Resume Viewer"
+                      />
+                    ) : (
+                      <Box textAlign="center" pt={4}>
+                        <Typography variant="h6" color="textSecondary">
+                          No resume available for this candidate
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary" mt={2}>
+                          Upload a resume to view it here
+                        </Typography>
+                      </Box>
+                    )}
                   </ResumeContent>
                 </ResumeViewer>
               </CardContent>

@@ -6,7 +6,7 @@ export const parseResume = async (file) => {
       const response = await fetch('https://api.affinda.com/v2/resumes', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer YOUR_AFFINDA_API_KEY`, // Replace with your actual key
+          'Authorization': `Bearer YOUR_AFFINDA_API_KEY`, 
         },
         body: formData,
       });
@@ -22,7 +22,6 @@ export const parseResume = async (file) => {
   };
   
   const formatResumeData = (apiResponse) => {
-    // Extract relevant fields from API response
     const result = {};
     const doc = apiResponse?.data || {};
   

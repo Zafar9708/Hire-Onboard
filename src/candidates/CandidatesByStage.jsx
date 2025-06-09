@@ -115,21 +115,16 @@ const CandidatesByStage = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 
-    // Fetch candidates by stage from API
     useEffect(() => {
         const loadCandidates = async () => {
             try {
                 setLoading(true);
-                // In a real app, you would fetch candidates filtered by stage from your API
-                // const data = await fetchCandidatesByStage(stage);
-                
-                // For demo purposes, we'll filter mock data
+               
                 const allCandidates = await fetchCandidates();
                 const filteredCandidates = allCandidates.filter(c => 
                     c.stage.toLowerCase() === stage.toLowerCase()
                 );
                 
-                // Apply additional filters
                 const filtered = filteredCandidates.filter(candidate => {
                     return (
                         (filter.source === "" || candidate.source === filter.source) &&
@@ -460,12 +455,10 @@ const CandidatesByStage = () => {
                 </CardContent>
             </Card>
 
-            {/* Add Candidate Dialog */}
             <Dialog open={openAddCandidate} onClose={handleCloseAddCandidate} maxWidth="md" fullWidth>
                 <AddCandidateForm onClose={handleCloseAddCandidate} onSubmit={handleSubmitCandidate} />
             </Dialog>
 
-            {/* Move Candidate Form */}
             <MoveCandidateForm
                 open={showMoveForm}
                 onClose={() => setShowMoveForm(false)}
@@ -473,7 +466,6 @@ const CandidatesByStage = () => {
                 onMove={handleStageMove}
             />
 
-            {/* Filters */}
             <Card sx={{ mb: 2 }}>
                 <CardContent>
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4, alignItems: "center" }}>
@@ -551,7 +543,6 @@ const CandidatesByStage = () => {
                 </CardContent>
             </Card>
 
-            {/* Bulk Actions */}
             {selectedCandidates.length > 0 && (
                 <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 2 }}>
                     <Typography variant="body2">{selectedCandidates.length} selected</Typography>
@@ -575,7 +566,6 @@ const CandidatesByStage = () => {
                 </Box>
             )}
 
-            {/* Interview Menu */}
             <Menu
                 anchorEl={interviewAnchorEl}
                 open={Boolean(interviewAnchorEl)}
@@ -606,7 +596,6 @@ const CandidatesByStage = () => {
                 </>
             )}
 
-            {/* Stage Menu */}
             <Menu
                 anchorEl={stageAnchorEl}
                 open={Boolean(stageAnchorEl)}
@@ -635,7 +624,6 @@ const CandidatesByStage = () => {
                 </MenuItem>
             </Menu>
 
-            {/* Candidate Views */}
             {viewMode === "card" ? (
                 <Grid container spacing={3}>
                     {candidates.map((candidate) => (
@@ -697,7 +685,6 @@ const CandidatesByStage = () => {
                                         </IconButton>
                                     </Box>
 
-                                    {/* Status Chip */}
                                     <Chip
                                         label={candidate.stage}
                                         color={getStageColor(candidate.stage)}
@@ -713,7 +700,6 @@ const CandidatesByStage = () => {
                                         }}
                                     />
 
-                                    {/* Contact Info */}
                                     <Box sx={{ mt: 1 }}>
                                         <Typography variant="body2" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                                             <EmailIcon fontSize="small" color="action" />
@@ -729,7 +715,6 @@ const CandidatesByStage = () => {
                                         </Typography>
                                     </Box>
 
-                                    {/* Action Buttons */}
                                     <Box sx={{ 
                                         display: "flex", 
                                         justifyContent: "space-between", 
@@ -877,7 +862,6 @@ const CandidatesByStage = () => {
                 </TableContainer>
             )}
 
-            {/* Candidate Details Dialog */}
             <Dialog 
                 open={openDetailsDialog} 
                 onClose={handleCloseDetails} 

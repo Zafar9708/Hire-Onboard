@@ -12,7 +12,7 @@ import {
   Stack,
   IconButton,
 } from "@mui/material";
-import { ViewModule, ViewList } from "@mui/icons-material"; // Table and Card Icons
+import { ViewModule, ViewList } from "@mui/icons-material"; 
 
 const InfoItem = ({ label, value }) => (
   <Box>
@@ -27,7 +27,7 @@ const JobInfo = () => {
   const { id: jobId } = useParams();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState("card"); // State for view (card or table)
+  const [view, setView] = useState("card"); 
 
   useEffect(() => {
     const fetchJobById = async () => {
@@ -89,26 +89,24 @@ const JobInfo = () => {
               </Typography>
             </Box>
 
-            {/* View Toggle */}
             <Box>
               <IconButton
                 color={view === "table" ? "primary" : "default"}
                 onClick={() => handleViewChange("table")}
               >
-                <ViewList /> {/* Table Icon */}
+                <ViewList /> 
               </IconButton>
               <IconButton
                 color={view === "card" ? "primary" : "default"}
                 onClick={() => handleViewChange("card")}
               >
-                <ViewModule /> {/* Card Icon */}
+                <ViewModule /> 
               </IconButton>
             </Box>
           </Box>
 
           <Divider />
 
-          {/* Conditionally render view */}
           {view === "card" ? (
             // Card View
             <Box>
@@ -200,7 +198,6 @@ const JobInfo = () => {
               <Divider />
             </Box>
           ) : (
-            // Table View (Complete fields displayed)
             <Box>
               <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                 JOB INFO 
@@ -282,7 +279,6 @@ const JobInfo = () => {
             </Box>
           )}
 
-          {/* Footer */}
           <Stack direction="row" justifyContent="space-between">
             <Typography variant="caption" color="text.secondary">
               Created: {new Date(createdAt).toLocaleString()}

@@ -34,7 +34,7 @@ const api = axios.create({
 // to fetch data
 api.interceptors.request.use(
   config => {
-    const token = localStorage.getItem("access_token"); // 👈 Correct key
+    const token = localStorage.getItem("access_token"); 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -51,7 +51,7 @@ export default api;
 export const fetchJobTemplates = async () => {
     try {
       const response = await api.get("/job-templates");
-      return response.data; // returns an array of templates
+      return response.data; 
     } catch (err) {
       throw new Error(err.response?.data?.error || err.message);
     }
@@ -72,7 +72,7 @@ export const fetchDepartments=async ()=>{
 }
 
 
-// Function to submit job form details (for JobDetailsForm.jsx)
+// Function to submit job form details 
 export const submitJobForm = async (jobData) => {
     try {
       const response = await api.post("/jobform/create", jobData);
@@ -83,7 +83,6 @@ export const submitJobForm = async (jobData) => {
   };
 
 
-// In src/utils/api.js
 export const fetchJobFormOptions = async () => {
     try {
       const response = await api.get("/jobform/options");
@@ -131,6 +130,18 @@ export const uploadResume = async (resumeFile) => {
     throw new Error(err.response?.data?.error || err.message);
   }
 };
+
+// Function to fetch resume by candidate ID
+export const fetchCandidateResume = async (candidateId) => {
+  try {
+    const response = await api.get(`/candidates/${candidateId}/resume`);
+    return response.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.error || err.message);
+  }
+};
+
+
 
 export const fetchCandidates = async () => {
   try {

@@ -49,15 +49,15 @@ const JobList = ({ showPriority, view }) => {
     const fetchJobs = async () => {
       try {
         const response = await api.get('/jobs');
-        setJobs(response.data.jobs); // ✅ this sets jobs state
-        setLoading(false);           // ✅ stop showing loader
+        setJobs(response.data.jobs); 
+        setLoading(false);           
       } catch (error) {
         console.error('Failed to fetch jobs:', error);
         if (error.response?.status === 401) {
           localStorage.removeItem('token');
           navigate('/login');
         }
-        setLoading(false); // Still stop loader even on error
+        setLoading(false); 
       }
     };
     
@@ -68,12 +68,10 @@ const JobList = ({ showPriority, view }) => {
   useEffect(() => {
     let result = jobs;
     
-    // Apply priority filter if needed
     if (showPriority) {
       result = result.filter(job => job.jobFormId?.markPriority);
     }
     
-    // Apply search term filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(job => 
@@ -83,7 +81,6 @@ const JobList = ({ showPriority, view }) => {
       );
     }
     
-    // Apply other filters
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
         result = result.filter(job => {
@@ -206,7 +203,6 @@ const JobList = ({ showPriority, view }) => {
 
   return (
     <>
-      {/* <JobFilters onSearch={handleSearch} onFilterChange={handleFilterChange} /> */}
       <Box sx={{ 
         display: 'grid',
         gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
