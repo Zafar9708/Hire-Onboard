@@ -33,7 +33,7 @@ const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
         setError("");
 
         try {
-            const response = await fetch(`https://hire-onboardbackend-13.onrender.com/api/stages/${candidate._id}/move`, {
+            const response = await fetch(`http://localhost:8000/api/stages/${candidate._id}/move`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

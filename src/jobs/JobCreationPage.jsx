@@ -37,7 +37,9 @@ const JobCreationPage = () => {
     ],
     careerSite: false,
     internalEmployees: false,
-    referToEmployees: false
+    referToEmployees: false,
+    salesPerson:'',
+    recruitingPerson:''
   });
 
   const handleJobDescriptionSubmit = (data) => {
@@ -74,9 +76,8 @@ const JobCreationPage = () => {
     
     try {
       const result = await createJob(finalData);
-      console.log("Job created successfully:", result);
       alert("Job Published Successfully ✅");
-      navigate("/Dashboard");
+      navigate("/dashboard/allJobs");
     } catch (error) {
       console.error("Error submitting job:", error);
       alert(error.response?.data?.error || "Failed to publish job. Please try again.");
@@ -118,7 +119,9 @@ const JobCreationPage = () => {
             allowReapply: formData.allowReapply,
             reapplyDate: formData.reapplyDate,
             markPriority: formData.markPriority,
-            hiringFlow: formData.hiringFlow
+            hiringFlow: formData.hiringFlow,
+            salesPerson: formData.salesPerson,
+            recruitingPerson: formData.recruitingPerson,
           }}
         />
       )}

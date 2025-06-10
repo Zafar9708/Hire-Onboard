@@ -10,9 +10,10 @@ import {
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import { fetchJobFormOptions } from "../utils/api";
+import { fetchJobFormOptions, getAllUsers } from "../utils/api";
 
 const JobDetailsForm = ({ onContinue, initialData }) => {
+  const [allUsers, setAllUsers] = useState([])
   const [jobType, setJobType] = useState(initialData.jobType || "");
   const [location, setLocation] = useState(initialData.location || "");
   const [openings, setOpenings] = useState(initialData.openings || "");
@@ -24,6 +25,8 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
   const [markPriority, setMarkPriority] = useState(initialData.markPriority || false);
   const [BusinessUnit, setBusinessUnit] = useState(initialData.BusinessUnit || "");
   const [Client, setClient] = useState(initialData.Client || "");
+  const [salesPerson, setSalesPerson] = useState(initialData.salesPerson || "");
+  const [recruitingPerson, setRecruitingPerson] = useState(initialData.recruitingPerson || "");
   const [jobTypes, setJobTypes] = useState([]);
   const [locations, setLocations] = useState([]);
   const [currencies, setCurrencies] = useState([]);
@@ -48,6 +51,21 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
 
     loadOptions();
   }, []);
+
+  useEffect(() => {
+ const fetchData=async()=>{
+  const resUser = await getAllUsers()
+  if (resUser?.user.length) {
+    setAllUsers(resUser?.user)
+  }
+  else{
+    setAllUsers([])
+  }
+
+ }
+ fetchData();
+  }, [])
+  
 
   const handleSubmit = (action) => {
     const jobData = {
@@ -203,8 +221,45 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
           inputProps={{ min: 0 }}
         />
       </Box>
-
       <Typography variant="h6" fontWeight={500} gutterBottom align="left">
+        Team Details
+      </Typography>
+      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+      <FormControl fullWidth>
+          <InputLabel>Sales Person</InputLabel>
+          <Select
+            value={salesPerson}
+            onChange={(e) => setSalesPerson(e.target.value)}
+            label="salesPerson"
+            required
+          >
+            {allUsers.map((user,id ) => (
+              <MenuItem key={user?._id} value={user?.username}>
+                {user?.username} 
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl fullWidth>
+          <InputLabel>Recruiting Member</InputLabel>
+          <Select
+            value={recruitingPerson}
+            onChange={(e) => setRecruitingPerson(e.target.value)}
+            label="Recruiting"
+            required
+          >
+            {allUsers.map((user,id ) => (
+              <MenuItem key={user?._id} value={user?.username}>
+                {user?.username} 
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        
+      </Box>
+
+      {/* <Typography variant="h6" fontWeight={500} gutterBottom align="left">
         Hiring Flow
       </Typography>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 3 }}>
@@ -230,7 +285,7 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
             </CardContent>
           </Card>
         ))}
-      </Box>
+      </Box> */}
 
       <Typography variant="h6" fontWeight={500} gutterBottom align="left">
         Additional Options
@@ -283,8 +338,7 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
             !location || 
             !openings || 
             !targetHireDate || 
-            !currency || 
-            !amount || 
+            !salesPerson||
             !BusinessUnit || 
             (BusinessUnit === "external" && !Client)
           }

@@ -2,7 +2,7 @@
 import axios from "axios";
 
 // Base URL for the API
-const BASE_URL = "https://hire-onboardbackend-13.onrender.com/api";
+const BASE_URL = "http://localhost:8000/api";
 
 // Create an axios instance
 const api = axios.create({
@@ -91,6 +91,14 @@ export const fetchJobFormOptions = async () => {
       throw new Error(err.response?.data?.error || err.message);
     }
   };
+export const getAllUsers = async () => {
+    try {
+      const response = await api.get("http://localhost:8000/user/allUsers");
+      return response.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.error || err.message);
+    }
+  };
   
 
 
@@ -103,12 +111,11 @@ export const createCandidate = async (formData) => {
       }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to create candidate');
+    if (response.status===201) {
+      return  response.data;
     }
 
-    return await response.json();
+    
   } catch (error) {
     console.error('API Error:', error);
     throw error;
@@ -147,6 +154,15 @@ export const fetchCandidates = async () => {
   try {
     const response = await api.get("/candidates");
     return response.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.error || err.message);
+  }
+};
+export const fetchCandidatesByJob = async (jobId) => {
+  try {
+    const response = await api.get(`/candidates/getCandidateByJobs/${jobId}`);
+    console.log("sabdcjnsk",response)
+    return response.data.candidates;
   } catch (err) {
     throw new Error(err.response?.data?.error || err.message);
   }
@@ -244,7 +260,7 @@ export const deleteStageRecord = async (stageChangeId) => {
 
 export const sendBulkEmails = async (emailData) => {
   try {
-      const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/candidates/send-bulk-emails', {
+      const response = await fetch('http://localhost:8000/api/candidates/send-bulk-emails', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',

@@ -47,13 +47,15 @@ const Sidebar = () => {
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {[
-                    { icon: <DashboardIcon />, text: 'Dashboard', path: '/menudashboard' },
-                    { icon: <GroupIcon />, text: 'Users', path: '/users' },
-                    { icon: <SettingsIcon />, text: 'Settings', path: '/settings' },
-                    { icon: <BarChartIcon />, text: 'Reports', path: '/reports' },
-                    { icon: <NotificationsIcon />, text: 'Notifications', path: '/notifications' },
-                    { icon: <HelpIcon />, text: 'Help', path: '/help' },
-                    { icon: <FeedbackIcon />, text: 'Feedback', path: '/feedback' }
+                    { icon: <DashboardIcon />, text: 'Dashboard', path: '/dashboard' },
+                    { icon: <GroupIcon />, text: 'JOBS', path: '/dashboard/alljobs' },
+                    { icon: <GroupIcon />, text: 'Candidates', path: '/dashboard/candidate' },
+                    // { icon: <GroupIcon />, text: 'Users', path: '/dashboard/users' },
+                    { icon: <SettingsIcon />, text: 'Tasks', path: '/dashboard/tasks' },
+                    { icon: <BarChartIcon />, text: 'Reports', path: '/dashboard/reports' },
+                    { icon: <NotificationsIcon />, text: 'Notifications', path: '/dashboard/notifications' },
+                    { icon: <HelpIcon />, text: 'Help', path: '/dashboard/help' },
+                    { icon: <FeedbackIcon />, text: 'Feedback', path: '/dashboard/feedback' }
                 ].map((item, index) => (
                     <Button
                         key={index}

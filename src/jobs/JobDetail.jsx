@@ -24,7 +24,6 @@ const TabPanel = ({ children, value, index }) => {
 };
 
 const JobDetail = () => {
-  const { id } = useParams();
   const [activeTab, setActiveTab] = useState(0);
    const [userName, setUserName] = useState("");
 
@@ -46,15 +45,14 @@ const JobDetail = () => {
   };
 
   const tabNames = [
-    "CHECKLIST",
     "DASHBOARD",
     "CANDIDATES",
     "JOBINFO",
     // "HIRING-SETUP",
     // "WORKFLOW-AUTOMATION",
     // "PUBLISH OPTIONS",
-    "SURVEY RESPONSE",
-    "ANALYTICS",
+    // "SURVEY RESPONSE",
+    // "ANALYTICS",
   ];
 
   const handleTabChange = (event, newValue) => {
@@ -63,19 +61,9 @@ const JobDetail = () => {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Header Section */}
-      <Header userName={userName} getInitials={getInitials} />
-      {/* <div className="flex items-center space-x-2 bg-white p-1 rounded-lg shadow-md w-1/3 ml-4 mt-2"> */}
-        <InputBase className="w-full mt-8"  placeholder="Search..." />
-      
-
+     
       {/* Content Area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <div className="bg-gray-800 text-white w-48 p-5 space-y-5">
-          <Sidebar />
-        </div>
-
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto bg-gray-100 p-4">
           {/* Tabs */}
@@ -96,19 +84,19 @@ const JobDetail = () => {
           </Tabs>
 
           {/* Tab Content */}
-          <TabPanel value={activeTab} index={0}>
+          {/* <TabPanel value={activeTab} index={0}>
             <Checklist/>
-          </TabPanel>
+          </TabPanel> */}
 
-          <TabPanel value={activeTab} index={1}>
+          <TabPanel value={activeTab} index={0}>
             <Dashboard />
           </TabPanel>
 
-          <TabPanel value={activeTab} index={2}>
+          <TabPanel value={activeTab} index={1}>
             <CandidatesTab />
           </TabPanel>
 
-          <TabPanel value={activeTab} index={3}>
+          <TabPanel value={activeTab} index={2}>
             <JobInfo />
           </TabPanel>
 
@@ -124,13 +112,13 @@ const JobDetail = () => {
             <Typography><strong>Publish Options</strong> content for job ID: {id}</Typography>
           </TabPanel> */}
 
-          <TabPanel value={activeTab} index={7}>
+          {/* <TabPanel value={activeTab} index={7}>
             <Typography><strong>Survey Response</strong> content for job ID: {id}</Typography>
-          </TabPanel>
+          </TabPanel> */}
 
-          <TabPanel value={activeTab} index={8}>
+          {/* <TabPanel value={activeTab} index={8}>
             <Typography><strong>Analytics</strong> content for job ID: {id}</Typography>
-          </TabPanel>
+          </TabPanel> */}
         </div>
       </div>
     </div>

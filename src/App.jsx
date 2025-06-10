@@ -24,6 +24,9 @@ import Profile from './components/Profile';
 import ProfileSettings from './components/Settings';
 import Home from './components/Home';
 import VendorLogin from './components/VendorLogin';
+import Dashboardlayout from './layout/DashboardLayout';
+import JobCard from './jobs/JobCard';
+import Task from './components/Task';
 
 
 
@@ -35,10 +38,10 @@ const App = () => {
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/jobs/:id/*" element={<JobDetail />} />
+          {/* <Route path="/jobs/:id/*" element={<JobDetail />} /> */}
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard1" element={<Dashboard />} />
           <Route path="/create-job" element={<JobCreationPage />} />
           <Route path="/candidates" element={<CandidatesTab />} />
           <Route path="/candidates/:id" element={<CandidateDetailsPage />} />
@@ -55,6 +58,29 @@ const App = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/profilesettings" element={<ProfileSettings />} />
           <Route path="/vendor-login" element={<VendorLogin />} />
+
+           {/* 🛡️ Protected Routes for Users */}
+  {/* <Route element={<ProtectedRoute allowedRoles={['candidate']} />}> */}
+    <Route
+      path="/dashboard"
+      element={<Dashboardlayout/>}
+    >
+      <Route path="" element={<MenuDashboard />} />
+      <Route path="allJobs" element={<JobCard />} />
+      <Route path="jobs/:id/*" element={<JobDetail />} />
+      <Route path="createJob" element={<JobCreationPage />} />
+      <Route path="candidate" element={<CandidatesTab />} />
+      {/* <Route path="users" element={<Users />} /> */}
+      <Route path="tasks" element={<Task />} />
+      <Route path="settings" element={<Settings/>} />
+      <Route path="notifications" element={<Notifications />} />
+      <Route path="help" element={<Help/>} />
+      <Route path="feedback" element={<FeedbackPage/>} />
+      {/* <Route path="documents" element={<DocumentsSection />} />
+      <Route path="profile" element={<Profile />} />
+      <Route path="profile/edit" element={<EditProfileForm />} /> */}
+    </Route>
+  {/* </Route> */}
 
 
         </Routes>

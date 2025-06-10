@@ -40,7 +40,7 @@ const RegisterForm = () => {
     setErrorMessage("");
 
     try {
-      const response = await fetch("https://hire-onboardbackend-13.onrender.com/user/register/", {
+      const response = await fetch("http://localhost:8000/user/register/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

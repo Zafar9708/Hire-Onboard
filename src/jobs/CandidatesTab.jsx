@@ -54,7 +54,7 @@ import AddCandidateForm from "./AddCandidateForm";
 import ScheduleOnlineInterviewForm from "../Interviews/ScheduleOnlineInterviewForm";
 import ScheduleOfflineInterviewForm from "../Interviews/ScheduleOfflineInterviewForm";
 import MoveCandidateForm from "./MoveCandidateForm";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import CandidateDetailsPage from "../candidates/CandidateDetailsDialog";
 import {
     fetchCandidates,
@@ -62,9 +62,11 @@ import {
     updateCandidate,
     deleteCandidate,
     sendBulkEmails,
+    fetchCandidatesByJob,
 } from "../utils/api";
 
 const CandidatesTab = () => {
+    const {id}= useParams()
     const [viewMode, setViewMode] = useState("card");
     const [selectedCandidates, setSelectedCandidates] = useState([]);
     const [openAddCandidate, setOpenAddCandidate] = useState(false);
@@ -114,8 +116,16 @@ const CandidatesTab = () => {
         const loadCandidates = async () => {
             try {
                 setLoading(true);
-                const data = await fetchCandidates();
+                if (id) {
+                    console.log('kjdsnkslkdcslc')
+                    const data = await fetchCandidatesByJob(id);
                 setCandidates(data);
+                }
+                else{
+
+                    const data = await fetchCandidates();
+                    setCandidates(data);
+                }
             } catch (err) {
                 setError(err.message);
                 showSnackbar(err.message, "error");
@@ -192,7 +202,7 @@ const CandidatesTab = () => {
 
     const handleSubmitRemarks = async () => {
         try {
-            const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/remarks', {
+            const response = await fetch('http://localhost:8000/api/remarks', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1108,11 +1118,11 @@ const CandidatesTab = () => {
                     </Table>
                 </TableContainer>
             )}
-            <CandidateDetailsPage
+            {openDetailsDialog&&<CandidateDetailsPage
                 open={openDetailsDialog}
                 onClose={handleCloseDetails}
                 candidate={selectedCandidate}
-            />
+            />}
         </Box>
     );
 };

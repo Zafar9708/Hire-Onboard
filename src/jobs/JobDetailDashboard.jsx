@@ -32,6 +32,7 @@ import {
   AccountCircle as AccountIcon,
   MoreVert as MoreIcon
 } from "@mui/icons-material";
+import { fetchCandidatesByJob } from "../utils/api";
 
 // Custom styled components
 const GlassCard = styled(Card)(({ theme }) => ({
@@ -68,6 +69,7 @@ const Dashboard = () => {
   const [showNoteForm, setShowNoteForm] = useState(false);
   const { id: jobId } = useParams();
   const [job, setJob] = useState(null);
+  const [appliedCandidat, setAppliedCandidat] = useState([])
   const [interviews, setInterviews] = useState({ 
     online: 0,
     offline: 0,
@@ -86,14 +88,17 @@ const Dashboard = () => {
         setError(null);
         
         if (jobId) {
-          const jobResponse = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/jobs/byId/${jobId}`);
+          const jobResponse = await axios.get(`http://localhost:8000/api/jobs/byId/${jobId}`);
           setJob(jobResponse.data.job);
+          const data = await fetchCandidatesByJob(jobId);
+          setAppliedCandidat(data);
+          // setAppliedCandidat(data);
         }
 
         const [onlineInterviewsRes, offlineInterviewsRes, upcomingInterviewsRes] = await Promise.all([
-            axios.get('https://hire-onboardbackend-13.onrender.com/api/interviews/schedule'),
-            axios.get('https://hire-onboardbackend-13.onrender.com/api/offline-interviews/get'),
-            axios.get('https://hire-onboardbackend-13.onrender.com/api/interviews/upcoming')
+            axios.get('http://localhost:8000/api/interviews/schedule'),
+            axios.get('http://localhost:8000/api/offline-interviews/get'),
+            axios.get('http://localhost:8000/api/interviews/upcoming')
           ]);
           
           // Count offline interviews from the array

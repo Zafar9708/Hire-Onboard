@@ -192,7 +192,7 @@ const JobsPage = () => {
   }).length;
 
   const handleCreateJobClick = () => {
-    navigate("/create-job");
+    navigate("/dashboard/createJob");
   };
 
   const handleMenuClick = (event) => {
@@ -390,7 +390,7 @@ const JobsPage = () => {
   };
 
   const handleJobCardClick = (jobId) => {
-    navigate(`/jobs/${jobId}`);
+    navigate(`/dashboard/jobs/${jobId}`);
   };
 
   const handleSnackbarClose = () => {
