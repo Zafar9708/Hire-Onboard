@@ -4,12 +4,11 @@ import React, { useState, useRef } from "react";
 import {Box, Card, CardContent, TextField, MenuItem, FormControl, InputLabel, Select, Button, IconButton, Typography, Grid, CircularProgress,} from "@mui/material";
 import { CloudUpload as CloudUploadIcon, AttachFile as AttachFileIcon } from "@mui/icons-material";
 import { createCandidate, uploadResume } from "../utils/api";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
 
 const AddCandidateForm = ({ onClose, onSubmit }) => {
       const { id } = useParams();
-      console.log("id for a psdkjbcjknls",id.length)
     
     const [formData, setFormData] = useState({
       firstName: "",
@@ -101,14 +100,13 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
         if (formData.additionalDocuments) {
           formDataToSend.append("additionalDocuments", formData.additionalDocuments);
         }
-        console.log("iddsjhbjsndsid",id)
         if (id.length) {
              formDataToSend.append("jobId", id);
         }
        
   
-        const newCandidate = await createCandidate(formDataToSend);
-        onSubmit(newCandidate);
+        // const newCandidate = await createCandidate(formDataToSend);
+        onSubmit(formDataToSend);
         onClose();
       } catch (error) {
         console.error("Error submitting candidate:", error);

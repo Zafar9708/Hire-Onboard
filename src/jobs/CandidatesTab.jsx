@@ -54,7 +54,7 @@ import AddCandidateForm from "./AddCandidateForm";
 import ScheduleOnlineInterviewForm from "../Interviews/ScheduleOnlineInterviewForm";
 import ScheduleOfflineInterviewForm from "../Interviews/ScheduleOfflineInterviewForm";
 import MoveCandidateForm from "./MoveCandidateForm";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import CandidateDetailsPage from "../candidates/CandidateDetailsDialog";
 import {
     fetchCandidates,
@@ -66,6 +66,7 @@ import {
 } from "../utils/api";
 
 const CandidatesTab = () => {
+     const loacation = useLocation()
     const {id}= useParams()
     const [viewMode, setViewMode] = useState("card");
     const [selectedCandidates, setSelectedCandidates] = useState([]);
@@ -117,9 +118,8 @@ const CandidatesTab = () => {
             try {
                 setLoading(true);
                 if (id) {
-                    console.log('kjdsnkslkdcslc')
                     const data = await fetchCandidatesByJob(id);
-                setCandidates(data);
+                    setCandidates(data);
                 }
                 else{
 
@@ -272,7 +272,7 @@ const CandidatesTab = () => {
     };
 
     const handleOpenDetails = (candidate) => {
-        navigate(`/candidates/${candidate._id}`);
+        navigate(`/dashboard/candidates/${candidate._id}`);
     };
 
     const handleCloseDetails = () => {
@@ -511,9 +511,9 @@ const CandidatesTab = () => {
                             <TableViewIcon />
                         </ToggleButton>
                     </ToggleButtonGroup>
-                    <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenAddCandidate}>
+                   { location.pathname!=='/dashboard/candidates' &&<Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenAddCandidate}>
                         Add Candidate
-                    </Button>
+                    </Button>}
                 </Box>
             </Box>
 
@@ -630,7 +630,7 @@ const CandidatesTab = () => {
                                 }}
                             >
                                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                    {count}
+                                    {stage==='sourced'?candidates.length:count}
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
                                     {stage.charAt(0).toUpperCase() + stage.slice(1)}

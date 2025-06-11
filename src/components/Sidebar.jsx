@@ -1,6 +1,6 @@
 
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button, Typography, Box } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import GroupIcon from '@mui/icons-material/Group';
@@ -8,13 +8,20 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import HelpIcon from '@mui/icons-material/Help';
+import WorkIcon from '@mui/icons-material/Work';
 import FeedbackIcon from '@mui/icons-material/Feedback';
-import { useNavigate } from 'react-router-dom';
+import TaskIcon from '@mui/icons-material/Task';
+import TodaykIcon from '@mui/icons-material/Today';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
-    const navigate = useNavigate();
 
-    const handleNavigation = (path) => {
+    const [activeIndex, setActiveIndex] = useState(0)
+    const navigate = useNavigate();
+    const loacation = useLocation();
+
+    const handleNavigation = (path,index) => {
+        setActiveIndex(index)
         navigate(path);
     };
 
@@ -45,29 +52,41 @@ const Sidebar = () => {
             >
                 Hire & Onboard
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{
+                display: 'flex',
+                overflowY: 'auto',
+                scrollbarWidth: 'none', // For Firefox
+                '&::-webkit-scrollbar': {
+                    display: 'none', // For Chrome, Safari, and Opera
+                }, flexDirection: 'column', gap: 2
+            }}>
                 {[
                     { icon: <DashboardIcon />, text: 'Dashboard', path: '/dashboard' },
-                    { icon: <GroupIcon />, text: 'JOBS', path: '/dashboard/alljobs' },
-                    { icon: <GroupIcon />, text: 'Candidates', path: '/dashboard/candidate' },
+                    { icon: <WorkIcon />, text: 'JOBS', path: '/dashboard/jobs' },
+                    { icon: <GroupIcon />, text: 'Candidates', path: '/dashboard/candidates' },
                     // { icon: <GroupIcon />, text: 'Users', path: '/dashboard/users' },
-                    { icon: <SettingsIcon />, text: 'Tasks', path: '/dashboard/tasks' },
-                    { icon: <BarChartIcon />, text: 'Reports', path: '/dashboard/reports' },
+                    { icon: <TodaykIcon />, text: 'Interviews', path: '/dashboard/interviews' },
                     { icon: <NotificationsIcon />, text: 'Notifications', path: '/dashboard/notifications' },
+                    { icon: <BarChartIcon />, text: 'Reports', path: '/dashboard/reports' },
+                    { icon: <TaskIcon />, text: 'Tasks', path: '/dashboard/tasks' },
+                    { icon: <SettingsIcon />, text: 'Settings', path: '/dashboard/settings' },
                     { icon: <HelpIcon />, text: 'Help', path: '/dashboard/help' },
                     { icon: <FeedbackIcon />, text: 'Feedback', path: '/dashboard/feedback' }
-                ].map((item, index) => (
+                ].map((item, index) => {
+                    const isActive = location.pathname === item.path || (index !== 0 && location.pathname.startsWith(item.path));
+                    return (
                     <Button
                         key={index}
-                        onClick={() => handleNavigation(item.path)}
+                        onClick={() => handleNavigation(item.path,index)}
                         sx={{
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            color: 'white',
+                            color: isActive ? 'primary.contrastText' : 'white', // Change text color based on active state
+                            backgroundColor: isActive? 'primary.main' : 'transparent',
                             py: 1.5,
                             '&:hover': {
-                                backgroundColor: 'primary.dark',
+                                backgroundColor: 'primary.light',
                             }
                         }}
                         disableRipple
@@ -77,7 +96,7 @@ const Sidebar = () => {
                             {item.text}
                         </Typography>
                     </Button>
-                ))}
+                )})}
             </Box>
         </Box>
     );

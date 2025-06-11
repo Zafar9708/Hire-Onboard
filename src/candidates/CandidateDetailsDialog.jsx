@@ -236,11 +236,11 @@ const CandidateDetailsPage = () => {
       </Breadcrumbs>
 
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Button startIcon={<BackIcon />} onClick={() => navigate(-1)} variant="outlined">
           Back
         </Button>
-      </Box>
+      </Box> */}
 
       <Grid container spacing={3}>
         {/* Main Content */}

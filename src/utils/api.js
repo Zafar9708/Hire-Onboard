@@ -50,7 +50,7 @@ export default api;
 // Function to fetch job templates
 export const fetchJobTemplates = async () => {
     try {
-      const response = await api.get("/job-templates");
+      const response = await api.get("/jobs/jobTemplates");
       return response.data; 
     } catch (err) {
       throw new Error(err.response?.data?.error || err.message);
@@ -148,12 +148,28 @@ export const fetchCandidateResume = async (candidateId) => {
   }
 };
 
+export const fetchAlljobs = async ()=>{
+  try {
+    const response = await api.get(`/jobs`);
+    return response.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.error || err.message);
+  }
+}
+export const fetchAlljobsByStatus = async (status)=>{
+  try {
+    const response = await api.get(`/jobs/byStatus/${status}`);
+    return response.data.jobs;
+  } catch (err) {
+    throw new Error(err.response?.data?.error || err.message);
+  }
+}
 
 
 export const fetchCandidates = async () => {
   try {
     const response = await api.get("/candidates");
-    return response.data;
+    return response.data.candidates;
   } catch (err) {
     throw new Error(err.response?.data?.error || err.message);
   }

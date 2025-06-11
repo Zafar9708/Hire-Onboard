@@ -66,13 +66,16 @@ const App = () => {
       element={<Dashboardlayout/>}
     >
       <Route path="" element={<MenuDashboard />} />
-      <Route path="allJobs" element={<JobCard />} />
+      <Route path="jobs" element={<JobCard />} />
       <Route path="jobs/:id/*" element={<JobDetail />} />
-      <Route path="createJob" element={<JobCreationPage />} />
-      <Route path="candidate" element={<CandidatesTab />} />
+      <Route path="jobs/createJob" element={<JobCreationPage />} />
+      <Route path="candidates" element={<CandidatesTab />} />
+      <Route path="candidates/:id" element={<CandidateDetailsPage />} />
+      <Route path="interviews" element={<TotalInterviews />} />
       {/* <Route path="users" element={<Users />} /> */}
       <Route path="tasks" element={<Task />} />
       <Route path="settings" element={<Settings/>} />
+      <Route path="reports" element={<Reports />} />
       <Route path="notifications" element={<Notifications />} />
       <Route path="help" element={<Help/>} />
       <Route path="feedback" element={<FeedbackPage/>} />

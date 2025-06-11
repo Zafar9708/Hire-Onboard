@@ -1,19 +1,14 @@
 
 import React, { useState,useEffect } from "react";
-import { useParams } from "react-router-dom";
 import {
   Tabs,
   Tab,
   Box,
-  Typography,
-  InputBase,
 } from "@mui/material";
 import Dashboard from "./JobDetailDashboard";
 import CandidatesTab from "./CandidatesTab";
 import JobInfo from "./JobInfo";
-import Header from "../components/Header";
-import Sidebar from "../components/Sidebar";
-import Checklist from "./Checklist";
+
 
 const TabPanel = ({ children, value, index }) => {
   return value === index ? (
@@ -48,11 +43,6 @@ const JobDetail = () => {
     "DASHBOARD",
     "CANDIDATES",
     "JOBINFO",
-    // "HIRING-SETUP",
-    // "WORKFLOW-AUTOMATION",
-    // "PUBLISH OPTIONS",
-    // "SURVEY RESPONSE",
-    // "ANALYTICS",
   ];
 
   const handleTabChange = (event, newValue) => {
@@ -84,9 +74,6 @@ const JobDetail = () => {
           </Tabs>
 
           {/* Tab Content */}
-          {/* <TabPanel value={activeTab} index={0}>
-            <Checklist/>
-          </TabPanel> */}
 
           <TabPanel value={activeTab} index={0}>
             <Dashboard />
@@ -100,25 +87,6 @@ const JobDetail = () => {
             <JobInfo />
           </TabPanel>
 
-          {/* <TabPanel value={activeTab} index={4}>
-            <Typography><strong>Hiring Setup</strong> content for job ID: {id}</Typography>
-          </TabPanel> */}
-{/* 
-          <TabPanel value={activeTab} index={5}>
-            <Typography><strong>Workflow Automation</strong> content for job ID: {id}</Typography>
-          </TabPanel>
-
-          <TabPanel value={activeTab} index={6}>
-            <Typography><strong>Publish Options</strong> content for job ID: {id}</Typography>
-          </TabPanel> */}
-
-          {/* <TabPanel value={activeTab} index={7}>
-            <Typography><strong>Survey Response</strong> content for job ID: {id}</Typography>
-          </TabPanel> */}
-
-          {/* <TabPanel value={activeTab} index={8}>
-            <Typography><strong>Analytics</strong> content for job ID: {id}</Typography>
-          </TabPanel> */}
         </div>
       </div>
     </div>
