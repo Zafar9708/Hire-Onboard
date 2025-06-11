@@ -54,7 +54,7 @@ import AddCandidateForm from "./AddCandidateForm";
 import ScheduleOnlineInterviewForm from "../Interviews/ScheduleOnlineInterviewForm";
 import ScheduleOfflineInterviewForm from "../Interviews/ScheduleOfflineInterviewForm";
 import MoveCandidateForm from "./MoveCandidateForm";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import CandidateDetailsPage from "../candidates/CandidateDetailsDialog";
 import {
     fetchCandidates,
@@ -66,6 +66,7 @@ import {
 } from "../utils/api";
 
 const CandidatesTab = () => {
+     const loacation = useLocation()
     const {id}= useParams()
     const [viewMode, setViewMode] = useState("card");
     const [selectedCandidates, setSelectedCandidates] = useState([]);
@@ -510,9 +511,9 @@ const CandidatesTab = () => {
                             <TableViewIcon />
                         </ToggleButton>
                     </ToggleButtonGroup>
-                    <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenAddCandidate}>
+                   { location.pathname!=='/dashboard/candidates' &&<Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenAddCandidate}>
                         Add Candidate
-                    </Button>
+                    </Button>}
                 </Box>
             </Box>
 
