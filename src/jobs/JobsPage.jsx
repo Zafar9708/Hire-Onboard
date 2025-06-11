@@ -59,7 +59,7 @@ import {
 } from "@mui/icons-material";
 import { parseISO, format } from "date-fns";
 import { useNavigate } from "react-router-dom";
-import api from "../utils/api";
+import api, { fetchAlljobs } from "../utils/api";
 
 const statusOptions = {
   'Active': ['Closed Own', 'Closed Lost', 'On Hold', 'Archived'],
@@ -111,8 +111,8 @@ const JobsPage = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await api.get('/jobs');
-        const allJobs = response.data.jobs;
+        const response = await fetchAlljobs()
+        const allJobs = response.jobs;
         
         const activeJobs = allJobs.filter(job => job.status !== 'Archived');
         const archived = allJobs.filter(job => job.status === 'Archived');
@@ -192,7 +192,7 @@ const JobsPage = () => {
   }).length;
 
   const handleCreateJobClick = () => {
-    navigate("/dashboard/createJob");
+    navigate("/dashboard/jobs/createJob");
   };
 
   const handleMenuClick = (event) => {

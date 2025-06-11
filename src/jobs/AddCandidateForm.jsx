@@ -9,7 +9,6 @@ import { useParams } from "react-router-dom";
 
 const AddCandidateForm = ({ onClose, onSubmit }) => {
       const { id } = useParams();
-      console.log("id for a psdkjbcjknls",id.length)
     
     const [formData, setFormData] = useState({
       firstName: "",

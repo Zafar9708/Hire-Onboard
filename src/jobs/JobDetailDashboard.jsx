@@ -70,6 +70,8 @@ const Dashboard = () => {
   const { id: jobId } = useParams();
   const [job, setJob] = useState(null);
   const [appliedCandidat, setAppliedCandidat] = useState([])
+  const [closedPosition, setClosedPosition] = useState(0)
+  const [acceptanceRate, setAcceptanceRate] = useState(0)
   const [interviews, setInterviews] = useState({ 
     online: 0,
     offline: 0,
@@ -92,7 +94,6 @@ const Dashboard = () => {
           setJob(jobResponse.data.job);
           const data = await fetchCandidatesByJob(jobId);
           setAppliedCandidat(data);
-          // setAppliedCandidat(data);
         }
 
         const [onlineInterviewsRes, offlineInterviewsRes, upcomingInterviewsRes] = await Promise.all([
@@ -123,6 +124,18 @@ const Dashboard = () => {
     fetchData();
   }, [jobId]);
 
+  function percentage(partialValue, totalValue) {
+    return (100 * partialValue) / totalValue;
+ } 
+ 
+  useEffect(() => {
+   const filterC = appliedCandidat.filter((item)=>item.stage==='Hired')
+   setClosedPosition(filterC.length)
+   
+   setAcceptanceRate(percentage(filterC.length,appliedCandidat.length))
+  }, [appliedCandidat])
+  
+
   // Calculate total interviews safely
 const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
 
@@ -134,8 +147,8 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
   offlineInterviews: interviews.offline || 0,
     targetHireDate: "2023-12-15",
     offerAcceptanceRate: "78%",
-    offeredPositions: 12,
-    openPositions: 18,
+    offeredPositions: 0,
+    openPositions: 0,
     pipeline: {
       sourced: 24,
       screening: 18,
@@ -303,13 +316,13 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
           >
             {[
              {
-                title: "Total Interviews",
-                value: stats.totalInterviews,
-                subtitle: `${stats.onlineInterviews} online • ${stats.offlineInterviews} offline`,
-                icon: <InterviewIcon />,
+                title: "Total Candidate Sourced",
+                value: appliedCandidat.length,
+                // subtitle: `${stats.onlineInterviews} online • ${stats.offlineInterviews} offline`,
+                icon: <CandidateIcon />,
                 color: theme.palette.warning.main,
-                trend: totalInterviews > 0 ? "up" : "neutral",
-                change: totalInterviews > 0 ? `+${totalInterviews}` : null,
+                // trend: totalInterviews > 0 ? "up" : "neutral",
+                // change: totalInterviews > 0 ? `+${totalInterviews}` : null,
                 onClick: () => navigate('/interviews/all')
               },,
               {
@@ -317,24 +330,24 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                 value: stats.upcomingInterviews,
                 icon: <TimeIcon />,
                 color: theme.palette.warning.main,
-                trend: interviews.upcoming > 0 ? "up" : "neutral",
-                change: interviews.upcoming > 0 ? `+${interviews.upcoming}` : null,
+                // trend: interviews.upcoming > 0 ? "up" : "neutral",
+                // change: interviews.upcoming > 0 ? `+${interviews.upcoming}` : null,
                 onClick: () => navigate('/interviews/upcoming')
               },
               {
                 title: "Acceptance Rate",
-                value: stats.offerAcceptanceRate,
+                value: `${acceptanceRate} %`,
                 icon: <CheckCircleIcon />,
                 color: theme.palette.success.main,
-                trend: "up",
-                change: "+5%"
+                // trend: "up",
+                // change: "+5%"
               },
               {
                 title: "Positions",
-                value: `${stats.offeredPositions}/${stats.openPositions}`,
+                value: `${closedPosition}/${job.jobFormId.openings}`,
                 icon: <GroupIcon />,
                 color: theme.palette.primary.main,
-                trend: "neutral"
+                // trend: "neutral"
               },
             ].map((stat, index) => (
               <GlassCard 
@@ -518,105 +531,6 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
               </CardContent>
             </GlassCard>
           )}
-
-          {/* Pipeline Visualization */}
-          <GlassCard>
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ 
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 3
-              }}>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  <BarChartIcon sx={{ mr: 1.5, color: theme.palette.primary.main }} /> 
-                  Candidate Pipeline
-                </Typography>
-                <GradientButton size="small" endIcon={<ArrowIcon />}>
-                  View Details
-                </GradientButton>
-              </Box>
-
-              <Box sx={{ mb: 3 }}>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={60} 
-                  sx={{ 
-                    height: 6, 
-                    borderRadius: 3,
-                    mb: 4,
-                    background: alpha(theme.palette.grey[300], 0.5),
-                    '& .MuiLinearProgress-bar': {
-                      background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                      borderRadius: 3
-                    }
-                  }} 
-                />
-                
-                <Box sx={{ 
-                  display: "flex",
-                  justifyContent: "space-between",
-                  textAlign: "center",
-                  gap: 2,
-                }}>
-                  {pipelineStages.map(({ stage, count, percentage }) => (
-                    <Box key={stage} sx={{ flex: 1 }}>
-                      <Box sx={{ 
-                        height: 120,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'flex-end',
-                        mb: 1,
-                        position: 'relative'
-                      }}>
-                        <Box sx={{ 
-                          height: `${percentage}%`,
-                          background: `linear-gradient(to top, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                          borderRadius: '6px 6px 0 0',
-                          transition: 'height 0.5s ease',
-                          position: 'relative',
-                          '&:after': {
-                            content: '""',
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            height: '100%',
-                            background: 'linear-gradient(to top, rgba(255,255,255,0.3), transparent)',
-                            borderRadius: '6px 6px 0 0'
-                          }
-                        }}>
-                          <Typography 
-                            variant="caption" 
-                            sx={{
-                              position: 'absolute',
-                              top: -24,
-                              left: 0,
-                              right: 0,
-                              textAlign: 'center',
-                              color: theme.palette.text.primary,
-                              fontWeight: 700,
-                              fontSize: '0.75rem'
-                            }}
-                          >
-                            {count}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      <Typography variant="caption" sx={{ 
-                        fontWeight: 600,
-                        color: theme.palette.text.secondary,
-                        textTransform: 'capitalize',
-                        fontSize: '0.75rem'
-                      }}>
-                        {stage}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
-            </CardContent>
-          </GlassCard>
 
           {/* Bottom Row */}
           <Box sx={{ 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -26,142 +26,178 @@ import {
   Search as SearchIcon,
   FilterList as FilterIcon,
   Email as EmailIcon,
-  MoreVert as MoreVertIcon
+  MoreVert as MoreVertIcon,
+  Visibility as VisibilityIcon
 } from '@mui/icons-material';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { fetchAlljobsByStatus, fetchCandidates } from '../utils/api';
+import { useNavigate } from 'react-router-dom';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+
+const labels = ['Sourced', 'Screening', 'Interview', 'Preboarding', 'Hired', 'Archived']
+
 const MenuDashboard = () => {
+
+  const navigate = useNavigate();
+
+  const [allCandidates, setallCandidates] = useState([])
+  const [allJobsActive, setAllJobsActive] = useState([])
+  const [pipeData,setPipeData]=useState([])
+
+  const fetchData = async () => {
+    const allCandidates = await fetchCandidates();
+    const allJobsActive = await fetchAlljobsByStatus('Active')
+    setallCandidates(allCandidates)
+    setAllJobsActive(allJobsActive)
+  }
+
+  const pipelineDataSet = (allCandidates) => {
+    const stageCounts = new Array(labels.length).fill(0);
+
+    // Iterate over the candidate list and count the stages
+    allCandidates.forEach(candidate => {
+      const stageIndex = labels.indexOf(candidate.stage);
+      if (stageIndex !== -1) {
+        stageCounts[stageIndex]++;
+      }
+    });
+    return stageCounts
+  }
+  useEffect(() => {
+   const res = pipelineDataSet(allCandidates)
+   setPipeData(res)
+  }, [allCandidates])
+  
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
   const theme = useTheme();
+
+
 
   // ATS Statistics
   const stats = [
-    { 
-      title: 'Total Candidates', 
-      value: '1,254', 
-      change: '+5.2%', 
-      isUp: true,
+    {
+      title: 'Total Candidates',
+      value: allCandidates.length,
+      // change: '+5.2%', 
+      // isUp: true,
       icon: <PeopleIcon />,
-      color: 'primary.main'
+      color: 'primary.main',
+      navigate: '/dashboard/candidates'
     },
-    { 
-      title: 'Active Jobs', 
-      value: '24', 
-      change: '+3.1%', 
-      isUp: true,
+    {
+      title: 'Active Jobs',
+      value: allJobsActive.length,
+      // change: '+3.1%', 
+      // isUp: true,
       icon: <WorkIcon />,
-      color: 'secondary.main'
+      color: 'secondary.main',
+      navigate: '/dashboard/jobs'
     },
-    { 
-      title: 'Interviews Today', 
-      value: '8', 
-      change: '-2', 
-      isUp: false,
+    {
+      title: 'Interviews Today',
+      value: '8',
+      // change: '-2', 
+      // isUp: false,
       icon: <ScheduleIcon />,
-      color: 'warning.main'
-    },
-    { 
-      title: 'Applications', 
-      value: '187', 
-      change: '+15%', 
-      isUp: true,
-      icon: <AssignmentIcon />,
-      color: 'success.main'
+      color: 'warning.main',
+      navigate: '/dashboard/interviews'
     }
   ];
 
   // Candidate Pipeline
   const pipelineData = {
-    labels: ['Sourced', 'Screening', 'Interview', 'Offer', 'Hired'],
+    labels: labels,
     datasets: [
       {
-        data: [120, 80, 45, 15, 8],
+        data: pipeData,
         backgroundColor: [
           theme.palette.primary.light,
           theme.palette.info.light,
           theme.palette.warning.light,
           theme.palette.secondary.light,
-          theme.palette.success.light
+          theme.palette.success.light,
+          theme.palette.error.dark
         ],
         borderWidth: 0,
       },
     ],
   };
 
-  // Recent Candidates
-  const recentCandidates = [
-    { 
-      name: 'Sarah Johnson', 
-      position: 'Senior UX Designer', 
-      status: 'Technical Review',
-      time: '15 mins ago',
-      avatar: 'SJ'
-    },
-    { 
-      name: 'Michael Chen', 
-      position: 'Frontend Developer', 
-      status: 'Interview Scheduled',
-      time: '2 hours ago',
-      avatar: 'MC'
-    },
-    { 
-      name: 'David Wilson', 
-      position: 'Product Manager', 
-      status: 'Offer Sent',
-      time: '1 day ago',
-      avatar: 'DW'
-    }
-  ];
+  const handleCardClick = (stat) => {
+    navigate(stat.navigate)
+  }
+  function createAvatarInitials(first, second) {
 
-  // Job Openings
-  const jobOpenings = [
-    { 
-      title: 'Senior React Developer', 
-      department: 'Engineering', 
-      applicants: 24,
-      daysOpen: 5,
-      priority: 'High'
-    },
-    { 
-      title: 'UX Researcher', 
-      department: 'Design', 
-      applicants: 18,
-      daysOpen: 12,
-      priority: 'Medium'
-    },
-    { 
-      title: 'Technical Recruiter', 
-      department: 'HR', 
-      applicants: 9,
-      daysOpen: 8,
-      priority: 'High'
+    // Extract the first letter of the first name and the first letter of the last name
+    const firstInitial = first ? first[0].toUpperCase() : '';
+    const lastInitial = second ? second[0].toUpperCase() : '';
+
+    // Combine the initials to form the avatar string
+    return `${firstInitial}${lastInitial}`;
+  }
+
+  function getTimeDifference(createdAt, type) {
+    const createdDate = new Date(createdAt);
+    const currentDate = new Date();
+
+
+    let differenceInMilliseconds;
+    // Calculate the difference in milliseconds
+    if (type === 'past') {
+      differenceInMilliseconds = currentDate - createdDate;
     }
-  ];
+    else {
+      differenceInMilliseconds = createdDate - currentDate;
+    }
+    // const differenceInMilliseconds = currentDate - createdDate;
+
+    // Convert milliseconds to seconds, minutes, hours, and days
+    const differenceInSeconds = Math.floor(differenceInMilliseconds / 1000);
+    const differenceInMinutes = Math.floor(differenceInSeconds / 60);
+    const differenceInHours = Math.floor(differenceInMinutes / 60);
+    const differenceInDays = Math.floor(differenceInHours / 24);
+
+    // Return the largest non-zero unit
+    if (differenceInDays > 0) {
+      return `${differenceInDays} day${differenceInDays !== 1 ? 's' : ''}`;
+    } else if (differenceInHours > 0) {
+      return `${differenceInHours} hour${differenceInHours !== 1 ? 's' : ''}`;
+    } else if (differenceInMinutes > 0) {
+      return `${differenceInMinutes} minute${differenceInMinutes !== 1 ? 's' : ''}`;
+    } else {
+      return `${differenceInSeconds} second${differenceInSeconds !== 1 ? 's' : ''}`;
+    }
+  }
 
   return (
     <Box component="section" sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
       {/* Header */}
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         mb: 4
       }}>
         <Typography variant="h4" fontWeight="bold">
           Recruitment Dashboard
         </Typography>
         <Stack direction="row" spacing={2}>
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             startIcon={<FilterIcon />}
             sx={{ textTransform: 'none' }}
           >
             Filters
           </Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             startIcon={<SearchIcon />}
             sx={{ textTransform: 'none' }}
           >
@@ -173,42 +209,43 @@ const MenuDashboard = () => {
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {stats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <Card sx={{ 
-              height: '100%',
-              borderRadius: 2,
-              boxShadow: 1,
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: 3
-              }
-            }}>
-              <CardContent>
-                <Box sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between',
-                  mb: 2
+          // <Grid item xs={12} sm={6} md={3} key={index}>
+          <Card sx={{
+            height: '100%',
+            width: '29.3%',
+            borderRadius: 2,
+            boxShadow: 1,
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: 3
+            }
+          }}>
+            <CardContent onClick={() => handleCardClick(stat)}>
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                mb: 2
+              }}>
+                <Avatar sx={{
+                  bgcolor: stat.color,
+                  color: 'common.white',
+                  width: 44,
+                  height: 44
                 }}>
-                  <Avatar sx={{ 
-                    bgcolor: stat.color,
-                    color: 'common.white',
-                    width: 44,
-                    height: 44
-                  }}>
-                    {stat.icon}
-                  </Avatar>
-                  <IconButton size="small">
-                    <MoreVertIcon />
-                  </IconButton>
-                </Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  {stat.title}
-                </Typography>
-                <Typography variant="h5" fontWeight="bold" sx={{ my: 1 }}>
-                  {stat.value}
-                </Typography>
-                <Box sx={{ 
+                  {stat.icon}
+                </Avatar>
+                <IconButton size="small">
+                  <MoreVertIcon />
+                </IconButton>
+              </Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                {stat.title}
+              </Typography>
+              <Typography variant="h5" fontWeight="bold" sx={{ my: 1 }}>
+                {stat.value}
+              </Typography>
+              {/* <Box sx={{ 
                   display: 'flex', 
                   alignItems: 'center',
                   color: stat.isUp ? 'success.main' : 'error.main'
@@ -217,10 +254,10 @@ const MenuDashboard = () => {
                   <Typography variant="body2" sx={{ ml: 0.5 }}>
                     {stat.change} this week
                   </Typography>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
+                </Box> */}
+            </CardContent>
+          </Card>
+          // </Grid>
         ))}
       </Grid>
 
@@ -228,7 +265,7 @@ const MenuDashboard = () => {
       <Grid container spacing={3}>
         {/* Candidate Pipeline */}
         <Grid item xs={12} md={5}>
-          <Card sx={{ 
+          <Card sx={{
             height: '100%',
             borderRadius: 2,
             boxShadow: 1
@@ -244,8 +281,8 @@ const MenuDashboard = () => {
             />
             <CardContent>
               <Box sx={{ height: 250, mb: 2 }}>
-                <Doughnut 
-                  data={pipelineData} 
+                <Doughnut
+                  data={pipelineData}
                   options={{
                     maintainAspectRatio: false,
                     plugins: {
@@ -258,12 +295,12 @@ const MenuDashboard = () => {
                       }
                     },
                     cutout: '70%'
-                  }} 
+                  }}
                 />
               </Box>
-              <Button 
-                fullWidth 
-                variant="outlined" 
+              <Button
+                fullWidth
+                variant="outlined"
                 sx={{ textTransform: 'none' }}
               >
                 View Pipeline Report
@@ -274,7 +311,7 @@ const MenuDashboard = () => {
 
         {/* Recent Candidates */}
         <Grid item xs={12} md={7}>
-          <Card sx={{ 
+          <Card sx={{
             borderRadius: 2,
             boxShadow: 1
           }}>
@@ -289,11 +326,11 @@ const MenuDashboard = () => {
             />
             <CardContent>
               <Stack spacing={2}>
-                {recentCandidates.map((candidate, index) => (
-                  <Paper 
-                    key={index} 
+                {allCandidates.slice(0, 3).map((candidate, index) => (
+                  <Paper
+                    key={index}
                     elevation={0}
-                    sx={{ 
+                    sx={{
                       p: 2,
                       borderRadius: 1,
                       display: 'flex',
@@ -303,132 +340,58 @@ const MenuDashboard = () => {
                         backgroundColor: 'action.hover'
                       }
                     }}
+                    onClick={() => navigate(`/dashboard/candidates/${candidate._id}`)}
                   >
-                    <Avatar sx={{ 
-                      bgcolor: 'primary.light', 
+                    <Avatar sx={{
+                      bgcolor: 'primary.light',
                       color: 'primary.dark',
                       mr: 2,
                       width: 40,
                       height: 40
                     }}>
-                      {candidate.avatar}
+                      {createAvatarInitials(candidate.firstName, candidate.lastName)}
                     </Avatar>
                     <Box sx={{ flexGrow: 1 }}>
                       <Typography variant="body1" fontWeight="medium">
-                        {candidate.name}
+                        {candidate.firstName} {candidate.lastName}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {candidate.position}
+                        {'FrontEnd Engineer'}
                       </Typography>
                     </Box>
                     <Box sx={{ textAlign: 'right' }}>
-                      <Chip 
-                        label={candidate.status} 
-                        size="small" 
+                      <Chip
+                        label={candidate.stage}
+                        size="small"
                         color="primary"
                         variant="outlined"
                         sx={{ mb: 0.5 }}
                       />
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                        {candidate.time}
+                        {getTimeDifference(candidate.createdAt, 'past')}
                       </Typography>
                     </Box>
                   </Paper>
                 ))}
               </Stack>
-              <Button 
-                fullWidth 
-                variant="text" 
+              <Button
+                fullWidth
+                variant="text"
                 sx={{ mt: 2, textTransform: 'none' }}
-                startIcon={<EmailIcon />}
+                startIcon={<VisibilityIcon />}
+                onClick={() => navigate('/dashboard/candidates')}
               >
-                Email All Candidates
+                See All Candidates
               </Button>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Job Openings */}
-        <Grid item xs={12} md={8}>
-          <Card sx={{ 
-            borderRadius: 2,
-            boxShadow: 1
-          }}>
-            <CardHeader
-              title="Active Job Openings"
-              subheader="Priority positions needing attention"
-              action={
-                <Button 
-                  variant="contained" 
-                  size="small"
-                  sx={{ textTransform: 'none' }}
-                >
-                  Post New Job
-                </Button>
-              }
-            />
-            <CardContent>
-              <Grid container spacing={2}>
-                {jobOpenings.map((job, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={index}>
-                    <Paper sx={{ 
-                      p: 2, 
-                      height: '100%',
-                      borderRadius: 1,
-                      border: `1px solid ${theme.palette.divider}`,
-                      '&:hover': {
-                        borderColor: 'primary.main'
-                      }
-                    }}>
-                      <Typography variant="subtitle1" fontWeight="medium">
-                        {job.title}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                        {job.department}
-                      </Typography>
-                      <Box sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between',
-                        mt: 1.5,
-                        alignItems: 'center'
-                      }}>
-                        <Typography variant="body2">
-                          {job.applicants} applicants
-                        </Typography>
-                        <Chip 
-                          label={job.priority} 
-                          size="small" 
-                          color={job.priority === 'High' ? 'error' : 'warning'}
-                          variant="outlined"
-                        />
-                      </Box>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={(job.applicants / 30) * 100} 
-                        sx={{ 
-                          mt: 2,
-                          height: 6,
-                          borderRadius: 3,
-                          backgroundColor: theme.palette.grey[200],
-                          '& .MuiLinearProgress-bar': {
-                            borderRadius: 3
-                          }
-                        }}
-                      />
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
-                        Open for {job.daysOpen} days
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
+
 
         {/* Upcoming Interviews */}
         <Grid item xs={12} md={4}>
-          <Card sx={{ 
+          <Card sx={{
             borderRadius: 2,
             boxShadow: 1
           }}>
@@ -444,9 +407,9 @@ const MenuDashboard = () => {
             <CardContent>
               <Stack spacing={2}>
                 {[1, 2].map((item) => (
-                  <Paper 
-                    key={item} 
-                    sx={{ 
+                  <Paper
+                    key={item}
+                    sx={{
                       p: 2,
                       borderRadius: 1,
                       border: `1px solid ${theme.palette.divider}`
@@ -463,10 +426,10 @@ const MenuDashboard = () => {
                       <Typography variant="body2">
                         {item === 1 ? 'Tomorrow, 10:00 AM' : 'Wed, 2:00 PM'}
                       </Typography>
-                      <Button 
-                        variant="outlined" 
+                      <Button
+                        variant="outlined"
                         size="small"
-                        sx={{ 
+                        sx={{
                           textTransform: 'none',
                           minWidth: 0,
                           p: '2px 8px'
@@ -478,14 +441,116 @@ const MenuDashboard = () => {
                   </Paper>
                 ))}
               </Stack>
-              <Button 
-                fullWidth 
-                variant="outlined" 
+              <Button
+                fullWidth
+                variant="outlined"
                 sx={{ mt: 2, textTransform: 'none' }}
                 startIcon={<ScheduleIcon />}
+                onClick={()=>navigate('/dashboard/interviews')}
               >
                 View Full Calendar
               </Button>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Job Openings */}
+        <Grid item width={'100%'} xs={12} md={8}>
+          <Card sx={{
+            borderRadius: 2,
+            boxShadow: 1
+          }}>
+            <CardHeader
+              title="Active Job Openings"
+              subheader="Priority positions needing attention"
+              action={
+                <Button
+                  variant="contained"
+                  size="small"
+                  sx={{ textTransform: 'none' }}
+                  onClick={() => navigate('/dashboard/jobs/createJob')}
+                >
+                  Post New Job
+                </Button>
+              }
+            />
+            <CardContent>
+              <Grid container spacing={2}>
+                {allJobsActive.map((job, index) => (
+                  <Grid item xs={12} width={'23%'} sm={6} md={4} key={index} onClick={() => navigate(`/dashboard/jobs/${job._id}`)}>
+                    <Paper sx={{
+                      // width:'24%',
+                      p: 2,
+                      height: '100%',
+                      borderRadius: 1,
+                      border: `1px solid ${theme.palette.divider}`,
+                      '&:hover': {
+                        borderColor: 'primary.main'
+                      }
+                    }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Box>
+                          <Typography variant="subtitle1" fontWeight="medium">
+                            {job.jobTitle}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                            {job.department}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ textAlign: 'right' }}>
+                          <Typography variant="subtitle2" color="primary" fontWeight="bold">
+                            {job.jobName}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mt: 1.5,
+                        alignItems: 'center'
+                      }}>
+                        <Typography variant="body2">
+                          2 applicants
+                        </Typography>
+                        <Chip
+                          label={job.status}
+                          size="small"
+                          color={job.status === 'Active' ? 'success' : 'warning'}
+                          variant="outlined"
+                        />
+                      </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={(25 / 30) * 100}
+                        sx={{
+                          mt: 2,
+                          height: 6,
+                          borderRadius: 3,
+                          backgroundColor: theme.palette.grey[200],
+                          '& .MuiLinearProgress-bar': {
+                            borderRadius: 3
+                          }
+                        }}
+                      />
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                        Open for {getTimeDifference(job.jobFormId.targetHireDate, 'future')}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+              <Stack >
+                <Button
+
+                  variant="text"
+                  sx={{ mt: 2, textTransform: 'none' }}
+                  startIcon={<VisibilityIcon />}
+                  onClick={() => navigate('/dashboard/jobs')}
+                >
+                  See All Jobs
+                </Button>
+              </Stack>
             </CardContent>
           </Card>
         </Grid>

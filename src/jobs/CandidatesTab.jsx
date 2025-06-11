@@ -117,9 +117,8 @@ const CandidatesTab = () => {
             try {
                 setLoading(true);
                 if (id) {
-                    console.log('kjdsnkslkdcslc')
                     const data = await fetchCandidatesByJob(id);
-                setCandidates(data);
+                    setCandidates(data);
                 }
                 else{
 
@@ -272,7 +271,7 @@ const CandidatesTab = () => {
     };
 
     const handleOpenDetails = (candidate) => {
-        navigate(`/candidates/${candidate._id}`);
+        navigate(`/dashboard/candidates/${candidate._id}`);
     };
 
     const handleCloseDetails = () => {
@@ -630,7 +629,7 @@ const CandidatesTab = () => {
                                 }}
                             >
                                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                    {count}
+                                    {stage==='sourced'?candidates.length:count}
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
                                     {stage.charAt(0).toUpperCase() + stage.slice(1)}
