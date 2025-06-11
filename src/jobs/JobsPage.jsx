@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect } from "react";
 import { 
   Typography, 
@@ -74,7 +72,7 @@ const filterOptions = {
   status: ["Active", "On Hold", "Closed Own", "Closed Lost"],
   businessUnit: ["Internal", "External"],
   department: ["Developer", "Tester", "QA", "UI/UX", "DevOps", "Support"],
-  hiringManager: ["Aseem Gupta", "Himanshu Patel", "Preeti Kashyap"],
+  // hiringManager: ["Aseem Gupta", "Himanshu Patel", "Preeti Kashyap"],
   recruiter: ["Himanshu Patel", "Preeti Kashyap", "Richa Kumari"],
   location: ["Mumbai", "Gurgaon", "Delhi", "Bengaluru", "Pune"],
 };
@@ -83,7 +81,7 @@ const filtersConfig = [
   { label: "Status", id: "status" },
   { label: "Business Unit", id: "businessUnit" },
   { label: "Department", id: "department" },
-  { label: "Hiring Manager", id: "hiringManager" },
+  // { label: "Hiring Manager", id: "hiringManager" },
   { label: "Recruiter", id: "recruiter" },
   { label: "Location", id: "location" },
 ];
@@ -214,6 +212,11 @@ const JobsPage = () => {
     }));
   };
 
+  const handleResetFilters = () => {
+    setFilters({});
+    setSearchTerm("");
+  };
+
   const handleStatusMenuClick = (event, jobId) => {
     event.stopPropagation();
     setStatusMenuAnchorEl(event.currentTarget);
@@ -268,7 +271,7 @@ const JobsPage = () => {
       console.error('Failed to update job status:', error);
       setSnackbar({ open: true, message: 'Failed to update job status', severity: "error" });
     }
-};
+  };
 
   const handleArchiveConfirm = async () => {
     try {
@@ -621,6 +624,18 @@ const JobsPage = () => {
                 </FormControl>
               </Grid>
             ))}
+            <Grid item xs={6} sm={4} md={2}>
+              <Button
+                variant="outlined"
+                onClick={handleResetFilters}
+                fullWidth
+                size="small"
+                sx={{ height: '40px' }}
+                disabled={Object.keys(filters).length === 0 && !searchTerm}
+              >
+                Reset Filters
+              </Button>
+            </Grid>
           </Grid>
 
           {/* Search Input Section */}
@@ -658,8 +673,8 @@ const JobsPage = () => {
           <Table sx={{ minWidth: 650 }} size="small">
             <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>SI.NO</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Job Name</TableCell>
+                {/* <TableCell sx={{ fontWeight: 'bold' }}>SI.NO</TableCell> */}
+                <TableCell sx={{ fontWeight: 'bold' }}>Job ID</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Job Title</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Department</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Location</TableCell>
@@ -689,7 +704,7 @@ const JobsPage = () => {
                       '&:nth-of-type(even)': { backgroundColor: '#fafafa' }
                     }}
                   >
-                    <TableCell>{index + 1}</TableCell>
+                    {/* <TableCell>{index + 1}</TableCell> */}
                     <TableCell sx={{ fontWeight: 500 }}>{job.jobName}</TableCell>
                     <TableCell>{job.jobTitle}</TableCell>
                     <TableCell>{job.department}</TableCell>
@@ -846,8 +861,6 @@ const JobsPage = () => {
                       variant="outlined"
                     />
                   </Stack>
-
-                  <Divider sx={{ my: 1 }} />
 
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Box display="flex" alignItems="center" gap={1}>

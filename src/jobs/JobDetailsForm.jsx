@@ -1,19 +1,21 @@
 
 
-
 import React, { useState, useEffect } from "react";
 import {
   Box, TextField, Select, MenuItem, InputLabel, FormControl, Button,
   Typography, IconButton, InputAdornment, Checkbox, FormControlLabel,
-  Card, CardContent, Divider, Paper
+  Card, CardContent, Divider, Paper, Dialog, DialogTitle, DialogContent,
+  DialogActions, Grid
 } from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/Close";
 import { fetchJobFormOptions, getAllUsers } from "../utils/api";
 
 const JobDetailsForm = ({ onContinue, initialData }) => {
-  const [allUsers, setAllUsers] = useState([])
+  const [allUsers, setAllUsers] = useState([]);
   const [jobType, setJobType] = useState(initialData.jobType || "");
   const [location, setLocation] = useState(initialData.location || "");
   const [openings, setOpenings] = useState(initialData.openings || "");
@@ -26,10 +28,16 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
   const [BusinessUnit, setBusinessUnit] = useState(initialData.BusinessUnit || "");
   const [Client, setClient] = useState(initialData.Client || "");
   const [salesPerson, setSalesPerson] = useState(initialData.salesPerson || "");
-  const [recruitingPerson, setRecruitingPerson] = useState(initialData.recruitingPerson || "");
+  const [recruiters, setRecruiters] = useState(initialData.recruiters || []);
   const [jobTypes, setJobTypes] = useState([]);
   const [locations, setLocations] = useState([]);
   const [currencies, setCurrencies] = useState([]);
+  const [openRecruiterDialog, setOpenRecruiterDialog] = useState(false);
+  const [newRecruiter, setNewRecruiter] = useState({
+    name: "",
+    email: "",
+    phone: ""
+  });
 
   const hiringFlowSteps = initialData.hiringFlow || [
     "Technical Round",
@@ -53,19 +61,28 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
   }, []);
 
   useEffect(() => {
- const fetchData=async()=>{
-  const resUser = await getAllUsers()
-  if (resUser?.user.length) {
-    setAllUsers(resUser?.user)
-  }
-  else{
-    setAllUsers([])
-  }
+    const fetchData = async () => {
+      const resUser = await getAllUsers();
+      if (resUser?.user.length) {
+        setAllUsers(resUser?.user);
+      } else {
+        setAllUsers([]);
+      }
+    };
+    fetchData();
+  }, []);
 
- }
- fetchData();
-  }, [])
-  
+  const handleAddRecruiter = () => {
+    setRecruiters([...recruiters, newRecruiter]);
+    setNewRecruiter({ name: "", email: "", phone: "" });
+    setOpenRecruiterDialog(false);
+  };
+
+  const handleRemoveRecruiter = (index) => {
+    const updatedRecruiters = [...recruiters];
+    updatedRecruiters.splice(index, 1);
+    setRecruiters(updatedRecruiters);
+  };
 
   const handleSubmit = (action) => {
     const jobData = {
@@ -79,15 +96,17 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
       reapplyDate: allowReapply ? Number(reapplyDate) : null,
       markPriority,
       hiringFlow: hiringFlowSteps,
-      BusinessUnit: BusinessUnit.toLowerCase(), // Ensure lowercase to match backend
-      Client: BusinessUnit === "external" ? Client : undefined
+      BusinessUnit: BusinessUnit.toLowerCase(),
+      Client: BusinessUnit === "external" ? Client : undefined,
+      recruiters,
+      salesPerson
     };
     
     onContinue(jobData, action);
   };
 
   return (
-    <Paper elevation={4} sx={{ maxWidth: 1000, mx: "auto", p: 4, borderRadius: 3, marginTop:2 }}>
+    <Paper elevation={4} sx={{ maxWidth: 1000, mx: "auto", p: 4, borderRadius: 3, marginTop: 2 }}>
       <Typography variant="h5" fontWeight={600} gutterBottom align="left">
         Job Details
       </Typography>
@@ -221,71 +240,116 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
           inputProps={{ min: 0 }}
         />
       </Box>
+
       <Typography variant="h6" fontWeight={500} gutterBottom align="left">
         Team Details
       </Typography>
       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-      <FormControl fullWidth>
+        <FormControl fullWidth>
           <InputLabel>Sales Person</InputLabel>
           <Select
             value={salesPerson}
             onChange={(e) => setSalesPerson(e.target.value)}
-            label="salesPerson"
+            label="Sales Person"
             required
           >
-            {allUsers.map((user,id ) => (
+            {allUsers.map((user) => (
               <MenuItem key={user?._id} value={user?.username}>
-                {user?.username} 
+                {user?.username}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
-        <FormControl fullWidth>
-          <InputLabel>Recruiting Member</InputLabel>
-          <Select
-            value={recruitingPerson}
-            onChange={(e) => setRecruitingPerson(e.target.value)}
-            label="Recruiting"
-            required
-          >
-            {allUsers.map((user,id ) => (
-              <MenuItem key={user?._id} value={user?.username}>
-                {user?.username} 
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        
       </Box>
 
-      {/* <Typography variant="h6" fontWeight={500} gutterBottom align="left">
-        Hiring Flow
-      </Typography>
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 3 }}>
-        {hiringFlowSteps.map((step) => (
-          <Card
-            key={step}
-            sx={{
-              width: 120,
-              height: 70,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#f9f9f9",
-              border: "1px solid #ddd",
-              borderRadius: 2,
-              textAlign: "center",
-            }}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+          <Typography variant="subtitle1" fontWeight={500}>
+            Recruiters
+          </Typography>
+          <Button
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={() => setOpenRecruiterDialog(true)}
           >
-            <CardContent sx={{ p: 1 }}>
-              <Typography variant="body2" fontWeight={500}>
-                {step}
-              </Typography>
-            </CardContent>
-          </Card>
-        ))}
-      </Box> */}
+            Add Recruiter
+          </Button>
+        </Box>
+
+        {recruiters.length > 0 ? (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {recruiters.map((recruiter, index) => (
+              <Card key={index} sx={{ p: 2, position: "relative" }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Box>
+                    <Typography variant="body1" fontWeight={500}>
+                      {recruiter.name}
+                    </Typography>
+                    <Typography variant="body2">{recruiter.email}</Typography>
+                    <Typography variant="body2">{recruiter.phone}</Typography>
+                  </Box>
+                  <IconButton
+                    onClick={() => handleRemoveRecruiter(index)}
+                    sx={{ position: "absolute", top: 8, right: 8 }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              </Card>
+            ))}
+          </Box>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            No recruiters added yet
+          </Typography>
+        )}
+      </Box>
+
+      <Dialog open={openRecruiterDialog} onClose={() => setOpenRecruiterDialog(false)}>
+        <DialogTitle>Add New Recruiter</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                label="Name"
+                fullWidth
+                value={newRecruiter.name}
+                onChange={(e) => setNewRecruiter({ ...newRecruiter, name: e.target.value })}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Email"
+                fullWidth
+                type="email"
+                value={newRecruiter.email}
+                onChange={(e) => setNewRecruiter({ ...newRecruiter, email: e.target.value })}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Phone"
+                fullWidth
+                value={newRecruiter.phone}
+                onChange={(e) => setNewRecruiter({ ...newRecruiter, phone: e.target.value })}
+                required
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenRecruiterDialog(false)}>Cancel</Button>
+          <Button
+            onClick={handleAddRecruiter}
+            variant="contained"
+            disabled={!newRecruiter.name || !newRecruiter.email || !newRecruiter.phone}
+          >
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Typography variant="h6" fontWeight={500} gutterBottom align="left">
         Additional Options
@@ -338,9 +402,10 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
             !location || 
             !openings || 
             !targetHireDate || 
-            !salesPerson||
+            !salesPerson ||
             !BusinessUnit || 
-            (BusinessUnit === "external" && !Client)
+            (BusinessUnit === "external" && !Client) ||
+            recruiters.length === 0
           }
         >
           Continue
