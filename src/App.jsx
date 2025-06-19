@@ -27,6 +27,7 @@ import VendorLogin from './components/VendorLogin';
 import Dashboardlayout from './layout/DashboardLayout';
 import JobCard from './jobs/JobCard';
 import Task from './components/Task';
+import JobsPage from './jobs/JobsPage';
 
 
 
@@ -58,6 +59,7 @@ const App = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/profilesettings" element={<ProfileSettings />} />
           <Route path="/vendor-login" element={<VendorLogin />} />
+          <Route path="/dashboard/allJobs" element={<JobsPage />} />
 
            {/* 🛡️ Protected Routes for Users */}
   {/* <Route element={<ProtectedRoute allowedRoles={['candidate']} />}> */}
