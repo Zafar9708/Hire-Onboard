@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect } from "react";
 import { 
   Typography, 
@@ -59,7 +57,7 @@ import {
 } from "@mui/icons-material";
 import { parseISO, format } from "date-fns";
 import { useNavigate } from "react-router-dom";
-import api, { fetchAlljobs } from "../utils/api";
+import api, { fetchAlljobs, getAllUsers } from "../utils/api";
 
 const statusOptions = {
   'Active': ['Closed Own', 'Closed Lost', 'On Hold', 'Archived'],
@@ -70,23 +68,9 @@ const statusOptions = {
   'Default': ['Active', 'Closed Own', 'Closed Lost', 'On Hold', 'Archived']
 };
 
-const filterOptions = {
-  status: ["Active", "On Hold", "Closed Own", "Closed Lost"],
-  businessUnit: ["Internal", "External"],
-  department: ["Developer", "Tester", "QA", "UI/UX", "DevOps", "Support"],
-  hiringManager: ["Aseem Gupta", "Himanshu Patel", "Preeti Kashyap"],
-  recruiter: ["Himanshu Patel", "Preeti Kashyap", "Richa Kumari"],
-  location: ["Mumbai", "Gurgaon", "Delhi", "Bengaluru", "Pune"],
-};
-
-const filtersConfig = [
-  { label: "Status", id: "status" },
-  { label: "Business Unit", id: "businessUnit" },
-  { label: "Department", id: "department" },
-  { label: "Hiring Manager", id: "hiringManager" },
-  { label: "Recruiter", id: "recruiter" },
-  { label: "Location", id: "location" },
-];
+const departmentOptions = ["Developer", "Tester", "QA", "UI/UX", "DevOps", "Support"];
+const locationOptions = ["Mumbai", "Gurgaon", "Delhi", "Bengaluru", "Pune"];
+const businessUnitOptions = ["Internal", "External"];
 
 const JobsPage = () => {
   const [jobs, setJobs] = useState([]);
@@ -106,22 +90,58 @@ const JobsPage = () => {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importFile, setImportFile] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [recruiters, setRecruiters] = useState([]);
+  const [salesPersons, setSalesPersons] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchJobs = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetchAlljobs()
-        const allJobs = response.jobs;
+        setLoading(true);
+        
+        // Fetch jobs
+        const jobsResponse = await fetchAlljobs();
+        const allJobs = jobsResponse.jobs;
         
         const activeJobs = allJobs.filter(job => job.status !== 'Archived');
         const archived = allJobs.filter(job => job.status === 'Archived');
         
         setJobs(activeJobs);
         setArchivedJobs(archived);
+        
+        // Fetch users for recruiters and sales persons
+        const usersResponse = await getAllUsers();
+        const allUsers = usersResponse.users;
+        
+        // Extract unique recruiter names from jobs
+        const jobRecruiters = allJobs.flatMap(job => 
+          Array.isArray(job.jobFormId?.recruitingPerson) ? 
+            job.jobFormId.recruitingPerson : 
+            job.jobFormId?.recruitingPerson ? [job.jobFormId.recruitingPerson] : []
+        ).filter(Boolean);
+        
+        // Extract unique sales persons from jobs
+        const jobSalesPersons = allJobs.map(job => 
+          job.jobFormId?.salesPerson
+        ).filter(Boolean);
+        
+        // Combine with users data
+        const uniqueRecruiters = [...new Set([
+          ...jobRecruiters,
+          ...allUsers.filter(user => user.role === 'recruiter').map(user => user.username)
+        ])];
+        
+        const uniqueSalesPersons = [...new Set([
+          ...jobSalesPersons,
+          ...allUsers.filter(user => user.role === 'sales').map(user => user.username)
+        ])];
+        
+        setRecruiters(uniqueRecruiters);
+        setSalesPersons(uniqueSalesPersons);
+        
         setLoading(false);
       } catch (error) {
-        console.error('Failed to fetch jobs:', error);
+        console.error('Failed to fetch data:', error);
         if (error.response?.status === 401) {
           localStorage.removeItem('token');
           navigate('/login');
@@ -130,8 +150,17 @@ const JobsPage = () => {
       }
     };
     
-    fetchJobs();
+    fetchData();
   }, []);
+
+  const filtersConfig = [
+    { label: "Status", id: "status", options: ["Active", "On Hold", "Closed Own", "Closed Lost"] },
+    { label: "Business Unit", id: "businessUnit", options: businessUnitOptions },
+    { label: "Department", id: "department", options: departmentOptions },
+    { label: "Recruiter", id: "recruiter", options: recruiters },
+    // { label: "Sales Person", id: "salesPerson", options: salesPersons },
+    { label: "Location", id: "location", options: locationOptions },
+  ];
 
   useEffect(() => {
     const jobsToFilter = showArchived ? archivedJobs : jobs;
@@ -148,7 +177,10 @@ const JobsPage = () => {
         (job.jobName && job.jobName.toLowerCase().includes(term)) ||
         (job.jobFormId?.location && job.jobFormId.location.toLowerCase().includes(term)) ||
         (job.department && job.department.toLowerCase().includes(term)) ||
-        (job.jobFormId?.Client && job.jobFormId.Client.toLowerCase().includes(term))
+        (job.jobFormId?.Client && job.jobFormId.Client.toLowerCase().includes(term)) ||
+        (job.jobFormId?.salesPerson && job.jobFormId.salesPerson.toLowerCase().includes(term)) ||
+        (job.jobFormId?.recruitingPerson && Array.isArray(job.jobFormId.recruitingPerson) && 
+          job.jobFormId.recruitingPerson.some(r => r.toLowerCase().includes(term)))
       );
     }
     
@@ -169,10 +201,13 @@ const JobsPage = () => {
               return job.jobFormId?.BusinessUnit === value.toLowerCase();
             case 'department':
               return job.department === value;
-            case 'hiringManager':
-              return job.hiringManager === value;
             case 'recruiter':
-              return job.recruiter === value;
+              const jobRecruiters = Array.isArray(job.jobFormId?.recruitingPerson) ? 
+                job.jobFormId.recruitingPerson : 
+                job.jobFormId?.recruitingPerson ? [job.jobFormId.recruitingPerson] : [];
+              return jobRecruiters.includes(value);
+            case 'salesPerson':
+              return job.jobFormId?.salesPerson === value;
             case 'location':
               return job.jobFormId?.location === value;
             default:
@@ -212,6 +247,11 @@ const JobsPage = () => {
       ...prev,
       [filterId]: value
     }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({});
+    setSearchTerm("");
   };
 
   const handleStatusMenuClick = (event, jobId) => {
@@ -268,7 +308,7 @@ const JobsPage = () => {
       console.error('Failed to update job status:', error);
       setSnackbar({ open: true, message: 'Failed to update job status', severity: "error" });
     }
-};
+  };
 
   const handleArchiveConfirm = async () => {
     try {
@@ -612,7 +652,10 @@ const JobsPage = () => {
                     onChange={(e) => handleFilterChange(filter.id, e.target.value)}
                     label={filter.label}
                   >
-                    {filterOptions[filter.id]?.map((option) => (
+                    <MenuItem value="">
+                      <em>None</em>
+                    </MenuItem>
+                    {filter.options.map((option) => (
                       <MenuItem key={option} value={option}>
                         {option}
                       </MenuItem>
@@ -621,6 +664,18 @@ const JobsPage = () => {
                 </FormControl>
               </Grid>
             ))}
+            <Grid item xs={6} sm={4} md={2}>
+              <Button
+                variant="outlined"
+                onClick={handleResetFilters}
+                fullWidth
+                size="small"
+                sx={{ height: '40px' }}
+                disabled={Object.keys(filters).length === 0 && !searchTerm}
+              >
+                Reset Filters
+              </Button>
+            </Grid>
           </Grid>
 
           {/* Search Input Section */}
@@ -658,8 +713,7 @@ const JobsPage = () => {
           <Table sx={{ minWidth: 650 }} size="small">
             <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>SI.NO</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Job Name</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Job ID</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Job Title</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Department</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Location</TableCell>
@@ -667,6 +721,8 @@ const JobsPage = () => {
                 <TableCell sx={{ fontWeight: 'bold' }}>Client</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Openings</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Hire Date</TableCell>
+                {/* <TableCell sx={{ fontWeight: 'bold' }}>Sales Person</TableCell> */}
+                <TableCell sx={{ fontWeight: 'bold' }}>Recruiting Member</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Priority</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
@@ -689,7 +745,6 @@ const JobsPage = () => {
                       '&:nth-of-type(even)': { backgroundColor: '#fafafa' }
                     }}
                   >
-                    <TableCell>{index + 1}</TableCell>
                     <TableCell sx={{ fontWeight: 500 }}>{job.jobName}</TableCell>
                     <TableCell>{job.jobTitle}</TableCell>
                     <TableCell>{job.department}</TableCell>
@@ -699,6 +754,12 @@ const JobsPage = () => {
                     <TableCell align="center">{jobForm.openings || 0}</TableCell>
                     <TableCell>
                       {targetDate ? format(targetDate, 'MMM dd') : "-"}
+                    </TableCell>
+                    {/* <TableCell>{jobForm.salesPerson || "-"}</TableCell> */}
+                    <TableCell>
+                      {Array.isArray(jobForm.recruitingPerson) ? 
+                        jobForm.recruitingPerson.join(', ') : 
+                        jobForm.recruitingPerson || "-"}
                     </TableCell>
                     <TableCell>
                       <Chip 
@@ -847,8 +908,6 @@ const JobsPage = () => {
                     />
                   </Stack>
 
-                  <Divider sx={{ my: 1 }} />
-
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Box display="flex" alignItems="center" gap={1}>
                       <CalendarTodayIcon color="action" fontSize="small" />
@@ -869,10 +928,27 @@ const JobsPage = () => {
                     />
                   </Box>
 
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      {/* <PersonIcon color="action" fontSize="small" /> */}
+                      {/* <Typography variant="caption" color="text.secondary">
+                        Sales: {jobForm.salesPerson || "Not assigned"}
+                      </Typography> */}
+                    </Box>
                     <Box display="flex" alignItems="center" gap={1}>
                       <PersonIcon color="action" fontSize="small" />
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="caption" color="text.secondary">
+                        Recruiter: {Array.isArray(jobForm.recruitingPerson) ? 
+                          jobForm.recruitingPerson.join(', ') : 
+                          jobForm.recruitingPerson || "Not assigned"}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
+                    <Box display="flex" alignItems="center" gap={1} >
+                      <PersonIcon color="action" fontSize="small" mb={4} />
+                      <Typography variant="body2" color="text.secondary" >
                         New Candidates
                       </Typography>
                     </Box>
@@ -922,4 +998,4 @@ const JobsPage = () => {
   );
 };
 
-export default JobsPage;
+export default JobsPage

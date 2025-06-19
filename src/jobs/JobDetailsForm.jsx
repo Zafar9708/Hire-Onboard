@@ -53,19 +53,19 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
   }, []);
 
   useEffect(() => {
- const fetchData=async()=>{
-  const resUser = await getAllUsers()
-  if (resUser?.user.length) {
-    setAllUsers(resUser?.user)
-  }
-  else{
-    setAllUsers([])
-  }
+    const fetchData = async () => {
+      const resUser = await getAllUsers()
+      if (resUser?.user.length) {
+        setAllUsers(resUser?.user)
+      }
+      else {
+        setAllUsers([])
+      }
 
- }
- fetchData();
+    }
+    fetchData();
   }, [])
-  
+
 
   const handleSubmit = (action) => {
     const jobData = {
@@ -79,15 +79,17 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
       reapplyDate: allowReapply ? Number(reapplyDate) : null,
       markPriority,
       hiringFlow: hiringFlowSteps,
-      BusinessUnit: BusinessUnit.toLowerCase(), // Ensure lowercase to match backend
-      Client: BusinessUnit === "external" ? Client : undefined
+      BusinessUnit: BusinessUnit.toLowerCase(),
+      Client: BusinessUnit === "external" ? Client : undefined,
+      salesPerson,
+      recruitingPerson
     };
-    
+
     onContinue(jobData, action);
   };
 
   return (
-    <Paper elevation={4} sx={{ maxWidth: 1000, mx: "auto", p: 4, borderRadius: 3, marginTop:2 }}>
+    <Paper elevation={4} sx={{ maxWidth: 1000, mx: "auto", p: 4, borderRadius: 3, marginTop: 2 }}>
       <Typography variant="h5" fontWeight={600} gutterBottom align="left">
         Job Details
       </Typography>
@@ -225,7 +227,7 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
         Team Details
       </Typography>
       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-      <FormControl fullWidth>
+        <FormControl fullWidth>
           <InputLabel>Sales Person</InputLabel>
           <Select
             value={salesPerson}
@@ -233,30 +235,32 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
             label="salesPerson"
             required
           >
-            {allUsers.map((user,id ) => (
+            {allUsers.map((user, id) => (
               <MenuItem key={user?._id} value={user?.username}>
-                {user?.username} 
+                {user?.username}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
         <FormControl fullWidth>
-          <InputLabel>Recruiting Member</InputLabel>
+          <InputLabel id="recruiting-member-label">Recruiting Member</InputLabel>
           <Select
+            labelId="recruiting-member-label"
             value={recruitingPerson}
             onChange={(e) => setRecruitingPerson(e.target.value)}
-            label="Recruiting"
+            label="Recruiting Member"
             required
           >
-            {allUsers.map((user,id ) => (
-              <MenuItem key={user?._id} value={user?.username}>
-                {user?.username} 
+            {allUsers.map((user) => (
+              <MenuItem key={user._id} value={user.username}>
+                {user.username}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
 
-        
+
+
       </Box>
 
       {/* <Typography variant="h6" fontWeight={500} gutterBottom align="left">
@@ -334,12 +338,12 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
           variant="contained"
           onClick={() => handleSubmit("continue")}
           disabled={
-            !jobType || 
-            !location || 
-            !openings || 
-            !targetHireDate || 
-            !salesPerson||
-            !BusinessUnit || 
+            !jobType ||
+            !location ||
+            !openings ||
+            !targetHireDate ||
+            !salesPerson ||
+            !BusinessUnit ||
             (BusinessUnit === "external" && !Client)
           }
         >
