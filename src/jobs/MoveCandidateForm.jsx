@@ -1,6 +1,4 @@
-
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Dialog,
     DialogTitle,
@@ -18,29 +16,77 @@ import {
     Avatar
 } from "@mui/material";
 
+const rejectionTypes = ["R1 Rejected", "R2 Rejected", "Client Rejected"];
+
 const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
-    const [newStage, setNewStage] = useState(candidate?.stage || "");
+    const [newStage, setNewStage] = useState("");
+    const [stageOptions, setStageOptions] = useState([]);
     const [comment, setComment] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [rejectionType, setRejectionType] = useState("");
+    const [rejectionReason, setRejectionReason] = useState("");
+    const [showRejectionReason, setShowRejectionReason] = useState(false);
+
+    useEffect(() => {
+        const fetchStageOptions = async () => {
+            try {
+                const response = await fetch("http://localhost:8000/api/stages/options");
+                if (!response.ok) {
+                    throw new Error("Failed to fetch stage options");
+                }
+                const data = await response.json();
+                setStageOptions(data);
+            } catch (err) {
+                console.error("Error fetching stage options:", err);
+                // Fallback to default options if API fails
+                setStageOptions([
+                    "Sourced",
+                    "Screening",
+                    "Interview",
+                    "Preboarding",
+                    "Hired",
+                    "Rejected",
+                    "Archived"
+                ]);
+            }
+        };
+        fetchStageOptions();
+    }, []);
+
+    useEffect(() => {
+        if (candidate) {
+            setNewStage(typeof candidate.stage === 'object' ? candidate.stage._id : candidate.stage || "");
+        }
+    }, [candidate]);
 
     const handleSubmit = async () => {
         if (!candidate?._id) {
             setError("Candidate ID is missing.");
             return;
         }
+
+        if (newStage === "Rejected" && (!rejectionType || (showRejectionReason && !rejectionReason))) {
+            setError("Please select rejection type" + (showRejectionReason ? " and provide a reason" : ""));
+            return;
+        }
+
         setLoading(true);
         setError("");
 
         try {
-            const response = await fetch(`http://localhost:8000/api/stages/${candidate._id}/move`, {
+            const response = await fetch(`http://localhost:8000/api/candidates/${candidate._id}/stage`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    newStage,
+                    stage: newStage,
                     comment,
+                    ...(newStage === "Rejected" && {
+                        rejectionType,
+                        ...(showRejectionReason && { rejectionReason })
+                    })
                 }),
             });
 
@@ -50,10 +96,15 @@ const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
             const result = await response.json();
 
             if (onMoveComplete) {
-                onMoveComplete(result.candidate); 
+                onMoveComplete(result.candidate);
             }
 
             onClose();
+            // Reset form
+            setRejectionType("");
+            setRejectionReason("");
+            setComment("");
+            setShowRejectionReason(false);
         } catch (err) {
             console.error(err);
             setError("Something went wrong while moving the candidate.");
@@ -79,9 +130,9 @@ const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
 
                 <Divider sx={{ my: 2 }} />
 
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>From</Typography>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Current Stage</Typography>
                 <TextField
-                    value={candidate.stage}
+                    value={typeof candidate.stage === 'object' ? candidate.stage.name : candidate.stage || "Sourced"}
                     fullWidth
                     margin="normal"
                     disabled
@@ -93,19 +144,96 @@ const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
                     <InputLabel>New Stage</InputLabel>
                     <Select
                         value={newStage}
-                        onChange={(e) => setNewStage(e.target.value)}
+                        onChange={(e) => {
+                            setNewStage(e.target.value);
+                            if (e.target.value !== "Rejected") {
+                                setRejectionType("");
+                                setRejectionReason("");
+                                setShowRejectionReason(false);
+                            }
+                        }}
                         label="New Stage"
                     >
-                        <MenuItem value="Sourced">Move to Sourced</MenuItem>
-                        <MenuItem value="Screening">Move to Screening</MenuItem>
-                        <MenuItem value="Interview">Move to Interview</MenuItem>
-                        <MenuItem value="Preboarding">Move to Preboarding</MenuItem>
-                        <MenuItem value="Hired">Move to Hired</MenuItem>
-                        <MenuItem value="Archived">Move to Archived</MenuItem>
+                        {stageOptions.map((option, index) => (
+                            <MenuItem key={index} value={option}>
+                                {option}
+                            </MenuItem>
+                        ))}
                     </Select>
                 </FormControl>
 
-                <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>Comment (Optional)</Typography>
+                {newStage === "Rejected" && (
+                    <>
+                        <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+                            Rejection Type
+                        </Typography>
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel>Rejection Type</InputLabel>
+                            <Select
+                                value={rejectionType}
+                                onChange={(e) => setRejectionType(e.target.value)}
+                                label="Rejection Type"
+                            >
+                                {rejectionTypes.map((type) => (
+                                    <MenuItem key={type} value={type}>
+                                        {type}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        {!showRejectionReason ? (
+                            <Button
+                                variant="outlined"
+                                onClick={() => setShowRejectionReason(true)}
+                                sx={{ mt: 2 }}
+                            >
+                                + Add Reason
+                            </Button>
+                        ) : (
+                            <>
+                                <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
+                                    Reason for Rejection
+                                </Typography>
+                                <TextField
+                                    value={rejectionReason}
+                                    onChange={(e) => setRejectionReason(e.target.value)}
+                                    fullWidth
+                                    multiline
+                                    rows={3}
+                                    margin="normal"
+                                    placeholder="Enter reason for rejection..."
+                                />
+                                <Button
+                                    variant="text"
+                                    color="error"
+                                    onClick={() => {
+                                        setShowRejectionReason(false);
+                                        setRejectionReason("");
+                                    }}
+                                    sx={{
+                                        mt: 1,
+                                        textTransform: "none",
+                                        p: "2px 8px",
+                                        minWidth: 0,
+                                        border: "1px solid",
+                                        borderColor: "error.main",
+                                        borderRadius: "4px"
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+
+
+                            </>
+                        )}
+
+                    </>
+                )}
+
+                <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+                    Comment {newStage !== "Rejected" && "(Optional)"}
+                </Typography>
                 <TextField
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
@@ -127,7 +255,12 @@ const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
                 <Button
                     onClick={handleSubmit}
                     variant="contained"
-                    disabled={!newStage || loading}
+                    disabled={loading || !newStage ||
+                        (newStage === "Rejected" && (
+                            !rejectionType ||
+                            (showRejectionReason && !rejectionReason)
+                        ))
+                    }
                 >
                     {loading ? "Moving..." : "Move"}
                 </Button>

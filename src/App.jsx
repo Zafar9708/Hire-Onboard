@@ -28,6 +28,8 @@ import Dashboardlayout from './layout/DashboardLayout';
 import JobCard from './jobs/JobCard';
 import Task from './components/Task';
 import JobsPage from './jobs/JobsPage';
+import RejectedCadnidates from './jobs/RejectedCandidates';
+import Layout from './components/Layout';
 
 
 
@@ -45,7 +47,7 @@ const App = () => {
           <Route path="/dashboard1" element={<Dashboard />} />
           <Route path="/create-job" element={<JobCreationPage />} />
           <Route path="/candidates" element={<CandidatesTab />} />
-          <Route path="/candidates/:id" element={<CandidateDetailsPage />} />
+          <Route path="/candidates/:id" element={<Layout />} />
           <Route path="/candidates/stage/:stage" element={<CandidateStagesView />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/notifications" element={<Notifications />} />
@@ -60,6 +62,9 @@ const App = () => {
           <Route path="/profilesettings" element={<ProfileSettings />} />
           <Route path="/vendor-login" element={<VendorLogin />} />
           <Route path="/dashboard/allJobs" element={<JobsPage />} />
+          <Route path="/rejected-candidates" element={<RejectedCadnidates />} />
+          <Route path="/candidates-details" element={<Layout />} />
+
 
            {/* 🛡️ Protected Routes for Users */}
   {/* <Route element={<ProtectedRoute allowedRoles={['candidate']} />}> */}
@@ -86,6 +91,8 @@ const App = () => {
       <Route path="profile/edit" element={<EditProfileForm />} /> */}
     </Route>
   {/* </Route> */}
+
+     
 
 
         </Routes>

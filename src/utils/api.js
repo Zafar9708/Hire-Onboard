@@ -70,7 +70,11 @@ export const fetchDepartments=async ()=>{
         throw new Error(err.response?.data?.error || err.message)
     }
 }
-
+//to add departments
+export const addDepartment = async (name) => {
+  const res = await api.post('/departments', { name });
+  return res.data.departments;
+};
 
 // Function to submit job form details 
 export const submitJobForm = async (jobData) => {
@@ -293,4 +297,29 @@ export const sendBulkEmails = async (emailData) => {
       console.error('Error sending bulk emails:', error);
       throw error;
   }
+};
+
+// for stages
+export const getAllStages = async () => {
+  try {
+    const response = await fetch('http://localhost:8000/api/stages/all');
+    if (!response.ok) {
+      throw new Error('Failed to fetch stages');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching stages:', error);
+    throw error;
+  }
+};
+
+
+//----
+
+// Fetch only Sales Persons
+export const getAllEmployees = async () => {
+  const response = await fetch("http://localhost:8000/api/employees");
+  if (!response.ok) throw new Error("Failed to fetch employees");
+  const data = await response.json();
+  return data;
 };
