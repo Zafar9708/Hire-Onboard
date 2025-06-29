@@ -30,6 +30,7 @@ import Task from './components/Task';
 import JobsPage from './jobs/JobsPage';
 import RejectedCadnidates from './jobs/RejectedCandidates';
 import Layout from './components/Layout';
+import ScheduleOnlineInterviewForm from './Interviews/ScheduleOnlineInterviewForm';
 
 
 
@@ -64,6 +65,7 @@ const App = () => {
           <Route path="/dashboard/allJobs" element={<JobsPage />} />
           <Route path="/rejected-candidates" element={<RejectedCadnidates />} />
           <Route path="/candidates-details" element={<Layout />} />
+          <Route path="/interviews/schedule" element={<ScheduleOnlineInterviewForm />} />
 
 
            {/* 🛡️ Protected Routes for Users */}

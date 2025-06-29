@@ -77,7 +77,7 @@ const JobCreationPage = () => {
     try {
       const result = await createJob(finalData);
       alert("Job Published Successfully ✅");
-      navigate("/dashboard/allJobs");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error submitting job:", error);
       alert(error.response?.data?.error || "Failed to publish job. Please try again.");

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
     Dialog,
@@ -15,50 +16,61 @@ import {
     Box,
     Avatar
 } from "@mui/material";
-
-const rejectionTypes = ["R1 Rejected", "R2 Rejected", "Client Rejected"];
+import axios from 'axios';
 
 const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
     const [newStage, setNewStage] = useState("");
     const [stageOptions, setStageOptions] = useState([]);
+    const [rejectionTypes, setRejectionTypes] = useState([]);
     const [comment, setComment] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [rejectionType, setRejectionType] = useState("");
-    const [rejectionReason, setRejectionReason] = useState("");
-    const [showRejectionReason, setShowRejectionReason] = useState(false);
+    const [showAddRejection, setShowAddRejection] = useState(false);
+    const [newRejectionType, setNewRejectionType] = useState("");
 
     useEffect(() => {
-        const fetchStageOptions = async () => {
+        const fetchData = async () => {
             try {
-                const response = await fetch("http://localhost:8000/api/stages/options");
-                if (!response.ok) {
-                    throw new Error("Failed to fetch stage options");
-                }
-                const data = await response.json();
-                setStageOptions(data);
+                const stagesResponse = await axios.get('http://localhost:8000/api/stages/all');
+                setStageOptions(stagesResponse.data);
+
+                const rejectionResponse = await axios.get('http://localhost:8000/api/stages/rejection-types');
+                setRejectionTypes(rejectionResponse.data);
             } catch (err) {
-                console.error("Error fetching stage options:", err);
-                // Fallback to default options if API fails
-                setStageOptions([
-                    "Sourced",
-                    "Screening",
-                    "Interview",
-                    "Preboarding",
-                    "Hired",
-                    "Rejected",
-                    "Archived"
-                ]);
+                console.error("Error fetching data:", err);
+                setError("Failed to load stage options");
             }
         };
-        fetchStageOptions();
+        fetchData();
     }, []);
 
     useEffect(() => {
-        if (candidate) {
-            setNewStage(typeof candidate.stage === 'object' ? candidate.stage._id : candidate.stage || "");
+        if (candidate && stageOptions.length > 0) {
+            setNewStage(candidate.stage?._id || "");
         }
-    }, [candidate]);
+    }, [candidate, stageOptions]);
+
+    const handleAddRejectionType = async () => {
+        if (!newRejectionType.trim()) {
+            setError("Please enter a rejection type");
+            return;
+        }
+
+        try {
+            const response = await axios.post('http://localhost:8000/api/stages/rejection-types', {
+                type: newRejectionType
+            });
+            
+            setRejectionTypes([...rejectionTypes, newRejectionType]);
+            setRejectionType(newRejectionType);
+            setNewRejectionType("");
+            setShowAddRejection(false);
+        } catch (err) {
+            console.error(err);
+            setError(err.response?.data?.error || "Failed to add rejection type");
+        }
+    };
 
     const handleSubmit = async () => {
         if (!candidate?._id) {
@@ -66,8 +78,16 @@ const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
             return;
         }
 
-        if (newStage === "Rejected" && (!rejectionType || (showRejectionReason && !rejectionReason))) {
-            setError("Please select rejection type" + (showRejectionReason ? " and provide a reason" : ""));
+        if (!newStage) {
+            setError("Please select a new stage");
+            return;
+        }
+
+        const selectedStage = stageOptions.find(stage => stage._id === newStage);
+        const isRejectedStage = selectedStage?.name === "Rejected";
+
+        if (isRejectedStage && !rejectionType) {
+            setError("Please select or add a rejection type");
             return;
         }
 
@@ -75,39 +95,23 @@ const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
         setError("");
 
         try {
-            const response = await fetch(`http://localhost:8000/api/candidates/${candidate._id}/stage`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    stage: newStage,
-                    comment,
-                    ...(newStage === "Rejected" && {
-                        rejectionType,
-                        ...(showRejectionReason && { rejectionReason })
-                    })
-                }),
+            const response = await axios.put(`http://localhost:8000/api/candidates/${candidate._id}/stage`, {
+                stage: newStage,
+                comment,
+                ...(isRejectedStage && { rejectionType })
             });
 
-            if (!response.ok) {
-                throw new Error("Failed to move candidate.");
-            }
-            const result = await response.json();
-
             if (onMoveComplete) {
-                onMoveComplete(result.candidate);
+                onMoveComplete(response.data.candidate);
             }
 
             onClose();
-            // Reset form
             setRejectionType("");
-            setRejectionReason("");
+            setShowAddRejection(false);
             setComment("");
-            setShowRejectionReason(false);
         } catch (err) {
             console.error(err);
-            setError("Something went wrong while moving the candidate.");
+            setError(err.response?.data?.error || "Something went wrong while moving the candidate.");
         } finally {
             setLoading(false);
         }
@@ -132,7 +136,7 @@ const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
 
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>Current Stage</Typography>
                 <TextField
-                    value={typeof candidate.stage === 'object' ? candidate.stage.name : candidate.stage || "Sourced"}
+                    value={candidate.stage?.name || "Sourced"}
                     fullWidth
                     margin="normal"
                     disabled
@@ -146,93 +150,83 @@ const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
                         value={newStage}
                         onChange={(e) => {
                             setNewStage(e.target.value);
-                            if (e.target.value !== "Rejected") {
+                            const selected = stageOptions.find(stage => stage._id === e.target.value);
+                            if (selected?.name !== "Rejected") {
                                 setRejectionType("");
-                                setRejectionReason("");
-                                setShowRejectionReason(false);
+                                setShowAddRejection(false);
                             }
                         }}
                         label="New Stage"
                     >
-                        {stageOptions.map((option, index) => (
-                            <MenuItem key={index} value={option}>
-                                {option}
+                        {stageOptions.map((option) => (
+                            <MenuItem key={option._id} value={option._id}>
+                                {option.name}
                             </MenuItem>
                         ))}
                     </Select>
                 </FormControl>
 
-                {newStage === "Rejected" && (
+                {stageOptions.find(stage => stage._id === newStage)?.name === "Rejected" && (
                     <>
                         <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
                             Rejection Type
                         </Typography>
                         <FormControl fullWidth margin="normal">
-                            <InputLabel>Rejection Type</InputLabel>
+                            <InputLabel>Select rejection type</InputLabel>
                             <Select
                                 value={rejectionType}
-                                onChange={(e) => setRejectionType(e.target.value)}
-                                label="Rejection Type"
+                                onChange={(e) => {
+                                    if (e.target.value === '__add__') {
+                                        setShowAddRejection(true);
+                                    } else {
+                                        setRejectionType(e.target.value);
+                                    }
+                                }}
+                                label="Select rejection type"
                             >
                                 {rejectionTypes.map((type) => (
                                     <MenuItem key={type} value={type}>
                                         {type}
                                     </MenuItem>
                                 ))}
+                                <MenuItem value="__add__" sx={{ fontStyle: 'italic', color: 'primary.main' }}>
+                                    + Add New Rejection Type
+                                </MenuItem>
                             </Select>
                         </FormControl>
 
-                        {!showRejectionReason ? (
-                            <Button
-                                variant="outlined"
-                                onClick={() => setShowRejectionReason(true)}
-                                sx={{ mt: 2 }}
-                            >
-                                + Add Reason
-                            </Button>
-                        ) : (
-                            <>
-                                <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
-                                    Reason for Rejection
-                                </Typography>
+                        {showAddRejection && (
+                            <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
                                 <TextField
-                                    value={rejectionReason}
-                                    onChange={(e) => setRejectionReason(e.target.value)}
                                     fullWidth
-                                    multiline
-                                    rows={3}
-                                    margin="normal"
-                                    placeholder="Enter reason for rejection..."
+                                    value={newRejectionType}
+                                    onChange={(e) => setNewRejectionType(e.target.value)}
+                                    label="New Rejection Type"
+                                    variant="outlined"
                                 />
                                 <Button
-                                    variant="text"
-                                    color="error"
+                                    variant="contained"
+                                    onClick={handleAddRejectionType}
+                                    disabled={!newRejectionType.trim()}
+                                >
+                                    Add
+                                </Button>
+                                <Button
+                                    variant="outlined"
                                     onClick={() => {
-                                        setShowRejectionReason(false);
-                                        setRejectionReason("");
-                                    }}
-                                    sx={{
-                                        mt: 1,
-                                        textTransform: "none",
-                                        p: "2px 8px",
-                                        minWidth: 0,
-                                        border: "1px solid",
-                                        borderColor: "error.main",
-                                        borderRadius: "4px"
+                                        setShowAddRejection(false);
+                                        setNewRejectionType("");
                                     }}
                                 >
                                     Cancel
                                 </Button>
-
-
-                            </>
+                            </Box>
                         )}
-
                     </>
                 )}
 
                 <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
-                    Comment {newStage !== "Rejected" && "(Optional)"}
+                    Comment {stageOptions.find(stage => stage._id === newStage)?.name !== "Rejected" && "(Optional)"}
                 </Typography>
                 <TextField
                     value={comment}
@@ -256,10 +250,7 @@ const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
                     onClick={handleSubmit}
                     variant="contained"
                     disabled={loading || !newStage ||
-                        (newStage === "Rejected" && (
-                            !rejectionType ||
-                            (showRejectionReason && !rejectionReason)
-                        ))
+                        (stageOptions.find(stage => stage._id === newStage)?.name === "Rejected" && !rejectionType)
                     }
                 >
                     {loading ? "Moving..." : "Move"}

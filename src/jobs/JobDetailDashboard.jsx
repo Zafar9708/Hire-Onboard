@@ -323,7 +323,7 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                 color: theme.palette.warning.main,
                 // trend: totalInterviews > 0 ? "up" : "neutral",
                 // change: totalInterviews > 0 ? `+${totalInterviews}` : null,
-                onClick: () => navigate('/interviews/all')
+                onClick: () => navigate('/candidates')
               },,
               {
                 title: "Upcoming Interviews",
