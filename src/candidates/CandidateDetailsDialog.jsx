@@ -227,7 +227,7 @@ const CandidateDetailsPage = () => {
     : null;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3, px: { xs: 2, sm: 3 } }}>
+    <Container maxWidth="lg" sx={{ py: 3,ml:0, px: { xs: 2, sm: 3 } }}>
       {/* Breadcrumbs */}
       <Breadcrumbs sx={{ mb: 2 }}>
         <Link color="inherit" onClick={() => navigate('/')}>Dashboard</Link>

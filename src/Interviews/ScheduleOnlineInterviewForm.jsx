@@ -36,6 +36,7 @@ import {
     Visibility as PreviewIcon
 } from "@mui/icons-material";
 import axios from "axios";
+import { useParams } from "react-router-dom";
 
 const API_BASE = "http://localhost:8000/api";
 
@@ -188,6 +189,10 @@ const NotesTab = ({ notes, setNotes }) => {
 };
 
 const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
+
+    const {id} = useParams()
+    console.log("idddddddd",candidate?.jobId);
+    
     const [interviewers, setInterviewers] = useState([]);
     const [selectedInterviewers, setSelectedInterviewers] = useState([]);
     const [date, setDate] = useState("");
@@ -413,10 +418,11 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
                 platform: platform.toLowerCase().replace(' ', '_'),
                 templateId: selectedTemplate,
                 notes,
-                scheduledBy: user.email
+                scheduledBy: user.email,
+                jobId:candidate?.jobId
             };
 
-            console.log("Submitting interview data:", JSON.stringify(requestData, null, 2));
+            console.log("Submitting interview data:", requestData);
 
             const response = await axios.post(`${API_BASE}/interviews/schedule`, requestData, {
                 headers: {
