@@ -32,10 +32,10 @@ const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const stagesResponse = await axios.get('http://localhost:8000/api/stages/all');
+                const stagesResponse = await axios.get('https://hire-onboardbackend-13.onrender.com/api/stages/all');
                 setStageOptions(stagesResponse.data);
 
-                const rejectionResponse = await axios.get('http://localhost:8000/api/stages/rejection-types');
+                const rejectionResponse = await axios.get('https://hire-onboardbackend-13.onrender.com/api/stages/rejection-types');
                 setRejectionTypes(rejectionResponse.data);
             } catch (err) {
                 console.error("Error fetching data:", err);
@@ -58,7 +58,7 @@ const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
         }
 
         try {
-            const response = await axios.post('http://localhost:8000/api/stages/rejection-types', {
+            const response = await axios.post('https://hire-onboardbackend-13.onrender.com/api/stages/rejection-types', {
                 type: newRejectionType
             });
             
@@ -95,7 +95,7 @@ const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
         setError("");
 
         try {
-            const response = await axios.put(`http://localhost:8000/api/candidates/${candidate._id}/stage`, {
+            const response = await axios.put(`https://hire-onboardbackend-13.onrender.com/api/candidates/${candidate._id}/stage`, {
                 stage: newStage,
                 comment,
                 ...(isRejectedStage && { rejectionType })

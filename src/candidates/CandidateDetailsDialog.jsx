@@ -173,7 +173,7 @@ const CandidateDetailsPage = () => {
     if (resume?.path) {
       // Create a temporary anchor element to trigger download
       const link = document.createElement('a');
-      link.href = `http://localhost:8000/${resume.path.replace(/\\/g, '/')}`;
+      link.href = `https://hire-onboardbackend-13.onrender.com/${resume.path.replace(/\\/g, '/')}`;
       link.download = `${candidate.firstName}_${candidate.lastName}_Resume.pdf`;
       document.body.appendChild(link);
       link.click();
@@ -183,7 +183,7 @@ const CandidateDetailsPage = () => {
 
   const handleShareResume = () => {
     if (resume?.path) {
-      const resumeUrl = `http://localhost:8000/${resume.path.replace(/\\/g, '/')}`;
+      const resumeUrl = `https://hire-onboardbackend-13.onrender.com/${resume.path.replace(/\\/g, '/')}`;
       
       if (navigator.share) {
         navigator.share({
@@ -223,7 +223,7 @@ const CandidateDetailsPage = () => {
   if (!candidate) return null;
 
   const resumeUrl = resume?.path 
-    ? `http://localhost:8000/${resume.path.replace(/\\/g, '/')}`
+    ? `https://hire-onboardbackend-13.onrender.com/${resume.path.replace(/\\/g, '/')}`
     : null;
 
   return (

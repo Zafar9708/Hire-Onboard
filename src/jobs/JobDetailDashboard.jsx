@@ -90,16 +90,16 @@ const Dashboard = () => {
         setError(null);
 
         if (jobId) {
-          const jobResponse = await axios.get(`http://localhost:8000/api/jobs/byId/${jobId}`);
+          const jobResponse = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/jobs/byId/${jobId}`);
           setJob(jobResponse.data.job);
           const data = await fetchCandidatesByJob(jobId);
           setAppliedCandidat(data);
         }
 
         const [onlineInterviewsRes, offlineInterviewsRes, upcomingInterviewsRes] = await Promise.all([
-          axios.get('http://localhost:8000/api/interviews/schedule'),
-          axios.get('http://localhost:8000/api/offline-interviews/get'),
-          axios.get('http://localhost:8000/api/interviews/upcoming')
+          axios.get('https://hire-onboardbackend-13.onrender.com/api/interviews/schedule'),
+          axios.get('https://hire-onboardbackend-13.onrender.com/api/offline-interviews/get'),
+          axios.get('https://hire-onboardbackend-13.onrender.com/api/interviews/upcoming')
         ]);
 
         // Count offline interviews from the array

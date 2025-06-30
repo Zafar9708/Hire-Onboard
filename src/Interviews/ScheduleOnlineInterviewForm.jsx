@@ -38,7 +38,7 @@ import {
 import axios from "axios";
 import { useParams } from "react-router-dom";
 
-const API_BASE = "http://localhost:8000/api";
+const API_BASE = "https://hire-onboardbackend-13.onrender.com/api";
 
 const EmailTemplateTab = ({ 
     candidate, 
