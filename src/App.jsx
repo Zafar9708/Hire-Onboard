@@ -31,6 +31,8 @@ import JobsPage from './jobs/JobsPage';
 import RejectedCadnidates from './jobs/RejectedCandidates';
 import Layout from './components/Layout';
 import ScheduleOnlineInterviewForm from './Interviews/ScheduleOnlineInterviewForm';
+// import JobCandidates from './jobs/JobCandidates';
+// import JobForm from './jobs/JobForm';
 
 
 
@@ -49,6 +51,8 @@ const App = () => {
           <Route path="/create-job" element={<JobCreationPage />} />
           <Route path="/candidates" element={<CandidatesTab />} />
           <Route path="/candidates/:id" element={<Layout />} />
+          {/* <Route path="/jobs/:jobId/candidates" element={<JobCandidates />} /> */}
+
           <Route path="/candidates/stage/:stage" element={<CandidateStagesView />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/notifications" element={<Notifications />} />
@@ -66,6 +70,7 @@ const App = () => {
           <Route path="/rejected-candidates" element={<RejectedCadnidates />} />
           <Route path="/candidates-details" element={<Layout />} />
           <Route path="/interviews/schedule" element={<ScheduleOnlineInterviewForm />} />
+          <Route path="/jobs/update/:id" element={<JobCreationPage />} />
 
 
            {/* 🛡️ Protected Routes for Users */}

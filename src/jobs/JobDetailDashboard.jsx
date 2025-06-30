@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { 
-  Box, Typography, Card, CardContent, Divider, Button, 
-  TextField, Avatar, Stack, IconButton, Paper, LinearProgress, 
+import {
+  Box, Typography, Card, CardContent, Divider, Button,
+  TextField, Avatar, Stack, IconButton, Paper, LinearProgress,
   Chip, useTheme, styled, alpha, CircularProgress
 } from "@mui/material";
 import {
@@ -72,11 +72,11 @@ const Dashboard = () => {
   const [appliedCandidat, setAppliedCandidat] = useState([])
   const [closedPosition, setClosedPosition] = useState(0)
   const [acceptanceRate, setAcceptanceRate] = useState(0)
-  const [interviews, setInterviews] = useState({ 
+  const [interviews, setInterviews] = useState({
     online: 0,
     offline: 0,
     upcoming: 0,
-    upcomingInterviews: [] 
+    upcomingInterviews: []
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -88,7 +88,7 @@ const Dashboard = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         if (jobId) {
           const jobResponse = await axios.get(`http://localhost:8000/api/jobs/byId/${jobId}`);
           setJob(jobResponse.data.job);
@@ -97,21 +97,20 @@ const Dashboard = () => {
         }
 
         const [onlineInterviewsRes, offlineInterviewsRes, upcomingInterviewsRes] = await Promise.all([
-            axios.get('http://localhost:8000/api/interviews/schedule'),
-            axios.get('http://localhost:8000/api/offline-interviews/get'),
-            axios.get('http://localhost:8000/api/interviews/upcoming')
-          ]);
-          
-          // Count offline interviews from the array
-          const offlineInterviewsCount = offlineInterviewsRes.data.data ? offlineInterviewsRes.data.data.length : 0;
-          
-          setInterviews({
-            online: onlineInterviewsRes.data.count || 0,
-            offline: offlineInterviewsCount, // Use the counted value
-            upcoming: upcomingInterviewsRes.data.count || 0,
-            upcomingInterviews: upcomingInterviewsRes.data.data || []
-          });
+          axios.get('http://localhost:8000/api/interviews/schedule'),
+          axios.get('http://localhost:8000/api/offline-interviews/get'),
+          axios.get('http://localhost:8000/api/interviews/upcoming')
+        ]);
 
+        // Count offline interviews from the array
+        const offlineInterviewsCount = offlineInterviewsRes.data.data ? offlineInterviewsRes.data.data.length : 0;
+
+        setInterviews({
+          online: onlineInterviewsRes.data.count || 0,
+          offline: offlineInterviewsCount, // Use the counted value
+          upcoming: upcomingInterviewsRes.data.count || 0,
+          upcomingInterviews: upcomingInterviewsRes.data.data || []
+        });
 
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -126,25 +125,23 @@ const Dashboard = () => {
 
   function percentage(partialValue, totalValue) {
     return (100 * partialValue) / totalValue;
- } 
- 
+  }
+
   useEffect(() => {
-   const filterC = appliedCandidat.filter((item)=>item.stage==='Hired')
-   setClosedPosition(filterC.length)
-   
-   setAcceptanceRate(percentage(filterC.length,appliedCandidat.length))
+    const filterC = appliedCandidat.filter((item) => item.stage === 'Hired')
+    setClosedPosition(filterC.length)
+    setAcceptanceRate(percentage(filterC.length, appliedCandidat.length))
   }, [appliedCandidat])
-  
 
   // Calculate total interviews safely
-const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
+  const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
 
   // Stats data with NaN protection
   const stats = {
     upcomingInterviews: interviews.upcoming || 0,
-  totalInterviews: totalInterviews,
-  onlineInterviews: interviews.online || 0,
-  offlineInterviews: interviews.offline || 0,
+    totalInterviews: totalInterviews,
+    onlineInterviews: interviews.online || 0,
+    offlineInterviews: interviews.offline || 0,
     targetHireDate: "2023-12-15",
     offerAcceptanceRate: "78%",
     offeredPositions: 0,
@@ -164,17 +161,6 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
     },
   };
 
-  // Safe pipeline stages calculation
-  const pipelineStages = Object.entries(stats.pipeline).map(([stage, count]) => {
-    const maxValue = Math.max(...Object.values(stats.pipeline).filter(Number.isFinite));
-    const percentage = maxValue > 0 ? Math.round((count / maxValue) * 100) : 0;
-    return {
-      stage,
-      count: count || 0,
-      percentage
-    };
-  });
-
   const handleAddNote = () => {
     if (newNote.trim()) {
       setNotes([
@@ -192,16 +178,35 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
     }
   };
 
+  // Add this function to your Dashboard component
+  const handleUpdateJobPosting = () => {
+    if (job) {
+      navigate(`/jobs/update/${job._id}`, { 
+        state: { job } 
+      });
+    }
+  };
+
+  const handleCreateJobPosting = () => {
+    if (job) {
+      navigate('/create-job');
+    }
+  };
+
   const handleDeleteNote = (id) => {
     setNotes(notes.filter(note => note.id !== id));
   };
 
+  const handleViewJobCandidates = () => {
+    navigate(`/candidates`);
+  };
+
   if (loading) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
         background: alpha(theme.palette.background.default, 0.8),
         backdropFilter: 'blur(8px)'
@@ -213,10 +218,10 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
 
   if (error) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
         flexDirection: 'column',
         gap: 3,
@@ -226,8 +231,8 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
         <Typography variant="h5" color="error" sx={{ fontWeight: 600 }}>
           {error}
         </Typography>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           color="primary"
           onClick={() => window.location.reload()}
           sx={{ borderRadius: 2, px: 4, py: 1.5 }}
@@ -249,33 +254,6 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
         overflow: 'hidden'
       }}
     >
-      {/* App Bar */}
-      <Paper elevation={0} sx={{
-        p: 2,
-        borderRadius: 0,
-        borderBottom: `1px solid ${theme.palette.divider}`,
-        background: alpha(theme.palette.background.paper, 0.8),
-        backdropFilter: 'blur(12px)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
-          RecruitPro
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton>
-            <SearchIcon />
-          </IconButton>
-          <IconButton>
-            <NotificationsIcon />
-          </IconButton>
-          <Avatar sx={{ width: 36, height: 36, bgcolor: theme.palette.secondary.main }}>
-            <AccountIcon />
-          </Avatar>
-        </Box>
-      </Paper>
-
       {/* Main Content */}
       <Box sx={{
         display: "flex",
@@ -286,19 +264,16 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
         overflow: 'auto'
       }}>
         {/* Left Content - 70% */}
-        <Box sx={{ 
-          flex: { xs: 1, lg: 7 }, 
-          display: "flex", 
-          flexDirection: "column", 
-          gap: 3 
+        <Box sx={{
+          flex: { xs: 1, lg: 7 },
+          display: "flex",
+          flexDirection: "column",
+          gap: 3
         }}>
           {/* Header */}
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-              Hiring Dashboard
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              {job?.jobTitle || "Loading position..."} • {job?.department || "Department"}
+              {job?.jobTitle || "Job Title"}
             </Typography>
           </Box>
 
@@ -315,45 +290,37 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
             }}
           >
             {[
-             {
+              {
                 title: "Total Candidate Sourced",
                 value: appliedCandidat.length,
-                // subtitle: `${stats.onlineInterviews} online • ${stats.offlineInterviews} offline`,
                 icon: <CandidateIcon />,
                 color: theme.palette.warning.main,
-                // trend: totalInterviews > 0 ? "up" : "neutral",
-                // change: totalInterviews > 0 ? `+${totalInterviews}` : null,
-                onClick: () => navigate('/candidates')
-              },,
+                onClick: handleViewJobCandidates
+              },
               {
                 title: "Upcoming Interviews",
                 value: stats.upcomingInterviews,
                 icon: <TimeIcon />,
                 color: theme.palette.warning.main,
-                // trend: interviews.upcoming > 0 ? "up" : "neutral",
-                // change: interviews.upcoming > 0 ? `+${interviews.upcoming}` : null,
                 onClick: () => navigate('/interviews/upcoming')
               },
               {
                 title: "Acceptance Rate",
-                value: `${acceptanceRate} %`,
+                value: stats.acceptanceRate,
                 icon: <CheckCircleIcon />,
                 color: theme.palette.success.main,
-                // trend: "up",
-                // change: "+5%"
               },
               {
                 title: "Positions",
-                value: `${closedPosition}/${job.jobFormId.openings}`,
+                value: `${closedPosition}/${job?.jobFormId?.openings || 0}`,
                 icon: <GroupIcon />,
                 color: theme.palette.primary.main,
-                // trend: "neutral"
               },
             ].map((stat, index) => (
-              <GlassCard 
-                key={index} 
+              <GlassCard
+                key={index}
                 onClick={stat.onClick || undefined}
-                sx={{ 
+                sx={{
                   cursor: stat.onClick ? 'pointer' : 'default',
                   '&:hover': {
                     transform: stat.onClick ? 'translateY(-4px)' : 'none',
@@ -368,19 +335,19 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                       {stat.title}
                     </Typography>
                     {stat.change && (
-                      <Chip 
-                        label={stat.change} 
-                        size="small" 
-                        sx={{ 
+                      <Chip
+                        label={stat.change}
+                        size="small"
+                        sx={{
                           height: 20,
                           fontSize: '0.65rem',
-                          bgcolor: stat.trend === 'up' ? `${theme.palette.success.light}80` : 
-                                  stat.trend === 'down' ? `${theme.palette.error.light}80` : 
-                                  `${theme.palette.grey[300]}80`,
-                          color: stat.trend === 'up' ? theme.palette.success.dark : 
-                                stat.trend === 'down' ? theme.palette.error.dark : 
-                                theme.palette.text.secondary
-                        }} 
+                          bgcolor: stat.trend === 'up' ? `${theme.palette.success.light}80` :
+                            stat.trend === 'down' ? `${theme.palette.error.light}80` :
+                              `${theme.palette.grey[300]}80`,
+                          color: stat.trend === 'up' ? theme.palette.success.dark :
+                            stat.trend === 'down' ? theme.palette.error.dark :
+                              theme.palette.text.secondary
+                        }}
                       />
                     )}
                   </Box>
@@ -392,13 +359,13 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                       {stat.subtitle}
                     </Typography>
                   )}
-                  <Box sx={{ 
-                    display: 'flex', 
+                  <Box sx={{
+                    display: 'flex',
                     justifyContent: 'flex-end',
                     mt: 1
                   }}>
-                    <Avatar sx={{ 
-                      bgcolor: `${stat.color}20`, 
+                    <Avatar sx={{
+                      bgcolor: `${stat.color}20`,
                       color: stat.color,
                       width: 36,
                       height: 36
@@ -415,18 +382,18 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
           {interviews.upcoming > 0 && (
             <GlassCard>
               <CardContent sx={{ p: 3 }}>
-                <Box sx={{ 
+                <Box sx={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
                   mb: 3
                 }}>
                   <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                    <CalendarIcon sx={{ mr: 1.5, color: theme.palette.primary.main }} /> 
+                    <CalendarIcon sx={{ mr: 1.5, color: theme.palette.primary.main }} />
                     Upcoming Interviews
                   </Typography>
-                  <GradientButton 
-                    size="small" 
+                  <GradientButton
+                    size="small"
                     endIcon={<ArrowIcon />}
                     onClick={() => navigate('/interviews/upcoming')}
                   >
@@ -436,10 +403,10 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
 
                 <Stack spacing={2}>
                   {interviews.upcomingInterviews.slice(0, 3).map((interview) => (
-                    <Paper 
+                    <Paper
                       key={interview._id}
                       elevation={0}
-                      sx={{ 
+                      sx={{
                         p: 2.5,
                         borderRadius: 2,
                         background: alpha(theme.palette.background.paper, 0.7),
@@ -456,35 +423,35 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                           {interview.candidate?.name || 'No name'}
                         </Typography>
-                        <Chip 
-                          label={interview.status || 'scheduled'} 
-                          size="small" 
-                          sx={{ 
+                        <Chip
+                          label={interview.status || 'scheduled'}
+                          size="small"
+                          sx={{
                             fontWeight: 600,
-                            bgcolor: interview.status === 'scheduled' ? 
-                                    `${theme.palette.info.light}30` : 
-                                    `${theme.palette.success.light}30`,
-                            color: interview.status === 'scheduled' ? 
-                                  theme.palette.info.dark : 
-                                  theme.palette.success.dark
-                          }} 
+                            bgcolor: interview.status === 'scheduled' ?
+                              `${theme.palette.info.light}30` :
+                              `${theme.palette.success.light}30`,
+                            color: interview.status === 'scheduled' ?
+                              theme.palette.info.dark :
+                              theme.palette.success.dark
+                          }}
                         />
                       </Box>
 
                       <Box sx={{ display: 'flex', gap: 2, mb: 1.5 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <CalendarIcon fontSize="small" sx={{ 
-                            mr: 1, 
-                            color: theme.palette.text.secondary 
+                          <CalendarIcon fontSize="small" sx={{
+                            mr: 1,
+                            color: theme.palette.text.secondary
                           }} />
                           <Typography variant="body2">
                             {interview.date ? new Date(interview.date).toLocaleDateString() : 'No date'}
                           </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <TimeIcon fontSize="small" sx={{ 
-                            mr: 1, 
-                            color: theme.palette.text.secondary 
+                          <TimeIcon fontSize="small" sx={{
+                            mr: 1,
+                            color: theme.palette.text.secondary
                           }} />
                           <Typography variant="body2">
                             {interview.startTime || 'No time'} ({interview.timezone || 'UTC'})
@@ -501,7 +468,7 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                             </Avatar>}
                             label={interviewer.name || 'Interviewer'}
                             size="small"
-                            sx={{ 
+                            sx={{
                               borderRadius: 1,
                               background: alpha(theme.palette.primary.light, 0.1)
                             }}
@@ -514,7 +481,7 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                           variant="outlined"
                           size="small"
                           endIcon={<ArrowIcon />}
-                          sx={{ 
+                          sx={{
                             textTransform: 'none',
                             borderRadius: 2,
                             px: 2,
@@ -533,7 +500,7 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
           )}
 
           {/* Bottom Row */}
-          <Box sx={{ 
+          <Box sx={{
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
             gap: 3
@@ -542,11 +509,11 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
             <GlassCard sx={{ flex: 1 }}>
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-                  <ReviewIcon sx={{ mr: 1.5, color: theme.palette.warning.main }} /> 
+                  <ReviewIcon sx={{ mr: 1.5, color: theme.palette.warning.main }} />
                   Pending Review
                 </Typography>
 
-                <Box sx={{ 
+                <Box sx={{
                   display: "grid",
                   gridTemplateColumns: {
                     xs: "1fr",
@@ -555,10 +522,10 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                   gap: 2,
                 }}>
                   {Object.entries(stats.pendingReview).map(([stage, count]) => (
-                    <Paper 
-                      key={stage} 
+                    <Paper
+                      key={stage}
                       elevation={0}
-                      sx={{ 
+                      sx={{
                         p: 2,
                         borderRadius: 2,
                         background: alpha(theme.palette.background.paper, 0.7),
@@ -571,25 +538,25 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                         }
                       }}
                     >
-                      <Typography variant="h3" sx={{ 
+                      <Typography variant="h3" sx={{
                         fontWeight: 800,
                         color: count > 0 ? theme.palette.error.main : theme.palette.success.main,
                         mb: 1
                       }}>
                         {count}
                       </Typography>
-                      <Typography variant="body2" sx={{ 
+                      <Typography variant="body2" sx={{
                         color: theme.palette.text.secondary,
                         textTransform: 'capitalize',
                         mb: 1.5
                       }}>
                         {stage.replace(/([A-Z])/g, ' $1')}
                       </Typography>
-                      <Button 
+                      <Button
                         variant="text"
                         size="small"
                         endIcon={<ArrowIcon fontSize="small" />}
-                        sx={{ 
+                        sx={{
                           textTransform: 'none',
                           fontSize: '0.75rem',
                           p: 0,
@@ -611,7 +578,7 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
             <GlassCard sx={{ flex: 1 }}>
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-                  <AssignmentIcon sx={{ mr: 1.5, color: theme.palette.secondary.main }} /> 
+                  <AssignmentIcon sx={{ mr: 1.5, color: theme.palette.secondary.main }} />
                   Job Details
                 </Typography>
 
@@ -655,20 +622,20 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                     </Box>
 
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Chip 
-                        label="Active" 
-                        color="success" 
-                        size="small" 
+                      <Chip
+                        label="Active"
+                        color="success"
+                        size="small"
                         sx={{ fontWeight: 600 }}
                       />
-                      <Chip 
-                        label="Full-time" 
-                        size="small" 
+                      <Chip
+                        label="Full-time"
+                        size="small"
                         sx={{ fontWeight: 600 }}
                       />
-                      <Chip 
-                        label="On-site" 
-                        size="small" 
+                      <Chip
+                        label="On-site"
+                        size="small"
                         sx={{ fontWeight: 600 }}
                       />
                     </Box>
@@ -680,35 +647,35 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
         </Box>
 
         {/* Right Sidebar - 30% */}
-        <Box sx={{ 
-          flex: { xs: 1, lg: 3 }, 
-          display: "flex", 
-          flexDirection: "column", 
+        <Box sx={{
+          flex: { xs: 1, lg: 3 },
+          display: "flex",
+          flexDirection: "column",
           gap: 3,
           minWidth: 320
         }}>
           {/* Notes Card */}
-          <GlassCard sx={{ flex: 1 }}>
-            <CardContent sx={{ 
-              p: 3, 
-              flex: 1, 
-              display: 'flex', 
+          <GlassCard sx={{ flex: 1, mt: 9 }}>
+            <CardContent sx={{
+              p: 3,
+              flex: 1,
+              display: 'flex',
               flexDirection: 'column'
             }}>
-              <Box sx={{ 
+              <Box sx={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
                 mb: 3
               }}>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  <NoteIcon sx={{ mr: 1.5, color: theme.palette.info.main }} /> 
+                  <NoteIcon sx={{ mr: 1.5, color: theme.palette.info.main }} />
                   My Notes
                 </Typography>
                 <IconButton
                   size="small"
                   onClick={() => setShowNoteForm(true)}
-                  sx={{ 
+                  sx={{
                     background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
                     color: theme.palette.common.white,
                     '&:hover': {
@@ -721,11 +688,11 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
               </Box>
 
               {showNoteForm && (
-                <Paper 
+                <Paper
                   elevation={0}
-                  sx={{ 
-                    mb: 3, 
-                    p: 2.5, 
+                  sx={{
+                    mb: 3,
+                    p: 2.5,
                     borderRadius: 2,
                     background: alpha(theme.palette.background.paper, 0.7),
                     border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
@@ -767,9 +734,9 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                 </Paper>
               )}
 
-              <Box sx={{ 
-                flex: 1, 
-                overflowY: 'auto', 
+              <Box sx={{
+                flex: 1,
+                overflowY: 'auto',
                 pr: 1,
                 '&::-webkit-scrollbar': {
                   width: '6px',
@@ -782,10 +749,10 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                 {notes.length > 0 ? (
                   <Stack spacing={2}>
                     {notes.map((note) => (
-                      <Paper 
-                        key={note.id} 
+                      <Paper
+                        key={note.id}
                         elevation={0}
-                        sx={{ 
+                        sx={{
                           p: 2.5,
                           borderRadius: 2,
                           background: alpha(theme.palette.background.paper, 0.7),
@@ -801,9 +768,9 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                         <Typography variant="body2" sx={{ mb: 2 }}>
                           {note.content}
                         </Typography>
-                        <Box sx={{ 
-                          display: 'flex', 
-                          justifyContent: 'space-between', 
+                        <Box sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
                           alignItems: 'center'
                         }}>
                           <Box>
@@ -851,8 +818,8 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                       justifyContent: 'center',
                       mb: 2
                     }}>
-                      <NoteIcon sx={{ 
-                        fontSize: 40, 
+                      <NoteIcon sx={{
+                        fontSize: 40,
                         color: theme.palette.primary.main
                       }} />
                     </Box>
@@ -882,12 +849,12 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                 Quick Actions
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                <Button 
-                  variant="outlined" 
-                  size="medium" 
+                <Button
+                  variant="outlined"
+                  size="medium"
                   startIcon={<CalendarIcon />}
                   onClick={() => navigate('/interviews/schedule')}
-                  sx={{ 
+                  sx={{
                     justifyContent: 'flex-start',
                     textTransform: 'none',
                     p: 1.5,
@@ -901,11 +868,12 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                 >
                   Schedule Interview
                 </Button>
-                <Button 
-                  variant="outlined" 
-                  size="medium" 
+                <Button
+                  variant="outlined"
+                  size="medium"
                   startIcon={<EditIcon />}
-                  sx={{ 
+                  onClick={handleUpdateJobPosting}
+                  sx={{
                     justifyContent: 'flex-start',
                     textTransform: 'none',
                     p: 1.5,
@@ -919,11 +887,13 @@ const totalInterviews = (interviews.online || 0) + (interviews.offline || 0);
                 >
                   Update Job Posting
                 </Button>
-                <Button 
-                  variant="outlined" 
-                  size="medium" 
+                <Button
+                  variant="outlined"
+                  size="medium"
                   startIcon={<PositionIcon />}
-                  sx={{ 
+                  onClick={handleCreateJobPosting}
+
+                  sx={{
                     justifyContent: 'flex-start',
                     textTransform: 'none',
                     p: 1.5,

@@ -250,10 +250,15 @@ const JobDescriptionForm = ({ onContinue, initialData }) => {
   const [openTemplate, setOpenTemplate] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [departments, setDepartments] = useState([]);
-
-  // New states for Add Department
   const [newDeptDialogOpen, setNewDeptDialogOpen] = useState(false);
   const [newDepartment, setNewDepartment] = useState('');
+
+  useEffect(() => {
+    setJobTitle(initialData.jobTitle || '');
+    setDepartment(initialData.department || '');
+    setExperience(initialData.experience || '');
+    setJobDesc(initialData.jobDesc || '');
+  }, [initialData]);
 
   useEffect(() => {
     const loadInitialData = async () => {

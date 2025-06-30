@@ -159,7 +159,18 @@ export const fetchAlljobs = async ()=>{
   } catch (err) {
     throw new Error(err.response?.data?.error || err.message);
   }
-}
+};
+
+export const updateJob = async (id, jobData) => {
+  try {
+    const response = await api.put(`/jobs/${id}`, jobData);
+    return response.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.error || err.message);
+  }
+};
+
+
 export const fetchAlljobsByStatus = async (status)=>{
   try {
     const response = await api.get(`/jobs/byStatus/${status}`);
@@ -217,6 +228,13 @@ export const deleteCandidate = async (id) => {
   } catch (err) {
     throw new Error(err.response?.data?.error || err.message);
   }
+};
+
+
+
+export const fetchJobDetails = async (jobId) => {
+  const response = await api.get(`/jobs/byId/${jobId}`);
+  return response.data;
 };
 
 
