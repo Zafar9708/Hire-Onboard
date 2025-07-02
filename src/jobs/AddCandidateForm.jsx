@@ -669,7 +669,9 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
             if (formData.additionalDocuments) {
                 formDataToSend.append("additionalDocuments", formData.additionalDocuments);
             }
-            if (id.length) {
+            
+            // Fixed the error by checking if id exists before using it
+            if (id) {
                 formDataToSend.append("jobId", id);
             }
 
@@ -835,9 +837,8 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                                             <CircularProgress size={24} />
                                         </MenuItem>
                                     ) : (
-                                        // In your Select component for stages:
                                         stages.map((stage) => (
-                                            <MenuItem key={stage._id} value={stage._id}>  {/* Send _id instead of name */}
+                                            <MenuItem key={stage._id} value={stage._id}>
                                                 {stage.name}
                                             </MenuItem>
                                         ))

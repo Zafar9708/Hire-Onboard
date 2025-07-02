@@ -1,4 +1,6 @@
 
+
+
 // import React, { useState, useEffect } from "react";
 // import {
 //   Box, TextField, Select, MenuItem, InputLabel, FormControl, Button,
@@ -390,8 +392,7 @@
 
 // export default JobDetailsForm;
 
-//------------
-
+//--------------
 
 import React, { useState, useEffect } from "react";
 import {
@@ -406,7 +407,8 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import AddIcon from "@mui/icons-material/Add";
 import { fetchJobFormOptions } from "../utils/api";
 
-const JobDetailsForm = ({ onContinue, initialData }) => {
+const JobDetailsForm = ({ onContinue, initialData = {} }) => {
+  // Initialize all state with proper fallbacks
   const [allUsers, setAllUsers] = useState([]);
   const [jobType, setJobType] = useState(initialData.jobType || "");
   const [location, setLocation] = useState(initialData.location || "");
@@ -419,26 +421,27 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
   const [markPriority, setMarkPriority] = useState(initialData.markPriority || false);
   const [BusinessUnit, setBusinessUnit] = useState(initialData.BusinessUnit || "");
   const [Client, setClient] = useState(initialData.Client || "");
-  const [SalesPerson, setSalesPerson] = useState(initialData.SalesPerson?.name || "");
+  const [SalesPerson, setSalesPerson] = useState(initialData.SalesPerson || "");
   const [recruitingPerson, setRecruitingPerson] = useState(initialData.recruitingPerson || "");
   const [jobTypes, setJobTypes] = useState([]);
   const [locations, setLocations] = useState([]);
   const [currencies, setCurrencies] = useState([]);
 
+  // Dialog states
   const [openAddSalesPerson, setOpenAddSalesPerson] = useState(false);
+  const [openAddRecruiter, setOpenAddRecruiter] = useState(false);
   const [newSalesPerson, setNewSalesPerson] = useState({
     name: "",
     email: "",
     role: "SalesPerson"
   });
-
-  const [openAddRecruiter, setOpenAddRecruiter] = useState(false);
   const [newRecruiter, setNewRecruiter] = useState({
     name: "",
     email: "",
     role: "HR/Recruiter"
   });
 
+  // Initialize hiring flow steps with fallback
   const hiringFlowSteps = initialData.hiringFlow || [
     "Technical Round",
     "Manager Interview",
@@ -449,11 +452,15 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
     const loadOptions = async () => {
       try {
         const data = await fetchJobFormOptions();
-        setJobTypes(data.jobTypes);
-        setLocations(data.locations);
-        setCurrencies(data.currencies);
+        setJobTypes(data.jobTypes || []);
+        setLocations(data.locations || []);
+        setCurrencies(data.currencies || []);
       } catch (err) {
         console.error("Failed to fetch job form options:", err);
+        // Initialize with empty arrays if API fails
+        setJobTypes([]);
+        setLocations([]);
+        setCurrencies([]);
       }
     };
     loadOptions();
@@ -482,12 +489,12 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
     const jobData = {
       jobType,
       location,
-      openings: Number(openings),
+      openings: Number(openings) || 0,
       targetHireDate,
       currency,
-      amount: Number(amount),
+      amount: Number(amount) || 0,
       allowReapply,
-      reapplyDate: allowReapply ? Number(reapplyDate) : null,
+      reapplyDate: allowReapply ? Number(reapplyDate) || 0 : null,
       markPriority,
       hiringFlow: hiringFlowSteps,
       BusinessUnit: BusinessUnit.toLowerCase(),
@@ -499,8 +506,8 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
     onContinue(jobData, action);
   };
 
+  // Sales Person Dialog Handlers
   const handleAddSalesPerson = () => {
-    setNewSalesPerson({ name: "", email: "", role: "SalesPerson" });
     setOpenAddSalesPerson(true);
   };
 
@@ -511,7 +518,7 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
 
   const handleNewSalesPersonChange = (e) => {
     const { name, value } = e.target;
-    setNewSalesPerson((prev) => ({ ...prev, [name]: value }));
+    setNewSalesPerson(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSaveNewSalesPerson = async () => {
@@ -529,9 +536,10 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
         _id: createdUser._id,
         name: createdUser.name,
         email: createdUser.email,
+        role: createdUser.role
       };
 
-      setAllUsers((prev) => [...prev, newUserObj]);
+      setAllUsers(prev => [...prev, newUserObj]);
       setSalesPerson(newUserObj._id);
       handleCloseAddSalesPerson();
     } catch (err) {
@@ -539,8 +547,8 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
     }
   };
 
+  // Recruiter Dialog Handlers
   const handleAddRecruiter = () => {
-    setNewRecruiter({ name: "", email: "", role: "HR/Recruiter" });
     setOpenAddRecruiter(true);
   };
 
@@ -551,7 +559,7 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
 
   const handleNewRecruiterChange = (e) => {
     const { name, value } = e.target;
-    setNewRecruiter((prev) => ({ ...prev, [name]: value }));
+    setNewRecruiter(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSaveNewRecruiter = async () => {
@@ -569,14 +577,21 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
         _id: createdUser._id,
         name: createdUser.name,
         email: createdUser.email,
+        role: createdUser.role
       };
 
-      setAllUsers((prev) => [...prev, newUserObj]);
+      setAllUsers(prev => [...prev, newUserObj]);
       setRecruitingPerson(newUserObj.name);
       handleCloseAddRecruiter();
     } catch (err) {
       console.error("Error creating recruiter:", err);
     }
+  };
+
+  // Helper function to display salesperson name
+  const getSalesPersonDisplay = (id) => {
+    const person = allUsers.find(user => user._id === id);
+    return person ? person.name : "";
   };
 
   return (
@@ -587,28 +602,53 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
         <FormControl fullWidth>
           <InputLabel>Business Unit</InputLabel>
-          <Select value={BusinessUnit} onChange={(e) => setBusinessUnit(e.target.value)} label="Business Unit" required>
+          <Select 
+            value={BusinessUnit} 
+            onChange={(e) => setBusinessUnit(e.target.value)} 
+            label="Business Unit" 
+            required
+          >
             <MenuItem value="internal">Internal</MenuItem>
             <MenuItem value="external">External</MenuItem>
           </Select>
         </FormControl>
         {BusinessUnit === "external" && (
-          <TextField label="Client" value={Client} onChange={(e) => setClient(e.target.value)} fullWidth required />
+          <TextField 
+            label="Client" 
+            value={Client} 
+            onChange={(e) => setClient(e.target.value)} 
+            fullWidth 
+            required 
+          />
         )}
       </Box>
 
       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
         <FormControl fullWidth>
           <InputLabel>Job Type</InputLabel>
-          <Select value={jobType} onChange={(e) => setJobType(e.target.value)} label="Job Type" required>
-            {jobTypes.map((type) => <MenuItem key={type} value={type}>{type}</MenuItem>)}
+          <Select 
+            value={jobType} 
+            onChange={(e) => setJobType(e.target.value)} 
+            label="Job Type" 
+            required
+          >
+            {jobTypes.map((type) => (
+              <MenuItem key={type} value={type}>{type}</MenuItem>
+            ))}
           </Select>
         </FormControl>
 
         <FormControl fullWidth>
           <InputLabel>Location</InputLabel>
-          <Select value={location} onChange={(e) => setLocation(e.target.value)} label="Location" required>
-            {locations.map((loc) => <MenuItem key={loc} value={loc}>{loc}</MenuItem>)}
+          <Select 
+            value={location} 
+            onChange={(e) => setLocation(e.target.value)} 
+            label="Location" 
+            required
+          >
+            {locations.map((loc) => (
+              <MenuItem key={loc} value={loc}>{loc}</MenuItem>
+            ))}
           </Select>
         </FormControl>
       </Box>
@@ -620,7 +660,8 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
           value={openings}
           onChange={(e) => setOpenings(e.target.value)}
           type="number"
-          fullWidth required
+          fullWidth
+          required
           inputProps={{ min: 1 }}
         />
         <DatePicker
@@ -629,7 +670,8 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
           customInput={
             <TextField
               label="Target Hire Date"
-              fullWidth required
+              fullWidth
+              required
               value={targetHireDate ? new Date(targetHireDate).toLocaleDateString("en-CA") : ""}
               InputProps={{
                 endAdornment: (
@@ -648,7 +690,12 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
         <FormControl fullWidth>
           <InputLabel>Currency</InputLabel>
-          <Select value={currency} onChange={(e) => setCurrency(e.target.value)} label="Currency" required>
+          <Select 
+            value={currency} 
+            onChange={(e) => setCurrency(e.target.value)} 
+            label="Currency" 
+            required
+          >
             {currencies.map(({ code, symbol }) => (
               <MenuItem key={code} value={code}>
                 {code} ({symbol})
@@ -661,55 +708,56 @@ const JobDetailsForm = ({ onContinue, initialData }) => {
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           type="number"
-          fullWidth required
+          fullWidth
+          required
           inputProps={{ min: 0 }}
         />
       </Box>
 
       <Typography variant="h6" fontWeight={500} gutterBottom align="left">Team Details</Typography>
       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-      <FormControl fullWidth>
-  <Box sx={{ display: "flex", alignItems: "center" }}>
-    <InputLabel>Sales Person</InputLabel>
-    <Button startIcon={<AddIcon />} onClick={handleAddSalesPerson} sx={{ ml: "auto" }}>Add New</Button>
-  </Box>
-  <Select
-    value={SalesPerson}
-    onChange={(e) => setSalesPerson(e.target.value)}
-    label="Sales Person"
-    required
-  >
-    {allUsers
-      .filter((user) => user.role === "SalesPerson")
-      .map((user) => (
-        <MenuItem key={user._id} value={user._id}>
-          {user.name}
-        </MenuItem>
-      ))}
-  </Select>
-</FormControl>
+        <FormControl fullWidth>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <InputLabel>Sales Person</InputLabel>
+            <Button startIcon={<AddIcon />} onClick={handleAddSalesPerson} sx={{ ml: "auto" }}>Add New</Button>
+          </Box>
+          <Select
+            value={SalesPerson}
+            onChange={(e) => setSalesPerson(e.target.value)}
+            label="Sales Person"
+            required
+            renderValue={(selected) => getSalesPersonDisplay(selected)}
+          >
+            {allUsers
+              .filter((user) => user.role === "SalesPerson")
+              .map((user) => (
+                <MenuItem key={user._id} value={user._id}>
+                  {user.name}
+                </MenuItem>
+              ))}
+          </Select>
+        </FormControl>
 
-<FormControl fullWidth>
-  <Box sx={{ display: "flex", alignItems: "center" }}>
-    <InputLabel>Recruiting Member</InputLabel>
-    <Button startIcon={<AddIcon />} onClick={handleAddRecruiter} sx={{ ml: "auto" }}>Add New</Button>
-  </Box>
-  <Select
-    value={recruitingPerson}
-    onChange={(e) => setRecruitingPerson(e.target.value)}
-    label="Recruiting Member"
-    required
-  >
-    {allUsers
-      .filter((user) => user.role === "HR/Recruiter")
-      .map((user) => (
-        <MenuItem key={user._id} value={user.name}>
-          {user.name}
-        </MenuItem>
-      ))}
-  </Select>
-</FormControl>
-
+        <FormControl fullWidth>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <InputLabel>Recruiting Member</InputLabel>
+            <Button startIcon={<AddIcon />} onClick={handleAddRecruiter} sx={{ ml: "auto" }}>Add New</Button>
+          </Box>
+          <Select
+            value={recruitingPerson}
+            onChange={(e) => setRecruitingPerson(e.target.value)}
+            label="Recruiting Member"
+            required
+          >
+            {allUsers
+              .filter((user) => user.role === "HR/Recruiter")
+              .map((user) => (
+                <MenuItem key={user._id} value={user.name}>
+                  {user.name}
+                </MenuItem>
+              ))}
+          </Select>
+        </FormControl>
       </Box>
 
       <Typography variant="h6" fontWeight={500} gutterBottom align="left">Additional Options</Typography>
