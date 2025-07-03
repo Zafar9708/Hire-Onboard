@@ -796,7 +796,7 @@ const CandidatesTab = () => {
                                 <MenuItem value="LinkedIn">LinkedIn</MenuItem>
                                 <MenuItem value="Referral">Referral</MenuItem>
                                 <MenuItem value="Job Board">Job Board</MenuItem>
-                                <MenuItem value="Naukari">Naukari</MenuItem>
+                                <MenuItem value="Naukari">Naukri</MenuItem>
                             </Select>
                         </FormControl>
 

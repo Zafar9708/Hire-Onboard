@@ -864,7 +864,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                                     }}
                                 >
                                     <MenuItem value="LinkedIn">LinkedIn</MenuItem>
-                                    <MenuItem value="Naukari">Naukari</MenuItem>
+                                    <MenuItem value="Naukari">Naukri</MenuItem>
                                     <MenuItem value="Via Email">Via Email</MenuItem>
                                 </Select>
                             </FormControl>
