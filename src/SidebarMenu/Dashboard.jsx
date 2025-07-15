@@ -1,5 +1,7 @@
 
 
+
+
 // import React, { useEffect, useState } from 'react';
 // import {
 //   Box, Typography, Grid, Card, CardContent, CardHeader, Avatar,
@@ -8,13 +10,9 @@
 // import {
 //   People as PeopleIcon,
 //   Work as WorkIcon,
-//   Assignment as AssignmentIcon,
 //   Schedule as ScheduleIcon,
-//   ArrowUpward as ArrowUpwardIcon,
-//   ArrowDownward as ArrowDownwardIcon,
 //   Search as SearchIcon,
 //   FilterList as FilterIcon,
-//   Email as EmailIcon,
 //   MoreVert as MoreVertIcon,
 //   Visibility as VisibilityIcon
 // } from '@mui/icons-material';
@@ -34,31 +32,48 @@
 //   const [allCandidates, setallCandidates] = useState([]);
 //   const [allJobsActive, setAllJobsActive] = useState([]);
 //   const [pipeData, setPipeData] = useState([]);
+//   const [interviewsTodayCount, setInterviewsTodayCount] = useState(0); // ✅ New state
 
 //   const fetchData = async () => {
 //     const allCandidates = await fetchCandidates();
 //     const allJobsActive = await fetchAlljobsByStatus('Active');
 //     setallCandidates(allCandidates);
 //     setAllJobsActive(allJobsActive);
+
+//     // ✅ Fetch interviews from API
+//     try {
+//       const response = await fetch('https://hire-onboardbackend-13.onrender.com/interviews/upcoming');
+//       const data = await response.json();
+
+//       // ✅ Filter only today's interviews
+//       const today = new Date().toISOString().split('T')[0];
+//       const todayInterviews = data.filter(interview => {
+//         const interviewDate = new Date(interview.scheduledDate).toISOString().split('T')[0];
+//         return interviewDate === today;
+//       });
+
+//       setInterviewsTodayCount(todayInterviews.length);
+//     } catch (error) {
+//       console.error('Error fetching interviews:', error);
+//     }
 //   };
 
 //   const pipelineDataSet = (allCandidates) => {
 //     const stageCounts = new Array(labels.length).fill(0);
-  
+
 //     allCandidates.forEach(candidate => {
 //       const stageName = typeof candidate.stage === 'string'
 //         ? candidate.stage
 //         : candidate.stage?.name;
-  
+
 //       const stageIndex = labels.indexOf(stageName);
 //       if (stageIndex !== -1) {
 //         stageCounts[stageIndex]++;
 //       }
 //     });
-  
+
 //     return stageCounts;
 //   };
-  
 
 //   useEffect(() => {
 //     const res = pipelineDataSet(allCandidates);
@@ -86,7 +101,7 @@
 //     },
 //     {
 //       title: 'Interviews Today',
-//       value: '0',
+//       value: interviewsTodayCount, // ✅ updated to use dynamic value
 //       icon: <ScheduleIcon />,
 //       color: 'warning.main',
 //       navigate: '/dashboard/interviews'
@@ -435,14 +450,17 @@
 
 // export default MenuDashboard;
 
-//----------
 
-
+//------------
 
 import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Grid, Card, CardContent, CardHeader, Avatar,
-  IconButton, Divider, LinearProgress, Paper, Stack, Button, useTheme, Chip
+  IconButton, Divider, LinearProgress, Paper, Stack, Button, useTheme, Chip, Menu, MenuItem, Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Link
 } from '@mui/material';
 import {
   People as PeopleIcon,
@@ -451,7 +469,10 @@ import {
   Search as SearchIcon,
   FilterList as FilterIcon,
   MoreVert as MoreVertIcon,
-  Visibility as VisibilityIcon
+  Visibility as VisibilityIcon,
+  Today as TodayIcon,
+  CalendarViewWeek as WeekIcon,
+  CalendarViewMonth as MonthIcon
 } from '@mui/icons-material';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
@@ -460,45 +481,77 @@ import { useNavigate } from 'react-router-dom';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const labels = ['Sourced', 'Screening', 'Interview', 'Preboarding', 'Hired', 'Archived'];
+const labels = ['Sourced', 'Screening', 'Interview', 'Preboarding', 'Hired','Rejected', 'Archived'];
 
 const MenuDashboard = () => {
   const navigate = useNavigate();
   const theme = useTheme();
 
-  const [allCandidates, setallCandidates] = useState([]);
+  const [allCandidates, setAllCandidates] = useState([]);
+  const [filteredCandidates, setFilteredCandidates] = useState([]);
   const [allJobsActive, setAllJobsActive] = useState([]);
+  const [filteredJobsActive, setFilteredJobsActive] = useState([]);
   const [pipeData, setPipeData] = useState([]);
-  const [interviewsTodayCount, setInterviewsTodayCount] = useState(0); // ✅ New state
+  const [interviewsTodayCount, setInterviewsTodayCount] = useState(0);
+  // Add this to your state
+  const [upcomingInterviews, setUpcomingInterviews] = useState([]);
+  const [selectedInterview, setSelectedInterview] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleTimeFilterChange = (filter) => {
+    setTimeFilter(filter);
+    handleClose();
+  };
 
   const fetchData = async () => {
     const allCandidates = await fetchCandidates();
     const allJobsActive = await fetchAlljobsByStatus('Active');
-    setallCandidates(allCandidates);
+    setAllCandidates(allCandidates);
+    setFilteredCandidates(allCandidates);
     setAllJobsActive(allJobsActive);
+    setFilteredJobsActive(allJobsActive);
 
-    // ✅ Fetch interviews from API
     try {
-      const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/interviews/upcoming');
+      const response = await fetch('https://hire-onboardbackend-13.onrender.com/interviews/upcoming');
       const data = await response.json();
+      if (data.success) {
+        const today = new Date().toISOString().split('T')[0];
+        const todayInterviews = data.data.filter(interview => {
+          const interviewDate = new Date(interview.date).toISOString().split('T')[0];
+          return interviewDate === today;
+        });
+        setInterviewsTodayCount(todayInterviews.length);
 
-      // ✅ Filter only today's interviews
-      const today = new Date().toISOString().split('T')[0];
-      const todayInterviews = data.filter(interview => {
-        const interviewDate = new Date(interview.scheduledDate).toISOString().split('T')[0];
-        return interviewDate === today;
-      });
-
-      setInterviewsTodayCount(todayInterviews.length);
+        // Get interviews for next 3 days
+        const nextThreeDays = new Date();
+        nextThreeDays.setDate(nextThreeDays.getDate() + 3);
+        const upcoming = data.data.filter(interview => {
+          const interviewDate = new Date(interview.date);
+          return interviewDate <= nextThreeDays && interviewDate >= new Date(today);
+        });
+        setUpcomingInterviews(upcoming.slice(0, 2)); // Show max 2 interviews
+      }
     } catch (error) {
       console.error('Error fetching interviews:', error);
     }
   };
 
-  const pipelineDataSet = (allCandidates) => {
+  const pipelineDataSet = (candidates) => {
     const stageCounts = new Array(labels.length).fill(0);
 
-    allCandidates.forEach(candidate => {
+    candidates.forEach(candidate => {
       const stageName = typeof candidate.stage === 'string'
         ? candidate.stage
         : candidate.stage?.name;
@@ -512,10 +565,58 @@ const MenuDashboard = () => {
     return stageCounts;
   };
 
+  const filterDataByTime = () => {
+    const now = new Date();
+    let startDate;
+
+    switch (timeFilter) {
+      case 'day':
+        startDate = new Date(now.setDate(now.getDate() - 1));
+        break;
+      case 'week':
+        startDate = new Date(now.setDate(now.getDate() - 7));
+        break;
+      case 'month':
+        startDate = new Date(now.setMonth(now.getMonth() - 1));
+        break;
+      default:
+        // 'all' - no filtering needed
+        setFilteredCandidates(allCandidates);
+        setFilteredJobsActive(allJobsActive);
+        return;
+    }
+
+    // Filter candidates
+    const filteredCands = allCandidates.filter(candidate => {
+      const candidateDate = new Date(candidate.createdAt);
+      return candidateDate >= startDate;
+    });
+    setFilteredCandidates(filteredCands);
+
+    // Filter jobs
+    const filteredJobs = allJobsActive.filter(job => {
+      const jobDate = new Date(job.createdAt);
+      return jobDate >= startDate;
+    });
+    setFilteredJobsActive(filteredJobs);
+
+    // Update interviews count for today only (if day filter is selected)
+    if (timeFilter === 'day') {
+      setInterviewsTodayCount(prev => {
+        // You might want to fetch fresh data here for more accuracy
+        return prev; // Keeping existing count for demo
+      });
+    }
+  };
+
   useEffect(() => {
-    const res = pipelineDataSet(allCandidates);
+    filterDataByTime();
+  }, [timeFilter, allCandidates, allJobsActive]);
+
+  useEffect(() => {
+    const res = pipelineDataSet(filteredCandidates);
     setPipeData(res);
-  }, [allCandidates]);
+  }, [filteredCandidates]);
 
   useEffect(() => {
     fetchData();
@@ -524,21 +625,21 @@ const MenuDashboard = () => {
   const stats = [
     {
       title: 'Total Candidates',
-      value: allCandidates.length,
+      value: filteredCandidates.length,
       icon: <PeopleIcon />,
       color: 'primary.main',
       navigate: '/dashboard/candidates'
     },
     {
       title: 'Active Jobs',
-      value: allJobsActive.length,
+      value: filteredJobsActive.length,
       icon: <WorkIcon />,
       color: 'secondary.main',
       navigate: '/dashboard/jobs'
     },
     {
       title: 'Interviews Today',
-      value: interviewsTodayCount, // ✅ updated to use dynamic value
+      value: interviewsTodayCount,
       icon: <ScheduleIcon />,
       color: 'warning.main',
       navigate: '/dashboard/interviews'
@@ -556,6 +657,7 @@ const MenuDashboard = () => {
           theme.palette.warning.light,
           theme.palette.secondary.light,
           theme.palette.success.light,
+          
           theme.palette.error.dark
         ],
         borderWidth: 0,
@@ -590,14 +692,86 @@ const MenuDashboard = () => {
     return `${differenceInSeconds} second${differenceInSeconds !== 1 ? 's' : ''}`;
   }
 
+  const getFilterIcon = () => {
+    switch (timeFilter) {
+      case 'day': return <TodayIcon />;
+      case 'week': return <WeekIcon />;
+      case 'month': return <MonthIcon />;
+      default: return <FilterIcon />;
+    }
+  };
+
+  const getFilterText = () => {
+    switch (timeFilter) {
+      case 'all': return 'All Time';
+      case 'day': return 'Last 24 Hours';
+      case 'week': return 'Last Week';
+      case 'month': return 'Last Month';
+      default: return 'Filter';
+    }
+  };
+
+  const handleViewInterview = (interview) => {
+    setSelectedInterview(interview);
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/dashboard/search?query=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
   return (
     <Box component="section" sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Typography variant="h4" fontWeight="bold">Recruitment Dashboard</Typography>
         <Stack direction="row" spacing={2}>
-          <Button variant="outlined" startIcon={<FilterIcon />} sx={{ textTransform: 'none' }}>Filters</Button>
-          <Button variant="contained" startIcon={<SearchIcon />} sx={{ textTransform: 'none' }}>Quick Search</Button>
-        </Stack>
+          <Button
+            variant="outlined"
+            startIcon={getFilterIcon()}
+            sx={{ textTransform: 'none' }}
+            onClick={handleClick}
+            aria-controls={open ? 'time-filter-menu' : undefined}
+            aria-haspopup="true"
+            aria-expanded={open ? 'true' : undefined}
+          >
+            {getFilterText()}
+          </Button>
+          <Menu
+            id="time-filter-menu"
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            MenuListProps={{
+              'aria-labelledby': 'time-filter-button',
+            }}
+          >
+            <MenuItem onClick={() => handleTimeFilterChange('all')}>
+              <TodayIcon sx={{ mr: 1 }} /> All Time
+            </MenuItem>
+            <MenuItem onClick={() => handleTimeFilterChange('day')}>
+              <TodayIcon sx={{ mr: 1 }} /> Last 24 Hours
+            </MenuItem>
+            <MenuItem onClick={() => handleTimeFilterChange('week')}>
+              <WeekIcon sx={{ mr: 1 }} /> Last Week
+            </MenuItem>
+            <MenuItem onClick={() => handleTimeFilterChange('month')}>
+              <MonthIcon sx={{ mr: 1 }} /> Last Month
+            </MenuItem>
+          </Menu>
+          <Button
+            variant="contained"
+            startIcon={<SearchIcon />}
+            sx={{ textTransform: 'none' }}
+            onClick={handleSearch}
+          >
+            Quick Search
+          </Button>        </Stack>
       </Box>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -624,7 +798,7 @@ const MenuDashboard = () => {
           <Card sx={{ height: '100%', borderRadius: 2, boxShadow: 1 }}>
             <CardHeader
               title="Candidate Pipeline"
-              subheader="Current distribution by stage"
+              subheader={`Current distribution by stage (${getFilterText()})`}
               action={<IconButton><MoreVertIcon /></IconButton>}
             />
             <CardContent>
@@ -651,15 +825,15 @@ const MenuDashboard = () => {
         </Grid>
 
         <Grid item xs={12} md={7}>
-          <Card sx={{ borderRadius: 2, boxShadow: 1 }}>
+          <Card sx={{ borderRadius: 2, boxShadow: 1,width:335 }}>
             <CardHeader
               title="Recent Candidates"
-              subheader="Latest additions to your pipeline"
+              subheader={`Latest additions (${getFilterText()})`}
               action={<IconButton><MoreVertIcon /></IconButton>}
             />
             <CardContent>
               <Stack spacing={2}>
-                {allCandidates.slice(0, 3).map((candidate, index) => (
+                {filteredCandidates.slice(0, 3).map((candidate, index) => (
                   <Paper
                     key={index}
                     elevation={0}
@@ -681,9 +855,7 @@ const MenuDashboard = () => {
                       <Typography variant="body1" fontWeight="medium">
                         {candidate.firstName} {candidate.lastName}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        FrontEnd Engineer
-                      </Typography>
+                     
                     </Box>
                     <Box sx={{ textAlign: 'right' }}>
                       <Chip
@@ -710,59 +882,56 @@ const MenuDashboard = () => {
           </Card>
         </Grid>
 
-        {/* The rest (Upcoming Interviews, Job Openings, etc.) remains unchanged */}
-        {/* You already had those working fine — no changes needed there */}
-
         <Grid item xs={12} md={4}>
-          <Card sx={{
-            borderRadius: 2,
-            boxShadow: 1
-          }}>
+          <Card sx={{ borderRadius: 2, boxShadow: 1 ,width:340}}>
             <CardHeader
               title="Upcoming Interviews"
               subheader="Next 3 days schedule"
-              action={
-                <IconButton>
-                  <MoreVertIcon />
-                </IconButton>
-              }
+              action={<IconButton><MoreVertIcon /></IconButton>}
             />
             <CardContent>
               <Stack spacing={2}>
-                {[1, 2].map((item) => (
-                  <Paper
-                    key={item}
-                    sx={{
-                      p: 2,
-                      borderRadius: 1,
-                      border: `1px solid ${theme.palette.divider}`
-                    }}
-                  >
-                    <Typography variant="subtitle2" fontWeight="medium">
-                      {item === 1 ? 'Technical Screening' : 'Final Round'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {item === 1 ? 'React Developer' : 'Product Designer'}
-                    </Typography>
-                    <Divider sx={{ my: 1.5 }} />
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2">
-                        {item === 1 ? 'Tomorrow, 10:00 AM' : 'Wed, 2:00 PM'}
+                {upcomingInterviews.length > 0 ? (
+                  upcomingInterviews.map((interview) => (
+                    <Paper
+                      key={interview._id}
+                      sx={{
+                        p: 2,
+                        borderRadius: 1,
+                        border: `1px solid ${theme.palette.divider}`
+                      }}
+                    >
+                      <Typography variant="subtitle2" fontWeight="medium">
+                        {interview.jobId?.jobTitle || 'Interview'}
                       </Typography>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        sx={{
-                          textTransform: 'none',
-                          minWidth: 0,
-                          p: '2px 8px'
-                        }}
-                      >
-                        View
-                      </Button>
-                    </Box>
-                  </Paper>
-                ))}
+                      <Typography variant="body2" color="text.secondary">
+                        {interview.candidate.name}
+                      </Typography>
+                      <Divider sx={{ my: 1.5 }} />
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="body2">
+                          {new Date(interview.date).toLocaleDateString()}, {interview.startTime}
+                        </Typography>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          sx={{
+                            textTransform: 'none',
+                            minWidth: 0,
+                            p: '2px 8px'
+                          }}
+                          onClick={() => handleViewInterview(interview)}
+                        >
+                          View
+                        </Button>
+                      </Box>
+                    </Paper>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                    No upcoming interviews in next 3 days
+                  </Typography>
+                )}
               </Stack>
               <Button
                 fullWidth
@@ -777,7 +946,6 @@ const MenuDashboard = () => {
           </Card>
         </Grid>
 
-        {/* Job Openings */}
         <Grid item width={'100%'} xs={12} md={8}>
           <Card sx={{
             borderRadius: 2,
@@ -785,7 +953,7 @@ const MenuDashboard = () => {
           }}>
             <CardHeader
               title="Active Job Openings"
-              subheader="Priority positions needing attention"
+              subheader={`Priority positions (${getFilterText()})`}
               action={
                 <Button
                   variant="contained"
@@ -799,10 +967,9 @@ const MenuDashboard = () => {
             />
             <CardContent>
               <Grid container spacing={2}>
-                {allJobsActive.map((job, index) => (
+                {filteredJobsActive.map((job, index) => (
                   <Grid item xs={12} width={'23%'} sm={6} md={4} key={index} onClick={() => navigate(`/dashboard/jobs/${job._id}`)}>
                     <Paper sx={{
-                      // width:'24%',
                       p: 2,
                       height: '100%',
                       borderRadius: 1,
@@ -833,9 +1000,9 @@ const MenuDashboard = () => {
                         mt: 1.5,
                         alignItems: 'center'
                       }}>
-                        <Typography variant="body2">
+                        {/* <Typography variant="body2">
                           2 applicants
-                        </Typography>
+                        </Typography> */}
                         <Chip
                           label={job.status}
                           size="small"
@@ -856,19 +1023,17 @@ const MenuDashboard = () => {
                           }
                         }}
                       />
-                     <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
-  {job?.jobFormId?.targetHireDate
-    ? `Open for ${getTimeDifference(job.jobFormId.targetHireDate, 'future')}`
-    : 'Target date not set'}
-</Typography>
-
+                      {/* <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                        {job?.jobFormId?.targetHireDate
+                          ? `Open for ${getTimeDifference(job.jobFormId.targetHireDate, 'future')}`
+                          : 'Target date not set'}
+                      </Typography> */}
                     </Paper>
                   </Grid>
                 ))}
               </Grid>
               <Stack >
                 <Button
-
                   variant="text"
                   sx={{ mt: 2, textTransform: 'none' }}
                   startIcon={<VisibilityIcon />}
@@ -881,6 +1046,54 @@ const MenuDashboard = () => {
           </Card>
         </Grid>
       </Grid>
+      {selectedInterview && (
+        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+          <DialogTitle>Interview Details</DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} sx={{ mt: 2 }}>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">Candidate</Typography>
+                <Typography variant="body1">{selectedInterview.candidate.name}</Typography>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">Job Position</Typography>
+                <Typography variant="body1">{selectedInterview.jobId?.jobTitle || 'N/A'}</Typography>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">Date & Time</Typography>
+                <Typography variant="body1">
+                  {new Date(selectedInterview.date).toLocaleDateString()} at {selectedInterview.startTime}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">Interviewers</Typography>
+                {selectedInterview.interviewers.map((interviewer, i) => (
+                  <Typography key={i} variant="body1">{interviewer.name}</Typography>
+                ))}
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">Platform</Typography>
+                <Typography variant="body1">{selectedInterview.platform}</Typography>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">Meeting Link</Typography>
+                <Link href={selectedInterview.meetingLink} target="_blank" rel="noopener">
+                  {selectedInterview.meetingLink}
+                </Link>
+              </Box>
+              {selectedInterview.notes && (
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">Notes</Typography>
+                  <Typography variant="body1">{selectedInterview.notes}</Typography>
+                </Box>
+              )}
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Close</Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Box>
   );
 };

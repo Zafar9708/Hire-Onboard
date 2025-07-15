@@ -1,4 +1,5 @@
 
+
 // import React from "react";
 // import {
 //   Box,
@@ -24,20 +25,27 @@
 //   Link,
 //   Tooltip,
 //   Fab,
-//   Paper,
-//   IconButton
+//   IconButton,
+//   Dialog,
+//   DialogTitle,
+//   DialogContent,
+//   DialogActions,
+//   Snackbar,
+//   Alert,
+//   Stepper,
+//   Step,
+//   StepLabel,
+//   StepContent
 // } from "@mui/material";
 // import {
 //   Email as EmailIcon,
 //   Phone as PhoneIcon,
 //   Work as WorkIcon,
-//   School as EducationIcon,
 //   LocationOn as LocationIcon,
 //   CalendarToday as DateIcon,
 //   Person as PersonIcon,
 //   Description as NotesIcon,
 //   ArrowBack as BackIcon,
-//   Add as AddIcon,
 //   Schedule as ScheduleIcon,
 //   Chat as MessageIcon,
 //   WhatsApp as WhatsAppIcon,
@@ -51,38 +59,31 @@
 //   VideoCall as VideoIcon,
 //   Timeline as TimelineIcon,
 //   BarChart as BarChartIcon,
-//   AccountTree as WorkflowIcon,
 //   CheckCircle as HiredIcon,
-//   Archive as ArchiveIcon,
 //   Delete as RejectIcon,
 //   Error as OnHoldIcon,
 //   GetApp as DownloadIcon,
 //   InsertDriveFile as FileIcon,
 //   PictureAsPdf as PdfIcon,
-//   ThumbUp as LikeIcon,
-//   Comment as CommentIcon,
 //   Send as SendIcon,
+//   Close as CloseIcon,
+//   ThumbUp as SelectedIcon,
+//   ThumbDown as RejectedIcon,
 //   Star as StarIcon,
-//   StarBorder as StarBorderIcon
+//   StarHalf as StarHalfIcon,
+//   StarBorder as StarBorderIcon,
+//   CheckCircle as CheckCircleIcon
 // } from "@mui/icons-material";
 // import { useParams, useNavigate } from "react-router-dom";
 // import { useQuery } from "@tanstack/react-query";
-// import { fetchCandidateById, fetchCandidateResume } from "../utils/api";
+// import axios from "axios";
 // import { styled } from '@mui/material/styles';
 
-// // Custom styled components
 // const GradientCard = styled(Card)(({ theme }) => ({
 //   background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
 //   color: theme.palette.common.white,
 //   borderRadius: theme.shape.borderRadius * 2,
 //   boxShadow: theme.shadows[6],
-// }));
-
-// const GlassCard = styled(Card)(({ theme }) => ({
-//   background: 'rgba(255, 255, 255, 0.9)',
-//   backdropFilter: 'blur(8px)',
-//   border: '1px solid rgba(255, 255, 255, 0.2)',
-//   borderRadius: theme.shape.borderRadius * 2,
 // }));
 
 // const StyledTabs = styled(Tabs)({
@@ -112,6 +113,10 @@
 //     case 'Rejected': color = theme.palette.error.main; break;
 //     case 'On Hold': color = theme.palette.warning.main; break;
 //     case 'Archived': color = theme.palette.text.disabled; break;
+//     case 'Selected': color = theme.palette.success.main; break;
+//     case 'Preboarding': color = theme.palette.info.main; break;
+//     case 'Screening': color = theme.palette.info.main; break;
+//     case 'Sourced': color = theme.palette.info.main; break;
 //     default: color = theme.palette.primary.main;
 //   }
 //   return {
@@ -149,57 +154,218 @@
 //   backgroundSize: '20px 20px'
 // });
 
+// const RatingStars = ({ value }) => {
+//   const stars = [];
+//   const fullStars = Math.floor(value);
+//   const hasHalfStar = value % 1 >= 0.5;
+//   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+//   for (let i = 0; i < fullStars; i++) {
+//     stars.push(<StarIcon key={`full-${i}`} color="primary" />);
+//   }
+
+//   if (hasHalfStar) {
+//     stars.push(<StarHalfIcon key="half" color="primary" />);
+//   }
+
+//   for (let i = 0; i < emptyStars; i++) {
+//     stars.push(<StarBorderIcon key={`empty-${i}`} color="primary" />);
+//   }
+
+//   return (
+//     <Box display="flex" alignItems="center">
+//       {stars}
+//       <Typography variant="body2" ml={1}>({value})</Typography>
+//     </Box>
+//   );
+// };
+
+// const fetchCandidateById = async (id) => {
+//   const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/candidates/${id}`);
+//   return response.data;
+// };
+
+// const downloadCandidateResume = async (id) => {
+//   const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/resumes/${id}`, {
+//     responseType: 'blob'
+//   });
+//   return response;
+// };
+
+// const previewCandidateResume = async (id) => {
+//   const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/resumes/${id}`, {
+//     responseType: 'blob'
+//   });
+//   return response;
+// };
+
 // const CandidateDetailsPage = () => {
 //   const { id } = useParams();
 //   const navigate = useNavigate();
 //   const [tabValue, setTabValue] = React.useState(0);
+//   const [shareDialogOpen, setShareDialogOpen] = React.useState(false);
+//   const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+//   const [snackbarMessage, setSnackbarMessage] = React.useState('');
+//   const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
+//   const [resumeBlobUrl, setResumeBlobUrl] = React.useState(null);
+//   const [isResumeLoading, setIsResumeLoading] = React.useState(false);
+
+//   const hiringStages = ['Sourced', 'Screening', 'Interview', 'Preboarding', 'Hired', 'Rejected', 'Archived'];
 
 //   const { data: candidate, isLoading, error } = useQuery({
 //     queryKey: ['candidate', id],
 //     queryFn: () => fetchCandidateById(id),
 //   });
 
-//   const { data: resume, isLoading: resumeLoading } = useQuery({
-//     queryKey: ['resume', id],
-//     queryFn: () => fetchCandidateResume(id),
-//     enabled: !!candidate && tabValue === 1 // Only fetch when candidate is loaded and on resume tab
+//   const { data: feedbackData } = useQuery({
+//     queryKey: ['candidateFeedback', id],
+//     queryFn: () => axios.get(`https://hire-onboardbackend-13.onrender.com/feedback/candidate/${id}`).then(res => res.data),
+//     enabled: !!candidate && (candidate.stage?.name === 'Hired' || candidate.stage?.name === 'Rejected')
 //   });
+
+//   const feedback = feedbackData?.data?.[0];
+//   const currentStageIndex = hiringStages.indexOf(candidate?.stage?.name || 'Sourced');
+
+//   React.useEffect(() => {
+//     const loadResumePreview = async () => {
+//       if (candidate?.resume?.path && tabValue === 1) {
+//         setIsResumeLoading(true);
+//         try {
+//           const response = await previewCandidateResume(id);
+//           const blob = new Blob([response.data], { type: response.headers['content-type'] });
+//           const url = window.URL.createObjectURL(blob);
+//           setResumeBlobUrl(url);
+//         } catch (err) {
+//           console.error("Failed to load resume preview:", err);
+//           setResumeBlobUrl(null);
+//           setSnackbarMessage(err.response?.data?.error || 'Failed to load resume preview');
+//           setSnackbarSeverity('error');
+//           setSnackbarOpen(true);
+//         } finally {
+//           setIsResumeLoading(false);
+//         }
+//       }
+//     };
+
+//     loadResumePreview();
+
+//     return () => {
+//       if (resumeBlobUrl) {
+//         URL.revokeObjectURL(resumeBlobUrl);
+//       }
+//     };
+//   }, [candidate, tabValue, id]);
 
 //   const handleTabChange = (event, newValue) => {
 //     setTabValue(newValue);
 //   };
 
-//   const handleDownloadResume = () => {
-//     if (resume?.path) {
-//       // Create a temporary anchor element to trigger download
+//   const handleDownloadResume = async () => {
+//     if (!candidate?.resume?.path) {
+//       setSnackbarMessage('No resume available to download');
+//       setSnackbarSeverity('error');
+//       setSnackbarOpen(true);
+//       return;
+//     }
+
+//     setIsResumeLoading(true);
+//     try {
+//       const response = await downloadCandidateResume(id);
+//       const url = window.URL.createObjectURL(new Blob([response.data]));
 //       const link = document.createElement('a');
-//       link.href = `https://hire-onboardbackend-13.onrender.com/${resume.path.replace(/\\/g, '/')}`;
-//       link.download = `${candidate.firstName}_${candidate.lastName}_Resume.pdf`;
+//       link.href = url;
+
+//       const contentType = response.headers['content-type'];
+//       let fileExt = '.pdf';
+//       if (contentType.includes('msword')) fileExt = '.doc';
+//       if (contentType.includes('vnd.openxmlformats')) fileExt = '.docx';
+
+//       link.setAttribute('download', `${candidate.firstName}_${candidate.lastName}_Resume${fileExt}`);
 //       document.body.appendChild(link);
 //       link.click();
 //       document.body.removeChild(link);
+
+//       setTimeout(() => window.URL.revokeObjectURL(url), 100);
+
+//       setSnackbarMessage('Download started');
+//       setSnackbarSeverity('success');
+//       setSnackbarOpen(true);
+//     } catch (error) {
+//       console.error('Download error:', error);
+//       setSnackbarMessage(error.response?.data?.error || 'Failed to download resume');
+//       setSnackbarSeverity('error');
+//       setSnackbarOpen(true);
+//     } finally {
+//       setIsResumeLoading(false);
 //     }
 //   };
 
-//   const handleShareResume = () => {
-//     if (resume?.path) {
-//       const resumeUrl = `https://hire-onboardbackend-13.onrender.com/${resume.path.replace(/\\/g, '/')}`;
-      
-//       if (navigator.share) {
-//         navigator.share({
+//   const handlePreviewResume = async () => {
+//     if (!candidate?.resume?.path) {
+//       setSnackbarMessage('No resume available to preview');
+//       setSnackbarSeverity('error');
+//       setSnackbarOpen(true);
+//       return;
+//     }
+
+//     setIsResumeLoading(true);
+//     try {
+//       const response = await previewCandidateResume(id);
+//       const blob = new Blob([response.data], { type: response.headers['content-type'] });
+//       const url = window.URL.createObjectURL(blob);
+//       window.open(url, '_blank');
+//     } catch (error) {
+//       console.error('Preview error:', error);
+//       setSnackbarMessage(error.response?.data?.error || 'Failed to preview resume');
+//       setSnackbarSeverity('error');
+//       setSnackbarOpen(true);
+//     } finally {
+//       setIsResumeLoading(false);
+//     }
+//   };
+
+//   const handleShareClick = () => {
+//     setShareDialogOpen(true);
+//   };
+
+//   const handleShareDialogClose = () => {
+//     setShareDialogOpen(false);
+//   };
+
+//   const handleShareResume = async (method = 'clipboard') => {
+//     if (!candidate?.resume?.path) {
+//       setSnackbarMessage('No resume available to share');
+//       setSnackbarSeverity('error');
+//       setSnackbarOpen(true);
+//       return;
+//     }
+
+//     const resumeUrl = `https://hire-onboardbackend-13.onrender.com/resumes/${id}`;
+
+//     try {
+//       if (method === 'native' && navigator.share) {
+//         await navigator.share({
 //           title: `${candidate.firstName} ${candidate.lastName}'s Resume`,
 //           text: `Check out ${candidate.firstName}'s resume`,
 //           url: resumeUrl,
-//         }).catch(console.error);
-//       } else {
-//         // Fallback for browsers that don't support Web Share API
-//         navigator.clipboard.writeText(resumeUrl).then(() => {
-//           alert('Resume link copied to clipboard!');
-//         }).catch(() => {
-//           alert(`Resume URL: ${resumeUrl}`);
 //         });
+//       } else {
+//         await navigator.clipboard.writeText(resumeUrl);
+//         setSnackbarMessage('Resume link copied to clipboard!');
+//         setSnackbarSeverity('success');
+//         setSnackbarOpen(true);
 //       }
+//       setShareDialogOpen(false);
+//     } catch (err) {
+//       console.error('Error sharing:', err);
+//       setSnackbarMessage('Failed to share resume');
+//       setSnackbarSeverity('error');
+//       setSnackbarOpen(true);
 //     }
+//   };
+
+//   const handleSnackbarClose = () => {
+//     setSnackbarOpen(false);
 //   };
 
 //   if (isLoading) {
@@ -220,32 +386,27 @@
 //     );
 //   }
 
-//   if (!candidate) return null;
-
-//   const resumeUrl = resume?.path 
-//     ? `https://hire-onboardbackend-13.onrender.com/${resume.path.replace(/\\/g, '/')}`
-//     : null;
+//   if (!candidate) {
+//     return (
+//       <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+//         <Typography color="error" variant="h5">
+//           Candidate not found
+//         </Typography>
+//       </Box>
+//     );
+//   }
 
 //   return (
-//     <Container maxWidth="lg" sx={{ py: 3,ml:0, px: { xs: 2, sm: 3 } }}>
-//       {/* Breadcrumbs */}
+//     <Container maxWidth="xl" sx={{ py: 3, px: { xs: 2, sm: 3 } }}>
 //       <Breadcrumbs sx={{ mb: 2 }}>
 //         <Link color="inherit" onClick={() => navigate('/')}>Dashboard</Link>
 //         <Link color="inherit" onClick={() => navigate('/candidates')}>Candidates</Link>
 //         <Typography color="text.primary">{candidate.firstName} {candidate.lastName}</Typography>
 //       </Breadcrumbs>
 
-//       {/* Header */}
-//       {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-//         <Button startIcon={<BackIcon />} onClick={() => navigate(-1)} variant="outlined">
-//           Back
-//         </Button>
-//       </Box> */}
-
 //       <Grid container spacing={3}>
-//         {/* Main Content */}
+//         {/* Left Column - Main Content */}
 //         <Grid item xs={12} md={8}>
-//           {/* Profile Header */}
 //           <GradientCard sx={{ mb: 3 }}>
 //             <CardContent>
 //               <Box sx={{ display: "flex", flexDirection: { xs: 'column', sm: 'row' }, alignItems: "center", gap: 3 }}>
@@ -258,24 +419,21 @@
 //                   }
 //                 >
 //                   <Avatar sx={{ width: 80, height: 80, fontSize: "2rem", border: '3px solid white' }}>
-//                     {candidate.firstName.charAt(0)}{candidate.lastName.charAt(0)}
+//                     {candidate.firstName?.charAt(0)}{candidate.lastName?.charAt(0)}
 //                   </Avatar>
 //                 </Badge>
 //                 <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
 //                   <Typography variant="h4" fontWeight="bold" sx={{ color: 'white' }}>
 //                     {candidate.firstName} {candidate.lastName}
 //                   </Typography>
-//                   <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.8)', mb: 1 }}>
-//                     {candidate.currentJobTitle} at {candidate.currentCompany}
-//                   </Typography>
 //                   <Box sx={{ display: "flex", flexWrap: 'wrap', gap: 2, justifyContent: { xs: 'center', sm: 'flex-start' } }}>
-//                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+//                     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2 }}>
 //                       <EmailIcon fontSize="small" sx={{ color: 'rgba(255,255,255,0.8)' }} />
 //                       <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
 //                         {candidate.email}
 //                       </Typography>
 //                     </Box>
-//                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+//                     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2 }}>
 //                       <PhoneIcon fontSize="small" sx={{ color: 'rgba(255,255,255,0.8)' }} />
 //                       <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
 //                         {candidate.mobile}
@@ -287,19 +445,19 @@
 //             </CardContent>
 //           </GradientCard>
 
-//           {/* Tabs */}
 //           <StyledTabs value={tabValue} onChange={handleTabChange} variant="scrollable" sx={{ mb: 2 }}>
 //             <StyledTab label="Profile" icon={<PersonIcon />} iconPosition="start" />
 //             <StyledTab label="Resume" icon={<DocumentIcon />} iconPosition="start" />
+//             <StyledTab label="Cooling Period" icon={<TimelineIcon />} iconPosition="start" />
+//             {(candidate.stage?.name === 'Hired' || candidate.stage?.name === 'Rejected') && (
+//               <StyledTab label="Interview Feedback" icon={<SelectedIcon />} iconPosition="start" />
+//             )}
 //             <StyledTab label="Messages" icon={<MessageIcon />} iconPosition="start" />
-//             <StyledTab label="Activity" icon={<TimelineIcon />} iconPosition="start" />
 //           </StyledTabs>
 
-//           {/* Tab Content */}
 //           {tabValue === 0 && (
 //             <Box>
-//               {/* Personal Details */}
-//               <GlassCard sx={{ mb: 3 }}>
+//               <Card sx={{ mb: 3 }}>
 //                 <CardContent>
 //                   <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
 //                     <PersonIcon color="primary" /> Personal Details
@@ -325,7 +483,7 @@
 //                         </ListItem>
 //                         <ListItem>
 //                           <ListItemIcon><LocationIcon color="primary" /></ListItemIcon>
-//                           <ListItemText primary="Location" secondary={candidate.currentLocation} />
+//                           <ListItemText primary="Location" secondary={candidate.currentLocation || 'Not specified'} />
 //                         </ListItem>
 //                       </List>
 //                     </Grid>
@@ -333,7 +491,7 @@
 //                       <List dense>
 //                         <ListItem>
 //                           <ListItemIcon><NoticePeriodIcon color="primary" /></ListItemIcon>
-//                           <ListItemText primary="Notice Period" secondary={`${candidate.availableToJoin} days`} />
+//                           <ListItemText primary="Notice Period" secondary={`${candidate.availableToJoin || '0'} days`} />
 //                         </ListItem>
 //                         <ListItem>
 //                           <ListItemIcon><SalaryIcon color="primary" /></ListItemIcon>
@@ -343,80 +501,109 @@
 //                     </Grid>
 //                   </Grid>
 //                 </CardContent>
-//               </GlassCard>
+//               </Card>
 
-//               {/* Skills */}
-//               <GlassCard sx={{ mb: 3 }}>
+//               <Card sx={{ mb: 3 }}>
 //                 <CardContent>
 //                   <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
 //                     <BarChartIcon color="primary" /> Skills & Expertise
 //                   </Typography>
 //                   <Divider sx={{ my: 2 }} />
 //                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-//                     {candidate.skills?.map((skill, index) => (
-//                       <Chip
-//                         key={index}
-//                         label={skill}
-//                         color={index % 2 === 0 ? "primary" : "secondary"}
-//                         variant={index % 3 === 0 ? "filled" : "outlined"}
-//                         sx={{ borderRadius: 1 }}
-//                       />
-//                     ))}
+//                     {Array.isArray(candidate.skills)
+//                       ? candidate.skills.map((skill, index) => (
+//                         <Chip
+//                           key={index}
+//                           label={skill}
+//                           color={index % 2 === 0 ? "primary" : "secondary"}
+//                           variant={index % 3 === 0 ? "filled" : "outlined"}
+//                           sx={{ borderRadius: 1 }}
+//                         />
+//                       ))
+//                       : <Typography>No skills listed</Typography>}
 //                   </Box>
 //                 </CardContent>
-//               </GlassCard>
+//               </Card>
 //             </Box>
 //           )}
 
 //           {tabValue === 1 && (
-//             <GlassCard>
+//             <Card>
 //               <CardContent>
 //                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
 //                   <Typography variant="h6" fontWeight="bold">Resume</Typography>
-//                   <Button 
-//                     variant="contained" 
-//                     startIcon={<DownloadIcon />} 
-//                     onClick={handleDownloadResume}
-//                     disabled={!resume?.path || resumeLoading}
-//                   >
-//                     {resumeLoading ? 'Loading...' : 'Download'}
-//                   </Button>
+//                   <Box sx={{ display: 'flex', gap: 1 }}>
+//                     <Button
+//                       variant="contained"
+//                       startIcon={<DownloadIcon />}
+//                       onClick={handleDownloadResume}
+//                       disabled={!candidate?.resume?.path || isResumeLoading}
+//                     >
+//                       {isResumeLoading ? 'Loading...' : 'Download'}
+//                     </Button>
+//                     <Button
+//                       variant="outlined"
+//                       startIcon={<ShareIcon />}
+//                       onClick={handleShareClick}
+//                       disabled={!candidate?.resume?.path}
+//                     >
+//                       Share
+//                     </Button>
+//                   </Box>
 //                 </Box>
 
 //                 <ResumeViewer>
 //                   <ResumeToolbar>
 //                     <Box sx={{ display: 'flex', gap: 1 }}>
-//                       <Button size="small" variant="outlined" startIcon={<FileIcon />}>Original</Button>
-//                       <Button size="small" variant="outlined" startIcon={<PdfIcon />}>PDF</Button>
+//                       <Button
+//                         size="small"
+//                         variant="outlined"
+//                         startIcon={<FileIcon />}
+//                         onClick={handleDownloadResume}
+//                         disabled={!candidate?.resume?.path || isResumeLoading}
+//                       >
+//                         {isResumeLoading ? 'Loading...' : 'Download'}
+//                       </Button>
+//                       <Button
+//                         size="small"
+//                         variant="outlined"
+//                         startIcon={<PdfIcon />}
+//                         onClick={handlePreviewResume}
+//                         disabled={!candidate?.resume?.path || isResumeLoading}
+//                       >
+//                         {isResumeLoading ? 'Loading...' : 'Preview'}
+//                       </Button>
 //                     </Box>
 //                     <Box sx={{ display: 'flex', gap: 1 }}>
-//                       <IconButton 
-//                         size="small" 
+//                       <IconButton
+//                         size="small"
 //                         onClick={handleDownloadResume}
-//                         disabled={!resume?.path || resumeLoading}
+//                         disabled={!candidate?.resume?.path || isResumeLoading}
 //                       >
 //                         <DownloadIcon fontSize="small" />
 //                       </IconButton>
-//                       <IconButton 
-//                         size="small" 
-//                         onClick={handleShareResume}
-//                         disabled={!resume?.path || resumeLoading}
+//                       <IconButton
+//                         size="small"
+//                         onClick={handleShareClick}
+//                         disabled={!candidate?.resume?.path}
 //                       >
 //                         <ShareIcon fontSize="small" />
 //                       </IconButton>
 //                     </Box>
 //                   </ResumeToolbar>
 //                   <ResumeContent>
-//                     {resumeLoading ? (
-//                       <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-//                         <CircularProgress />
-//                       </Box>
-//                     ) : resumeUrl ? (
-//                       <iframe 
-//                         src={`https://docs.google.com/gview?url=${encodeURIComponent(resumeUrl)}&embedded=true`}
-//                         style={{ width: '100%', height: '100%', border: 'none' }}
-//                         title="Resume Viewer"
-//                       />
+//                     {candidate?.resume?.path ? (
+//                       isResumeLoading ? (
+//                         <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+//                           <CircularProgress />
+//                         </Box>
+//                       ) : (
+//                         <iframe
+//                           src={resumeBlobUrl}
+//                           style={{ width: '100%', height: '100%', border: 'none' }}
+//                           title="Resume Viewer"
+//                         />
+//                       )
 //                     ) : (
 //                       <Box textAlign="center" pt={4}>
 //                         <Typography variant="h6" color="textSecondary">
@@ -430,186 +617,346 @@
 //                   </ResumeContent>
 //                 </ResumeViewer>
 //               </CardContent>
-//             </GlassCard>
+//             </Card>
 //           )}
 
 //           {tabValue === 2 && (
-//             <GlassCard>
+//             <Card>
 //               <CardContent>
-//                 <Typography variant="h6" fontWeight="bold" gutterBottom>Messages</Typography>
-//                 <List>
-//                   {[
-//                     { sender: 'You', message: 'Hi, when are you available?', time: '10:30 AM', icon: <MessageIcon color="primary" /> },
-//                     { sender: candidate.firstName, message: 'I can do Monday or Wednesday', time: '10:45 AM', icon: <MessageIcon color="secondary" /> }
-//                   ].map((msg, i) => (
+//                 <Typography variant="h6" fontWeight="bold" gutterBottom>
+//                   Hiring Process
+//                 </Typography>
+//                 <Divider sx={{ mb: 3 }} />
+//                 <Stepper activeStep={currentStageIndex} orientation="vertical">
+//                   {hiringStages.map((stage, index) => (
+//                     <Step key={stage}>
+//                       <StepLabel>
+//                         <Typography variant="subtitle1" fontWeight="bold">
+//                           {stage}
+//                         </Typography>
+//                       </StepLabel>
+//                       <StepContent>
+//                         <Typography variant="body2">
+//                           {index < currentStageIndex ? (
+//                             `Completed on ${new Date(candidate.updatedAt).toLocaleDateString()}`
+//                           ) : index === currentStageIndex ? (
+//                             `Currently in this stage since ${new Date(candidate.updatedAt).toLocaleDateString()}`
+//                           ) : (
+//                             'Pending'
+//                           )}
+//                         </Typography>
+//                       </StepContent>
+//                     </Step>
+//                   ))}
+//                 </Stepper>
+//               </CardContent>
+//             </Card>
+//           )}
+
+//           {tabValue === 3 && (candidate.stage?.name === 'Hired' || candidate.stage?.name === 'Rejected') && (
+//             <Card>
+//               <CardContent>
+//                 {feedback ? (
+//                   <>
+//                     <Typography variant="h6" fontWeight="bold" gutterBottom>
+//                       Interview Feedback
+//                     </Typography>
+//                     <Divider sx={{ mb: 3 }} />
+
+//                     <Grid container spacing={3}>
+//                       <Grid item xs={12} md={6}>
+//                         <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+//                           Interview Details
+//                         </Typography>
+//                         <List dense>
+//                           <ListItem>
+//                             <ListItemIcon><PersonIcon color="primary" /></ListItemIcon>
+//                             <ListItemText
+//                               primary="Interviewer"
+//                               secondary={feedback.interviewerId?.name || 'Not specified'}
+//                             />
+//                           </ListItem>
+//                           <ListItem>
+//                             <ListItemIcon><WorkIcon color="primary" /></ListItemIcon>
+//                             <ListItemText
+//                               primary="Job Position"
+//                               secondary={feedback.jobId?.jobName || 'Not specified'}
+//                             />
+//                           </ListItem>
+//                           <ListItem>
+//                             <ListItemIcon><DateIcon color="primary" /></ListItemIcon>
+//                             <ListItemText
+//                               primary="Submitted On"
+//                               secondary={new Date(feedback.submittedAt).toLocaleString()}
+//                             />
+//                           </ListItem>
+//                           <ListItem>
+//                             <ListItemIcon>
+//                               {feedback.status === 'Selected' ? (
+//                                 <SelectedIcon color="success" />
+//                               ) : (
+//                                 <RejectedIcon color="error" />
+//                               )}
+//                             </ListItemIcon>
+//                             <ListItemText
+//                               primary="Final Decision"
+//                               secondary={
+//                                 <StatusChip
+//                                   label={feedback.status}
+//                                   status={feedback.status}
+//                                   size="small"
+//                                 />
+//                               }
+//                             />
+//                           </ListItem>
+//                         </List>
+//                       </Grid>
+
+//                       <Grid item xs={12} md={6}>
+//                         <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+//                           Ratings
+//                         </Typography>
+//                         <List dense>
+//                           <ListItem>
+//                             <ListItemText
+//                               primary="Technical Skills"
+//                               secondary={<RatingStars value={feedback.technicalSkills} />}
+//                             />
+//                           </ListItem>
+//                           <ListItem>
+//                             <ListItemText
+//                               primary="Communication Skills"
+//                               secondary={<RatingStars value={feedback.communicationSkills} />}
+//                             />
+//                           </ListItem>
+//                           <ListItem>
+//                             <ListItemText
+//                               primary="Problem Solving"
+//                               secondary={<RatingStars value={feedback.problemSolving} />}
+//                             />
+//                           </ListItem>
+//                           <ListItem>
+//                             <ListItemText
+//                               primary="Cultural Fit"
+//                               secondary={<RatingStars value={feedback.culturalFit} />}
+//                             />
+//                           </ListItem>
+//                         </List>
+//                       </Grid>
+
+//                       <Grid item xs={12}>
+//                         <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+//                           Overall Feedback
+//                         </Typography>
+//                         <Card variant="outlined" sx={{ p: 2, backgroundColor: 'background.paper' }}>
+//                           <Typography variant="body1">
+//                             {feedback.overallFeedback}
+//                           </Typography>
+//                         </Card>
+//                       </Grid>
+//                     </Grid>
+//                   </>
+//                 ) : (
+//                   <Box textAlign="center" py={4}>
+//                     <Typography variant="h6" color="textSecondary">
+//                       No feedback available yet
+//                     </Typography>
+//                     <Typography variant="body2" color="textSecondary" mt={2}>
+//                       Feedback will appear here once submitted by the interviewer
+//                     </Typography>
+//                   </Box>
+//                 )}
+//               </CardContent>
+//             </Card>
+//           )}
+//         </Grid>
+
+//         {/* Right Column - Sidebar Content */}
+//         <Grid item xs={12} md={4}>
+//           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+//             {/* Hiring Status Card */}
+//             <Card sx={{ borderLeft: '4px solid', borderLeftColor: 'primary.main' }}>
+//               <CardContent>
+//                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+//                   <Typography variant="h6" fontWeight="bold">Hiring Status</Typography>
+//                   <StatusChip label={candidate.stage?.name} status={candidate.stage?.name} />
+//                 </Box>
+
+//                 <Box sx={{ mb: 3 }}>
+//                   <Box sx={{ 
+//                     display: 'flex', 
+//                     justifyContent: 'space-between', 
+//                     position: 'relative',
+//                     mb: 1
+//                   }}>
+//                     <Box sx={{
+//                       position: 'absolute',
+//                       top: '50%',
+//                       left: 0,
+//                       right: 0,
+//                       height: 4,
+//                       bgcolor: 'grey.200',
+//                       transform: 'translateY(-50%)',
+//                       zIndex: 0
+//                     }} />
+
+//                     <Box sx={{
+//                       position: 'absolute',
+//                       top: '50%',
+//                       left: 0,
+//                       width: `${(currentStageIndex + 1) / hiringStages.length * 100}%`,
+//                       height: 4,
+//                       bgcolor: 'primary.main',
+//                       transform: 'translateY(-50%)',
+//                       zIndex: 1,
+//                       transition: 'width 0.5s ease'
+//                     }} />
+
+//                     {hiringStages.map((stage, index) => (
+//                       <Box key={stage} sx={{ 
+//                         position: 'relative', 
+//                         zIndex: 2,
+//                         display: 'flex',
+//                         flexDirection: 'column',
+//                         alignItems: 'center'
+//                       }}>
+//                         <Box sx={{
+//                           width: 32,
+//                           height: 32,
+//                           borderRadius: '50%',
+//                           bgcolor: index <= currentStageIndex ? 'primary.main' : 'grey.300',
+//                           display: 'flex',
+//                           alignItems: 'center',
+//                           justifyContent: 'center',
+//                           color: index <= currentStageIndex ? 'common.white' : 'text.secondary',
+//                           mb: 0.5
+//                         }}>
+//                           {index < currentStageIndex ? (
+//                             <CheckCircleIcon fontSize="small" />
+//                           ) : (
+//                             <Typography variant="caption" fontWeight="bold">
+//                               {index + 1}
+//                             </Typography>
+//                           )}
+//                         </Box>
+//                         <Typography variant="caption" fontWeight={index === currentStageIndex ? 'bold' : 'normal'}>
+//                           {stage}
+//                         </Typography>
+//                       </Box>
+//                     ))}
+//                   </Box>
+
+//                   <Typography variant="caption" color="text.secondary">
+//                     {currentStageIndex + 1} of {hiringStages.length} stages completed
+//                   </Typography>
+//                 </Box>
+//               </CardContent>
+//             </Card>
+
+//             {/* Quick Actions Card */}
+//             <Card>
+//               <CardContent>
+//                 <Typography variant="h6" fontWeight="bold" gutterBottom>Quick Actions</Typography>
+//                 <Grid container spacing={1}>
+//                   <Grid item xs={6}>
+//                     <Button variant="outlined" startIcon={<ScheduleIcon />} fullWidth sx={{ py: 1.5 }}>Schedule</Button>
+//                   </Grid>
+//                   <Grid item xs={6}>
+//                     <Button variant="outlined" startIcon={<MessageIcon />} fullWidth sx={{ py: 1.5 }}>Message</Button>
+//                   </Grid>
+//                   <Grid item xs={6}>
+//                     <Button variant="outlined" startIcon={<VideoIcon />} fullWidth sx={{ py: 1.5 }}>Video Call</Button>
+//                   </Grid>
+//                   <Grid item xs={6}>
+//                     <Button variant="outlined" startIcon={<WhatsAppIcon />} fullWidth sx={{ py: 1.5 }}>WhatsApp</Button>
+//                   </Grid>
+//                 </Grid>
+//               </CardContent>
+//             </Card>
+
+//             {/* Notes Card */}
+//             <Card>
+//               <CardContent>
+//                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+//                   <Typography variant="h6" fontWeight="bold">Notes</Typography>
+//                   <Button size="small" startIcon={<NoteAddIcon />}>Add</Button>
+//                 </Box>
+//                 <TextField
+//                   multiline
+//                   rows={4}
+//                   fullWidth
+//                   placeholder="Add your notes..."
+//                   variant="outlined"
+//                   sx={{ mb: 2 }}
+//                   InputProps={{
+//                     startAdornment: <NotesIcon color="primary" sx={{ mr: 1 }} />,
+//                   }}
+//                 />
+//                 <Button variant="contained" fullWidth>Save Note</Button>
+//                 <List sx={{ mt: 2 }}>
+//                   {candidate.comments?.map((comment, i) => (
 //                     <ListItem key={i} sx={{ px: 0 }}>
-//                       <ListItemIcon sx={{ minWidth: 36 }}>{msg.icon}</ListItemIcon>
+//                       <ListItemIcon sx={{ minWidth: 32 }}><NotesIcon color="primary" fontSize="small" /></ListItemIcon>
 //                       <ListItemText
-//                         primary={
-//                           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-//                             <Typography fontWeight="bold">{msg.sender}</Typography>
-//                             <Typography variant="caption" color="text.secondary">{msg.time}</Typography>
-//                           </Box>
+//                         primary={comment.text}
+//                         secondary={
+//                           <>
+//                             <Typography component="span" variant="body2" color="text.primary">
+//                               {comment.author || 'System'}
+//                             </Typography>
+//                             {` — ${new Date(comment.date).toLocaleString()}`}
+//                           </>
 //                         }
-//                         secondary={msg.message}
 //                       />
 //                     </ListItem>
 //                   ))}
 //                 </List>
-//                 <TextField
-//                   fullWidth
-//                   variant="outlined"
-//                   placeholder="Type your message..."
-//                   sx={{ mt: 2 }}
-//                   InputProps={{
-//                     endAdornment: (
-//                       <IconButton color="primary"><SendIcon /></IconButton>
-//                     )
-//                   }}
-//                 />
 //               </CardContent>
-//             </GlassCard>
-//           )}
-
-//           {tabValue === 3 && (
-//             <GlassCard>
-//               <CardContent>
-//                 <Typography variant="h6" fontWeight="bold" gutterBottom>Activity Timeline</Typography>
-//                 <Box sx={{ position: 'relative', pl: 3 }}>
-//                   <Box sx={{
-//                     position: 'absolute',
-//                     left: 20,
-//                     top: 0,
-//                     bottom: 0,
-//                     width: 2,
-//                     bgcolor: 'primary.main',
-//                     borderRadius: 1,
-//                   }} />
-//                   {[
-//                     { icon: <MessageIcon color="primary" />, title: 'Message sent', time: 'Today, 10:30 AM' },
-//                     { icon: <ScheduleIcon color="secondary" />, title: 'Interview scheduled', time: 'Yesterday, 3:45 PM' }
-//                   ].map((item, i) => (
-//                     <Box key={i} sx={{ position: 'relative', mb: 3, pl: 4 }}>
-//                       <Box sx={{
-//                         position: 'absolute',
-//                         left: 12,
-//                         top: 4,
-//                         width: 16,
-//                         height: 16,
-//                         bgcolor: 'background.paper',
-//                         border: '2px solid',
-//                         borderColor: 'primary.main',
-//                         borderRadius: '50%',
-//                         zIndex: 1,
-//                         display: 'flex',
-//                         alignItems: 'center',
-//                         justifyContent: 'center',
-//                       }}>
-//                         {item.icon}
-//                       </Box>
-//                       <Box>
-//                         <Typography fontWeight="bold">{item.title}</Typography>
-//                         <Typography variant="caption" color="text.secondary">{item.time}</Typography>
-//                       </Box>
-//                     </Box>
-//                   ))}
-//                 </Box>
-//               </CardContent>
-//             </GlassCard>
-//           )}
-//         </Grid>
-
-//         {/* Sidebar */}
-//         <Grid item xs={12} md={4}>
-//           {/* Status Card */}
-//           <Card sx={{ mb: 3, borderLeft: '4px solid', borderLeftColor: 'primary.main' }}>
-//             <CardContent>
-//               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-//                 <Typography variant="h6" fontWeight="bold">Hiring Status</Typography>
-//                 <StatusChip label={candidate.stage} status={candidate.stage} />
-//               </Box>
-//               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-//                 <Button variant="contained" color="success" startIcon={<HiredIcon />} size="small">Hire</Button>
-//                 <Button variant="contained" color="error" startIcon={<RejectIcon />} size="small">Reject</Button>
-//                 <Button variant="contained" color="warning" startIcon={<OnHoldIcon />} size="small">Hold</Button>
-//               </Box>
-//               <Divider sx={{ my: 2 }} />
-//               <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-//                 Current Stage: {candidate.stage}
-//               </Typography>
-//               <Box sx={{ width: '100%', height: 8, bgcolor: 'grey.200', borderRadius: 4, overflow: 'hidden', mb: 1 }}>
-//                 <Box sx={{ width: '60%', height: '100%', bgcolor: 'primary.main' }} />
-//               </Box>
-//               <Typography variant="caption" color="text.secondary">3 of 5 stages completed</Typography>
-//             </CardContent>
-//           </Card>
-
-//           {/* Quick Actions */}
-//           <Card sx={{ mb: 3 }}>
-//             <CardContent>
-//               <Typography variant="h6" fontWeight="bold" gutterBottom>Quick Actions</Typography>
-//               <Grid container spacing={1}>
-//                 <Grid item xs={6}>
-//                   <Button variant="outlined" startIcon={<ScheduleIcon />} fullWidth sx={{ py: 1.5 }}>Schedule</Button>
-//                 </Grid>
-//                 <Grid item xs={6}>
-//                   <Button variant="outlined" startIcon={<MessageIcon />} fullWidth sx={{ py: 1.5 }}>Message</Button>
-//                 </Grid>
-//                 <Grid item xs={6}>
-//                   <Button variant="outlined" startIcon={<VideoIcon />} fullWidth sx={{ py: 1.5 }}>Video Call</Button>
-//                 </Grid>
-//                 <Grid item xs={6}>
-//                   <Button variant="outlined" startIcon={<WhatsAppIcon />} fullWidth sx={{ py: 1.5 }}>WhatsApp</Button>
-//                 </Grid>
-//               </Grid>
-//             </CardContent>
-//           </Card>
-
-//           {/* Notes */}
-//           <Card>
-//             <CardContent>
-//               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-//                 <Typography variant="h6" fontWeight="bold">Notes</Typography>
-//                 <Button size="small" startIcon={<NoteAddIcon />}>Add</Button>
-//               </Box>
-//               <TextField
-//                 multiline
-//                 rows={4}
-//                 fullWidth
-//                 placeholder="Add your notes..."
-//                 variant="outlined"
-//                 sx={{ mb: 2 }}
-//                 InputProps={{
-//                   startAdornment: <NotesIcon color="primary" sx={{ mr: 1 }} />,
-//                 }}
-//               />
-//               <Button variant="contained" fullWidth>Save Note</Button>
-//               <List sx={{ mt: 2 }}>
-//                 {[
-//                   { text: 'Candidate seems interested', author: 'John Smith', date: '2 hours ago' },
-//                 ].map((note, i) => (
-//                   <ListItem key={i} sx={{ px: 0 }}>
-//                     <ListItemIcon sx={{ minWidth: 32 }}><NotesIcon color="primary" fontSize="small" /></ListItemIcon>
-//                     <ListItemText
-//                       primary={note.text}
-//                       secondary={
-//                         <>
-//                           <Typography component="span" variant="body2" color="text.primary">
-//                             {note.author}
-//                           </Typography>
-//                           {` — ${note.date}`}
-//                         </>
-//                       }
-//                     />
-//                   </ListItem>
-//                 ))}
-//               </List>
-//             </CardContent>
-//           </Card>
+//             </Card>
+//           </Box>
 //         </Grid>
 //       </Grid>
 
-//       {/* Floating Actions */}
+//       <Dialog open={shareDialogOpen} onClose={handleShareDialogClose}>
+//         <DialogTitle>Share Resume</DialogTitle>
+//         <DialogContent>
+//           <Typography variant="body1" gutterBottom>
+//             Choose how you want to share {candidate.firstName}'s resume:
+//           </Typography>
+//           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+//             <Button
+//               variant="contained"
+//               startIcon={<ShareIcon />}
+//               onClick={() => handleShareResume('native')}
+//               disabled={!navigator.share}
+//             >
+//               Share via...
+//             </Button>
+//             <Button
+//               variant="outlined"
+//               startIcon={<FileIcon />}
+//               onClick={() => handleShareResume('clipboard')}
+//             >
+//               Copy Link to Clipboard
+//             </Button>
+//           </Box>
+//         </DialogContent>
+//         <DialogActions>
+//           <Button onClick={handleShareDialogClose}>Cancel</Button>
+//         </DialogActions>
+//       </Dialog>
+
+//       <Snackbar
+//         open={snackbarOpen}
+//         autoHideDuration={6000}
+//         onClose={handleSnackbarClose}
+//         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+//       >
+//         <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+//           {snackbarMessage}
+//         </Alert>
+//       </Snackbar>
+
 //       <Fab color="primary" sx={{ position: 'fixed', bottom: 16, right: 16 }}>
 //         <EditIcon />
 //       </Fab>
@@ -619,7 +966,7 @@
 
 // export default CandidateDetailsPage;
 
-//---------
+
 
 import React from "react";
 import {
@@ -652,7 +999,13 @@ import {
   DialogContent,
   DialogActions,
   Snackbar,
-  Alert
+  Alert,
+  Stepper,
+  Step,
+  StepLabel,
+  StepContent,
+  Menu,
+  MenuItem
 } from "@mui/material";
 import {
   Email as EmailIcon,
@@ -683,26 +1036,27 @@ import {
   InsertDriveFile as FileIcon,
   PictureAsPdf as PdfIcon,
   Send as SendIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  ThumbUp as SelectedIcon,
+  ThumbDown as RejectedIcon,
+  Star as StarIcon,
+  StarHalf as StarHalfIcon,
+  StarBorder as StarBorderIcon,
+  CheckCircle as CheckCircleIcon,
+  MoreVert as MoreIcon,
+  Delete as DeleteIcon,
+  Update as UpdateIcon
 } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { fetchCandidateById, fetchCandidateResume } from "../utils/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { styled } from '@mui/material/styles';
 
-// Custom styled components
 const GradientCard = styled(Card)(({ theme }) => ({
   background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
   color: theme.palette.common.white,
   borderRadius: theme.shape.borderRadius * 2,
   boxShadow: theme.shadows[6],
-}));
-
-const GlassCard = styled(Card)(({ theme }) => ({
-  background: 'rgba(255, 255, 255, 0.9)',
-  backdropFilter: 'blur(8px)',
-  border: '1px solid rgba(255, 255, 255, 0.2)',
-  borderRadius: theme.shape.borderRadius * 2,
 }));
 
 const StyledTabs = styled(Tabs)({
@@ -732,6 +1086,10 @@ const StatusChip = styled(Chip)(({ theme, status }) => {
     case 'Rejected': color = theme.palette.error.main; break;
     case 'On Hold': color = theme.palette.warning.main; break;
     case 'Archived': color = theme.palette.text.disabled; break;
+    case 'Selected': color = theme.palette.success.main; break;
+    case 'Preboarding': color = theme.palette.info.main; break;
+    case 'Screening': color = theme.palette.info.main; break;
+    case 'Sourced': color = theme.palette.info.main; break;
     default: color = theme.palette.primary.main;
   }
   return {
@@ -769,47 +1127,296 @@ const ResumeContent = styled(Box)({
   backgroundSize: '20px 20px'
 });
 
+const MessageBubble = styled(Box)(({ theme, sent }) => ({
+  maxWidth: '70%',
+  padding: theme.spacing(1.5),
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: sent ? theme.palette.primary.main : theme.palette.grey[200],
+  color: sent ? theme.palette.common.white : theme.palette.text.primary,
+  alignSelf: sent ? 'flex-end' : 'flex-start',
+  marginBottom: theme.spacing(1),
+  wordBreak: 'break-word',
+}));
+
+const RatingStars = ({ value }) => {
+  const stars = [];
+  const fullStars = Math.floor(value);
+  const hasHalfStar = value % 1 >= 0.5;
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+  for (let i = 0; i < fullStars; i++) {
+    stars.push(<StarIcon key={`full-${i}`} color="primary" />);
+  }
+
+  if (hasHalfStar) {
+    stars.push(<StarHalfIcon key="half" color="primary" />);
+  }
+
+  for (let i = 0; i < emptyStars; i++) {
+    stars.push(<StarBorderIcon key={`empty-${i}`} color="primary" />);
+  }
+
+  return (
+    <Box display="flex" alignItems="center">
+      {stars}
+      <Typography variant="body2" ml={1}>({value})</Typography>
+    </Box>
+  );
+};
+
+const fetchCandidateById = async (id) => {
+  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/candidates/${id}`);
+  return response.data;
+};
+
+const fetchCandidateMessages = async (id) => {
+  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/messages/${id}`);
+  return response.data;
+};
+
+const fetchCandidateRemarks = async (id) => {
+  console.log("Fetching remarks for ID:", id);
+
+  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/candidate-comments/${id}`);
+  console.log(response)
+  return response.data;
+};
+
+const fetchCandidateNotes = async (id) => {
+  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/candidate-notes/candidate/${id}`);
+  return response.data;
+};
+
+const createCandidateNote = async (noteData) => {
+  const response = await axios.post(`https://hire-onboardbackend-13.onrender.com/candidate-notes`, noteData);
+  return response.data;
+};
+
+const updateCandidateNote = async ({ id, noteData }) => {
+  const response = await axios.put(`https://hire-onboardbackend-13.onrender.com/candidate-notes/${id}`, noteData);
+  return response.data;
+};
+
+const deleteCandidateNote = async (id) => {
+  const response = await axios.delete(`https://hire-onboardbackend-13.onrender.com/candidate-notes/${id}`);
+  return response.data;
+};
+
+const downloadCandidateResume = async (id) => {
+  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/resumes/${id}`, {
+    responseType: 'blob'
+  });
+  return response;
+};
+
+const previewCandidateResume = async (id) => {
+  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/resumes/${id}`, {
+    responseType: 'blob'
+  });
+  return response;
+};
+
 const CandidateDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [tabValue, setTabValue] = React.useState(0);
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false);
   const [snackbarOpen, setSnackbarOpen] = React.useState(false);
   const [snackbarMessage, setSnackbarMessage] = React.useState('');
   const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
+  const [resumeBlobUrl, setResumeBlobUrl] = React.useState(null);
+  const [isResumeLoading, setIsResumeLoading] = React.useState(false);
+  const [newMessage, setNewMessage] = React.useState('');
+  const [newRemark, setNewRemark] = React.useState('');
+  const [newNote, setNewNote] = React.useState('');
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [selectedNote, setSelectedNote] = React.useState(null);
+  const [editNoteId, setEditNoteId] = React.useState(null);
+  const [editNoteText, setEditNoteText] = React.useState('');
+
+  const hiringStages = ['Sourced', 'Screening', 'Interview', 'Preboarding', 'Hired', 'Rejected', 'Archived'];
 
   const { data: candidate, isLoading, error } = useQuery({
     queryKey: ['candidate', id],
     queryFn: () => fetchCandidateById(id),
   });
 
-  const { data: resumeData, isLoading: resumeLoading } = useQuery({
-    queryKey: ['resume', id],
-    queryFn: () => fetchCandidateResume(id),
-    enabled: !!candidate && tabValue === 1 // Only fetch when candidate is loaded and on resume tab
+  const { data: messagesData } = useQuery({
+    queryKey: ['candidateMessages', id],
+    queryFn: () => fetchCandidateMessages(id),
+    enabled: tabValue === 4 // Only fetch when messages tab is active
   });
+
+  const {
+    data: remarksData,
+  } = useQuery({
+    queryKey: ['candidateRemarks', id],
+    queryFn: () => fetchCandidateRemarks(id),
+    enabled: !!id,
+  });
+
+
+  const { data: notesData } = useQuery({
+    queryKey: ['candidateNotes', id],
+    queryFn: () => fetchCandidateNotes(id),
+  });
+
+  const { data: feedbackData } = useQuery({
+    queryKey: ['candidateFeedback', id],
+    queryFn: () => axios.get(`https://hire-onboardbackend-13.onrender.com/feedback/candidate/${id}`).then(res => res.data),
+    enabled: !!candidate && (candidate.stage?.name === 'Hired' || candidate.stage?.name === 'Rejected')
+  });
+
+  const createNoteMutation = useMutation({
+    mutationFn: createCandidateNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['candidateNotes', id]);
+      setNewNote('');
+      setSnackbarMessage('Note added successfully!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    },
+    onError: (error) => {
+      setSnackbarMessage(error.response?.data?.message || 'Failed to add note');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  });
+
+  const updateNoteMutation = useMutation({
+    mutationFn: updateCandidateNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['candidateNotes', id]);
+      setEditNoteId(null);
+      setEditNoteText('');
+      setSnackbarMessage('Note updated successfully!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    },
+    onError: (error) => {
+      setSnackbarMessage(error.response?.data?.message || 'Failed to update note');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  });
+
+  const deleteNoteMutation = useMutation({
+    mutationFn: deleteCandidateNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['candidateNotes', id]);
+      setSnackbarMessage('Note deleted successfully!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    },
+    onError: (error) => {
+      setSnackbarMessage(error.response?.data?.message || 'Failed to delete note');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  });
+
+  const feedback = feedbackData?.data?.[0];
+  const messages = messagesData?.data || [];
+  const remarks = remarksData || [];
+  const notes = notesData || [];
+  const currentStageIndex = hiringStages.indexOf(candidate?.stage?.name || 'Sourced');
+
+  React.useEffect(() => {
+    const loadResumePreview = async () => {
+      if (candidate?.resume?.path && tabValue === 1) {
+        setIsResumeLoading(true);
+        try {
+          const response = await previewCandidateResume(id);
+          const blob = new Blob([response.data], { type: response.headers['content-type'] });
+          const url = window.URL.createObjectURL(blob);
+          setResumeBlobUrl(url);
+        } catch (err) {
+          console.error("Failed to load resume preview:", err);
+          setResumeBlobUrl(null);
+          setSnackbarMessage(err.response?.data?.error || 'Failed to load resume preview');
+          setSnackbarSeverity('error');
+          setSnackbarOpen(true);
+        } finally {
+          setIsResumeLoading(false);
+        }
+      }
+    };
+
+    loadResumePreview();
+
+    return () => {
+      if (resumeBlobUrl) {
+        URL.revokeObjectURL(resumeBlobUrl);
+      }
+    };
+  }, [candidate, tabValue, id]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
-  const handleDownloadResume = () => {
-    if (candidate?.fileUrl) {
-      // Create a temporary anchor element to trigger download
-      const link = document.createElement('a');
-      link.href = `https://hire-onboardbackend-13.onrender.com${candidate.fileUrl}`;
-      link.download = `${candidate.firstName}_${candidate.lastName}_Resume.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      setSnackbarMessage('Download started');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-    } else {
+  const handleDownloadResume = async () => {
+    if (!candidate?.resume?.path) {
       setSnackbarMessage('No resume available to download');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
+      return;
+    }
+
+    setIsResumeLoading(true);
+    try {
+      const response = await downloadCandidateResume(id);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+
+      const contentType = response.headers['content-type'];
+      let fileExt = '.pdf';
+      if (contentType.includes('msword')) fileExt = '.doc';
+      if (contentType.includes('vnd.openxmlformats')) fileExt = '.docx';
+
+      link.setAttribute('download', `${candidate.firstName}_${candidate.lastName}_Resume${fileExt}`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+
+      setSnackbarMessage('Download started');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Download error:', error);
+      setSnackbarMessage(error.response?.data?.error || 'Failed to download resume');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setIsResumeLoading(false);
+    }
+  };
+
+  const handlePreviewResume = async () => {
+    if (!candidate?.resume?.path) {
+      setSnackbarMessage('No resume available to preview');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    setIsResumeLoading(true);
+    try {
+      const response = await previewCandidateResume(id);
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error('Preview error:', error);
+      setSnackbarMessage(error.response?.data?.error || 'Failed to preview resume');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setIsResumeLoading(false);
     }
   };
 
@@ -822,32 +1429,32 @@ const CandidateDetailsPage = () => {
   };
 
   const handleShareResume = async (method = 'clipboard') => {
-    if (candidate?.fileUrl) {
-      const resumeUrl = `https://hire-onboardbackend-13.onrender.com${candidate.fileUrl}`;
-      
-      try {
-        if (method === 'native' && navigator.share) {
-          await navigator.share({
-            title: `${candidate.firstName} ${candidate.lastName}'s Resume`,
-            text: `Check out ${candidate.firstName}'s resume`,
-            url: resumeUrl,
-          });
-        } else {
-          // Fallback for browsers that don't support Web Share API
-          await navigator.clipboard.writeText(resumeUrl);
-          setSnackbarMessage('Resume link copied to clipboard!');
-          setSnackbarSeverity('success');
-          setSnackbarOpen(true);
-        }
-        setShareDialogOpen(false);
-      } catch (err) {
-        console.error('Error sharing:', err);
-        setSnackbarMessage('Failed to share resume');
-        setSnackbarSeverity('error');
+    if (!candidate?.resume?.path) {
+      setSnackbarMessage('No resume available to share');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    const resumeUrl = `https://hire-onboardbackend-13.onrender.com/resumes/${id}`;
+
+    try {
+      if (method === 'native' && navigator.share) {
+        await navigator.share({
+          title: `${candidate.firstName} ${candidate.lastName}'s Resume`,
+          text: `Check out ${candidate.firstName}'s resume`,
+          url: resumeUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(resumeUrl);
+        setSnackbarMessage('Resume link copied to clipboard!');
+        setSnackbarSeverity('success');
         setSnackbarOpen(true);
       }
-    } else {
-      setSnackbarMessage('No resume available to share');
+      setShareDialogOpen(false);
+    } catch (err) {
+      console.error('Error sharing:', err);
+      setSnackbarMessage('Failed to share resume');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
@@ -857,21 +1464,108 @@ const CandidateDetailsPage = () => {
     setSnackbarOpen(false);
   };
 
-  // Get the current stage name
-  const getStageName = () => {
-    if (!candidate?.stage) return 'Sourced';
-    
-    // If stage is an object with name property
-    if (typeof candidate.stage === 'object' && candidate.stage.name) {
-      return candidate.stage.name;
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+
+    try {
+      // Send message via WhatsApp
+      const phone = candidate.mobile.replace(/\D/g, '');
+      const message = `Hi ${candidate.firstName}, ${newMessage}`;
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank');
+
+      // Save message to database
+      await axios.post(`https://hire-onboardbackend-13.onrender.com/messages`, {
+        candidateId: id,
+        content: newMessage,
+        sender: 'Admin',
+        sent: true
+      });
+
+      setNewMessage('');
+      setSnackbarMessage('Message sent via WhatsApp!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setSnackbarMessage('Failed to send message');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     }
-    
-    // If stage is a string, return it directly
-    if (typeof candidate.stage === 'string') {
-      return candidate.stage;
+  };
+
+ 
+
+  const handleAddNote = () => {
+    if (!newNote.trim()) return;
+    createNoteMutation.mutate({
+      candidateId: id,
+      note: newNote
+    });
+  };
+
+  const handleUpdateNote = () => {
+    if (!editNoteText.trim()) return;
+    updateNoteMutation.mutate({
+      id: editNoteId,
+      noteData: { note: editNoteText }
+    });
+  };
+
+  const handleDeleteNote = (noteId) => {
+    deleteNoteMutation.mutate(noteId);
+    setAnchorEl(null);
+  };
+
+  const handleMenuOpen = (event, note) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedNote(note);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedNote(null);
+  };
+
+  const handleEditNote = () => {
+    setEditNoteId(selectedNote._id);
+    setEditNoteText(selectedNote.note);
+    handleMenuClose();
+  };
+
+  const handleCancelEdit = () => {
+    setEditNoteId(null);
+    setEditNoteText('');
+  };
+
+  const handleWhatsAppClick = () => {
+    if (!candidate?.mobile) {
+      setSnackbarMessage('No phone number available');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
     }
-    
-    return 'Sourced';
+
+    const phone = candidate.mobile.replace(/\D/g, '');
+    const message = `Hi ${candidate.firstName}, regarding your application...`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleScheduleClick = () => {
+    setSnackbarMessage('Scheduling feature will be added soon!');
+    setSnackbarSeverity('info');
+    setSnackbarOpen(true);
+  };
+
+  const handleMessageClick = () => {
+    setTabValue(4);
+  };
+
+  const handleVideoCallClick = () => {
+    setSnackbarMessage('Video call feature will be added soon!');
+    setSnackbarSeverity('info');
+    setSnackbarOpen(true);
   };
 
   if (isLoading) {
@@ -892,17 +1586,18 @@ const CandidateDetailsPage = () => {
     );
   }
 
-  if (!candidate) return null;
-
-  const resumeUrl = candidate?.fileUrl 
-    ? `https://hire-onboardbackend-13.onrender.com${candidate.fileUrl}`
-    : null;
-
-  const stageName = getStageName();
+  if (!candidate) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <Typography color="error" variant="h5">
+          Candidate not found
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3, px: { xs: 2, sm: 3 } }}>
-      {/* Breadcrumbs */}
+    <Container maxWidth="xl" sx={{ py: 3, px: { xs: 2, sm: 3 } }}>
       <Breadcrumbs sx={{ mb: 2 }}>
         <Link color="inherit" onClick={() => navigate('/')}>Dashboard</Link>
         <Link color="inherit" onClick={() => navigate('/candidates')}>Candidates</Link>
@@ -910,9 +1605,8 @@ const CandidateDetailsPage = () => {
       </Breadcrumbs>
 
       <Grid container spacing={3}>
-        {/* Main Content */}
+        {/* Left Column - Main Content */}
         <Grid item xs={12} md={8}>
-          {/* Profile Header */}
           <GradientCard sx={{ mb: 3 }}>
             <CardContent>
               <Box sx={{ display: "flex", flexDirection: { xs: 'column', sm: 'row' }, alignItems: "center", gap: 3 }}>
@@ -925,27 +1619,24 @@ const CandidateDetailsPage = () => {
                   }
                 >
                   <Avatar sx={{ width: 80, height: 80, fontSize: "2rem", border: '3px solid white' }}>
-                    {candidate.firstName.charAt(0)}{candidate.lastName.charAt(0)}
+                    {candidate.firstName?.charAt(0)}{candidate.lastName?.charAt(0)}
                   </Avatar>
                 </Badge>
                 <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
                   <Typography variant="h4" fontWeight="bold" sx={{ color: 'white' }}>
                     {candidate.firstName} {candidate.lastName}
                   </Typography>
-                  <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.8)', mb: 1 }}>
-                    {candidate.currentJobTitle} at {candidate.currentCompany}
-                  </Typography>
                   <Box sx={{ display: "flex", flexWrap: 'wrap', gap: 2, justifyContent: { xs: 'center', sm: 'flex-start' } }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2 }}>
                       <EmailIcon fontSize="small" sx={{ color: 'rgba(255,255,255,0.8)' }} />
                       <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
                         {candidate.email}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2 }}>
                       <PhoneIcon fontSize="small" sx={{ color: 'rgba(255,255,255,0.8)' }} />
                       <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
-                        {candidate.phone}
+                        {candidate.mobile}
                       </Typography>
                     </Box>
                   </Box>
@@ -954,19 +1645,19 @@ const CandidateDetailsPage = () => {
             </CardContent>
           </GradientCard>
 
-          {/* Tabs */}
           <StyledTabs value={tabValue} onChange={handleTabChange} variant="scrollable" sx={{ mb: 2 }}>
             <StyledTab label="Profile" icon={<PersonIcon />} iconPosition="start" />
             <StyledTab label="Resume" icon={<DocumentIcon />} iconPosition="start" />
+            <StyledTab label="Cooling Period" icon={<TimelineIcon />} iconPosition="start" />
+            {(candidate.stage?.name === 'Hired' || candidate.stage?.name === 'Rejected') && (
+              <StyledTab label="Interview Feedback" icon={<SelectedIcon />} iconPosition="start" />
+            )}
             <StyledTab label="Messages" icon={<MessageIcon />} iconPosition="start" />
-            <StyledTab label="Activity" icon={<TimelineIcon />} iconPosition="start" />
           </StyledTabs>
 
-          {/* Tab Content */}
           {tabValue === 0 && (
             <Box>
-              {/* Personal Details */}
-              <GlassCard sx={{ mb: 3 }}>
+              <Card sx={{ mb: 3 }}>
                 <CardContent>
                   <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <PersonIcon color="primary" /> Personal Details
@@ -1010,50 +1701,51 @@ const CandidateDetailsPage = () => {
                     </Grid>
                   </Grid>
                 </CardContent>
-              </GlassCard>
+              </Card>
 
-              {/* Skills */}
-              <GlassCard sx={{ mb: 3 }}>
+              <Card sx={{ mb: 3 }}>
                 <CardContent>
                   <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <BarChartIcon color="primary" /> Skills & Expertise
                   </Typography>
                   <Divider sx={{ my: 2 }} />
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                    {candidate.skills?.map((skill, index) => (
-                      <Chip
-                        key={index}
-                        label={skill}
-                        color={index % 2 === 0 ? "primary" : "secondary"}
-                        variant={index % 3 === 0 ? "filled" : "outlined"}
-                        sx={{ borderRadius: 1 }}
-                      />
-                    ))}
+                    {Array.isArray(candidate.skills)
+                      ? candidate.skills.map((skill, index) => (
+                        <Chip
+                          key={index}
+                          label={skill}
+                          color={index % 2 === 0 ? "primary" : "secondary"}
+                          variant={index % 3 === 0 ? "filled" : "outlined"}
+                          sx={{ borderRadius: 1 }}
+                        />
+                      ))
+                      : <Typography>No skills listed</Typography>}
                   </Box>
                 </CardContent>
-              </GlassCard>
+              </Card>
             </Box>
           )}
 
           {tabValue === 1 && (
-            <GlassCard>
+            <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Typography variant="h6" fontWeight="bold">Resume</Typography>
                   <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button 
-                      variant="contained" 
-                      startIcon={<DownloadIcon />} 
+                    <Button
+                      variant="contained"
+                      startIcon={<DownloadIcon />}
                       onClick={handleDownloadResume}
-                      disabled={!candidate?.fileUrl || resumeLoading}
+                      disabled={!candidate?.resume?.path || isResumeLoading}
                     >
-                      Download
+                      {isResumeLoading ? 'Loading...' : 'Download'}
                     </Button>
-                    <Button 
-                      variant="outlined" 
-                      startIcon={<ShareIcon />} 
+                    <Button
+                      variant="outlined"
+                      startIcon={<ShareIcon />}
                       onClick={handleShareClick}
-                      disabled={!candidate?.fileUrl || resumeLoading}
+                      disabled={!candidate?.resume?.path}
                     >
                       Share
                     </Button>
@@ -1063,37 +1755,55 @@ const CandidateDetailsPage = () => {
                 <ResumeViewer>
                   <ResumeToolbar>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button size="small" variant="outlined" startIcon={<FileIcon />}>Original</Button>
-                      <Button size="small" variant="outlined" startIcon={<PdfIcon />}>PDF</Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<FileIcon />}
+                        onClick={handleDownloadResume}
+                        disabled={!candidate?.resume?.path || isResumeLoading}
+                      >
+                        {isResumeLoading ? 'Loading...' : 'Download'}
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<PdfIcon />}
+                        onClick={handlePreviewResume}
+                        disabled={!candidate?.resume?.path || isResumeLoading}
+                      >
+                        {isResumeLoading ? 'Loading...' : 'Preview'}
+                      </Button>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton 
-                        size="small" 
+                      <IconButton
+                        size="small"
                         onClick={handleDownloadResume}
-                        disabled={!candidate?.fileUrl || resumeLoading}
+                        disabled={!candidate?.resume?.path || isResumeLoading}
                       >
                         <DownloadIcon fontSize="small" />
                       </IconButton>
-                      <IconButton 
-                        size="small" 
+                      <IconButton
+                        size="small"
                         onClick={handleShareClick}
-                        disabled={!candidate?.fileUrl || resumeLoading}
+                        disabled={!candidate?.resume?.path}
                       >
                         <ShareIcon fontSize="small" />
                       </IconButton>
                     </Box>
                   </ResumeToolbar>
                   <ResumeContent>
-                    {resumeLoading ? (
-                      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                        <CircularProgress />
-                      </Box>
-                    ) : resumeUrl ? (
-                      <iframe 
-                        src={`https://docs.google.com/gview?url=${encodeURIComponent(resumeUrl)}&embedded=true`}
-                        style={{ width: '100%', height: '100%', border: 'none' }}
-                        title="Resume Viewer"
-                      />
+                    {candidate?.resume?.path ? (
+                      isResumeLoading ? (
+                        <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                          <CircularProgress />
+                        </Box>
+                      ) : (
+                        <iframe
+                          src={resumeBlobUrl}
+                          style={{ width: '100%', height: '100%', border: 'none' }}
+                          title="Resume Viewer"
+                        />
+                      )
                     ) : (
                       <Box textAlign="center" pt={4}>
                         <Typography variant="h6" color="textSecondary">
@@ -1107,103 +1817,505 @@ const CandidateDetailsPage = () => {
                   </ResumeContent>
                 </ResumeViewer>
               </CardContent>
-            </GlassCard>
+            </Card>
           )}
 
-          {/* Other tabs content remains the same */}
+          {tabValue === 2 && (
+            <Card>
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                  Hiring Process
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+                <Stepper activeStep={currentStageIndex} orientation="vertical">
+                  {hiringStages.map((stage, index) => (
+                    <Step key={stage}>
+                      <StepLabel>
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          {stage}
+                        </Typography>
+                      </StepLabel>
+                      <StepContent>
+                        <Typography variant="body2">
+                          {index < currentStageIndex ? (
+                            `Completed on ${new Date(candidate.updatedAt).toLocaleDateString()}`
+                          ) : index === currentStageIndex ? (
+                            `Currently in this stage since ${new Date(candidate.updatedAt).toLocaleDateString()}`
+                          ) : (
+                            'Pending'
+                          )}
+                        </Typography>
+                      </StepContent>
+                    </Step>
+                  ))}
+                </Stepper>
+              </CardContent>
+            </Card>
+          )}
+
+          {tabValue === 3 && (candidate.stage?.name === 'Hired' || candidate.stage?.name === 'Rejected') && (
+            <Card>
+              <CardContent>
+                {feedback ? (
+                  <>
+                    <Typography variant="h6" fontWeight="bold" gutterBottom>
+                      Interview Feedback
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                          Interview Details
+                        </Typography>
+                        <List dense>
+                          <ListItem>
+                            <ListItemIcon><PersonIcon color="primary" /></ListItemIcon>
+                            <ListItemText
+                              primary="Interviewer"
+                              secondary={feedback.interviewerId?.name || 'Not specified'}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemIcon><WorkIcon color="primary" /></ListItemIcon>
+                            <ListItemText
+                              primary="Job Position"
+                              secondary={feedback.jobId?.jobName || 'Not specified'}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemIcon><DateIcon color="primary" /></ListItemIcon>
+                            <ListItemText
+                              primary="Submitted On"
+                              secondary={new Date(feedback.submittedAt).toLocaleString()}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemIcon>
+                              {feedback.status === 'Selected' ? (
+                                <SelectedIcon color="success" />
+                              ) : (
+                                <RejectedIcon color="error" />
+                              )}
+                            </ListItemIcon>
+                            <ListItemText
+                              primary="Final Decision"
+                              secondary={
+                                <StatusChip
+                                  label={feedback.status}
+                                  status={feedback.status}
+                                  size="small"
+                                />
+                              }
+                            />
+                          </ListItem>
+                        </List>
+                      </Grid>
+
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                          Ratings
+                        </Typography>
+                        <List dense>
+                          <ListItem>
+                            <ListItemText
+                              primary="Technical Skills"
+                              secondary={<RatingStars value={feedback.technicalSkills} />}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText
+                              primary="Communication Skills"
+                              secondary={<RatingStars value={feedback.communicationSkills} />}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText
+                              primary="Problem Solving"
+                              secondary={<RatingStars value={feedback.problemSolving} />}
+                            />
+                          </ListItem>
+                          <ListItem>
+                            <ListItemText
+                              primary="Cultural Fit"
+                              secondary={<RatingStars value={feedback.culturalFit} />}
+                            />
+                          </ListItem>
+                        </List>
+                      </Grid>
+
+                      <Grid item xs={12}>
+                        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                          Overall Feedback
+                        </Typography>
+                        <Card variant="outlined" sx={{ p: 2, backgroundColor: 'background.paper' }}>
+                          <Typography variant="body1">
+                            {feedback.overallFeedback}
+                          </Typography>
+                        </Card>
+                      </Grid>
+                    </Grid>
+                  </>
+                ) : (
+                  <Box textAlign="center" py={4}>
+                    <Typography variant="h6" color="textSecondary">
+                      No feedback available yet
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary" mt={2}>
+                      Feedback will appear here once submitted by the interviewer
+                    </Typography>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {tabValue === 4 && (
+            <Card>
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                  Messages with {candidate.firstName}
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+
+                <Box sx={{
+                  height: '400px',
+                  overflowY: 'auto',
+                  p: 2,
+                  bgcolor: 'background.default',
+                  borderRadius: 1,
+                  mb: 2
+                }}>
+                  {messages.length > 0 ? (
+                    messages.map((message, index) => (
+                      <MessageBubble key={index} sent={message.sent}>
+                        <Typography variant="body2">{message.content}</Typography>
+                        <Typography variant="caption" display="block" textAlign="right" mt={1}>
+                          {new Date(message.timestamp).toLocaleString()} • {message.sender}
+                        </Typography>
+                      </MessageBubble>
+                    ))
+                  ) : (
+                    <Box textAlign="center" py={4}>
+                      <Typography color="textSecondary">
+                        No messages yet with this candidate
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    placeholder="Type your message..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    InputProps={{
+                      startAdornment: <MessageIcon color="primary" sx={{ mr: 1 }} />,
+                    }}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={handleSendMessage}
+                    disabled={!newMessage.trim()}
+                  >
+                    <SendIcon />
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          )}
         </Grid>
 
-        {/* Sidebar */}
+        {/* Right Column - Sidebar Content */}
         <Grid item xs={12} md={4}>
-          {/* Status Card */}
-          <Card sx={{ mb: 3, borderLeft: '4px solid', borderLeftColor: 'primary.main' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6" fontWeight="bold">Hiring Status</Typography>
-                <StatusChip label={stageName} status={stageName} />
-              </Box>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                <Button variant="contained" color="success" startIcon={<HiredIcon />} size="small">Hire</Button>
-                <Button variant="contained" color="error" startIcon={<RejectIcon />} size="small">Reject</Button>
-                <Button variant="contained" color="warning" startIcon={<OnHoldIcon />} size="small">Hold</Button>
-              </Box>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-                Current Stage: {stageName}
-              </Typography>
-              <Box sx={{ width: '100%', height: 8, bgcolor: 'grey.200', borderRadius: 4, overflow: 'hidden', mb: 1 }}>
-                <Box sx={{ width: '60%', height: '100%', bgcolor: 'primary.main' }} />
-              </Box>
-              <Typography variant="caption" color="text.secondary">3 of 5 stages completed</Typography>
-            </CardContent>
-          </Card>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Hiring Status Card */}
+            <Card sx={{ borderLeft: '4px solid', borderLeftColor: 'primary.main' }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6" fontWeight="bold">Hiring Status</Typography>
+                  <StatusChip label={candidate.stage?.name} status={candidate.stage?.name} />
+                </Box>
 
-          {/* Quick Actions */}
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>Quick Actions</Typography>
-              <Grid container spacing={1}>
-                <Grid item xs={6}>
-                  <Button variant="outlined" startIcon={<ScheduleIcon />} fullWidth sx={{ py: 1.5 }}>Schedule</Button>
-                </Grid>
-                <Grid item xs={6}>
-                  <Button variant="outlined" startIcon={<MessageIcon />} fullWidth sx={{ py: 1.5 }}>Message</Button>
-                </Grid>
-                <Grid item xs={6}>
-                  <Button variant="outlined" startIcon={<VideoIcon />} fullWidth sx={{ py: 1.5 }}>Video Call</Button>
-                </Grid>
-                <Grid item xs={6}>
-                  <Button variant="outlined" startIcon={<WhatsAppIcon />} fullWidth sx={{ py: 1.5 }}>WhatsApp</Button>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    position: 'relative',
+                    mb: 1
+                  }}>
+                    <Box sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: 0,
+                      right: 0,
+                      height: 4,
+                      bgcolor: 'grey.200',
+                      transform: 'translateY(-50%)',
+                      zIndex: 0
+                    }} />
 
-          {/* Notes */}
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6" fontWeight="bold">Notes</Typography>
-                <Button size="small" startIcon={<NoteAddIcon />}>Add</Button>
-              </Box>
-              <TextField
-                multiline
-                rows={4}
-                fullWidth
-                placeholder="Add your notes..."
-                variant="outlined"
-                sx={{ mb: 2 }}
-                InputProps={{
-                  startAdornment: <NotesIcon color="primary" sx={{ mr: 1 }} />,
-                }}
-              />
-              <Button variant="contained" fullWidth>Save Note</Button>
-              <List sx={{ mt: 2 }}>
-                {[
-                  { text: 'Candidate seems interested', author: 'John Smith', date: '2 hours ago' },
-                ].map((note, i) => (
-                  <ListItem key={i} sx={{ px: 0 }}>
-                    <ListItemIcon sx={{ minWidth: 32 }}><NotesIcon color="primary" fontSize="small" /></ListItemIcon>
-                    <ListItemText
-                      primary={note.text}
-                      secondary={
-                        <>
-                          <Typography component="span" variant="body2" color="text.primary">
-                            {note.author}
-                          </Typography>
-                          {` — ${note.date}`}
-                        </>
-                      }
+                    <Box sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: 0,
+                      width: `${(currentStageIndex + 1) / hiringStages.length * 100}%`,
+                      height: 4,
+                      bgcolor: 'primary.main',
+                      transform: 'translateY(-50%)',
+                      zIndex: 1,
+                      transition: 'width 0.5s ease'
+                    }} />
+
+                    {hiringStages.map((stage, index) => (
+                      <Box key={stage} sx={{
+                        position: 'relative',
+                        zIndex: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center'
+                      }}>
+                        <Box sx={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: '50%',
+                          bgcolor: index <= currentStageIndex ? 'primary.main' : 'grey.300',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: index <= currentStageIndex ? 'common.white' : 'text.secondary',
+                          mb: 0.5
+                        }}>
+                          {index < currentStageIndex ? (
+                            <CheckCircleIcon fontSize="small" />
+                          ) : (
+                            <Typography variant="caption" fontWeight="bold">
+                              {index + 1}
+                            </Typography>
+                          )}
+                        </Box>
+                        <Typography variant="caption" fontWeight={index === currentStageIndex ? 'bold' : 'normal'}>
+                          {stage}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+
+                  <Typography variant="caption" color="text.secondary">
+                    {currentStageIndex + 1} of {hiringStages.length} stages completed
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions Card */}
+            <Card>
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold" gutterBottom>Quick Actions</Typography>
+                <Grid container spacing={1}>
+                  <Grid item xs={6}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<ScheduleIcon />}
+                      fullWidth
+                      sx={{ py: 1.5 }}
+                      onClick={handleScheduleClick}
+                    >
+                      Schedule
+                    </Button>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<MessageIcon />}
+                      fullWidth
+                      sx={{ py: 1.5 }}
+                      onClick={handleMessageClick}
+                    >
+                      Message
+                    </Button>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<VideoIcon />}
+                      fullWidth
+                      sx={{ py: 1.5 }}
+                      onClick={handleVideoCallClick}
+                    >
+                      Video Call
+                    </Button>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<WhatsAppIcon />}
+                      fullWidth
+                      sx={{ py: 1.5 }}
+                      onClick={handleWhatsAppClick}
+                    >
+                      WhatsApp
+                    </Button>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            {/* Notes Card */}
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6" fontWeight="bold">Notes</Typography>
+                </Box>
+
+                {editNoteId ? (
+                  <>
+                    <TextField
+                      multiline
+                      rows={3}
+                      fullWidth
+                      value={editNoteText}
+                      onChange={(e) => setEditNoteText(e.target.value)}
+                      sx={{ mb: 2 }}
                     />
-                  </ListItem>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button
+                        variant="contained"
+                        onClick={handleUpdateNote}
+                        disabled={!editNoteText.trim() || updateNoteMutation.isLoading}
+                      >
+                        {updateNoteMutation.isLoading ? 'Updating...' : 'Update'}
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        onClick={handleCancelEdit}
+                      >
+                        Cancel
+                      </Button>
+                    </Box>
+                  </>
+                ) : (
+                  <>
+                    <TextField
+                      multiline
+                      rows={3}
+                      fullWidth
+                      placeholder="Add your notes..."
+                      variant="outlined"
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      sx={{ mb: 2 }}
+                      InputProps={{
+                        startAdornment: <NotesIcon color="primary" sx={{ mr: 1 }} />,
+                      }}
+                    />
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      onClick={handleAddNote}
+                      disabled={!newNote.trim() || createNoteMutation.isLoading}
+                    >
+                      {createNoteMutation.isLoading ? 'Saving...' : 'Save Note'}
+                    </Button>
+                  </>
+                )}
+
+                <List sx={{ mt: 2 }}>
+                  {notes.length > 0 ? (
+                    notes.map((note) => (
+                      <ListItem key={note._id} sx={{ px: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 32 }}><NotesIcon color="primary" fontSize="small" /></ListItemIcon>
+                        <ListItemText
+                          primary={note.note}
+                          secondary={
+                            <>
+                              
+                              {` ${new Date(note.createdAt).toLocaleString()}`}
+                            </>
+                          }
+                        />
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleMenuOpen(e, note)}
+                        >
+                          <MoreIcon />
+                        </IconButton>
+                      </ListItem>
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
+                      No notes added yet
+                    </Typography>
+                  )}
+                </List>
+              </CardContent>
+            </Card>
+
+            {/* HR Remarks Card */}
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6" fontWeight="bold">HR Team Comments for this Candidate</Typography>
+                </Box>
+               
+                <List sx={{ mt: 2 }}>
+                  {remarksData?.comments?.length > 0 ? (
+                    remarksData.comments.map((remark, i) => (
+                      <ListItem key={i} sx={{ px: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 32 }}>
+                          <NotesIcon color="primary" fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={remark.text}
+                          secondary={
+                            <>
+                            
+                              {` ${new Date(remark.date).toLocaleString()}`}
+                            </>
+                          }
+                        />
+                      </ListItem>
+                    ))
+                  ) : isLoading ? (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
+                      Loading remarks...
+                    </Typography>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
+                      No remarks yet from HR team
+                    </Typography>
+                  )}
+
+                </List>
+
+              </CardContent>
+            </Card>
+          </Box>
         </Grid>
       </Grid>
 
-      {/* Share Dialog */}
+      {/* Note Actions Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={handleEditNote}>
+          <ListItemIcon>
+            <UpdateIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Edit</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={() => handleDeleteNote(selectedNote._id)}>
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText>Delete</ListItemText>
+        </MenuItem>
+      </Menu>
+
       <Dialog open={shareDialogOpen} onClose={handleShareDialogClose}>
         <DialogTitle>Share Resume</DialogTitle>
         <DialogContent>
@@ -1211,16 +2323,16 @@ const CandidateDetailsPage = () => {
             Choose how you want to share {candidate.firstName}'s resume:
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               startIcon={<ShareIcon />}
               onClick={() => handleShareResume('native')}
               disabled={!navigator.share}
             >
               Share via...
             </Button>
-            <Button 
-              variant="outlined" 
+            <Button
+              variant="outlined"
               startIcon={<FileIcon />}
               onClick={() => handleShareResume('clipboard')}
             >
@@ -1233,7 +2345,6 @@ const CandidateDetailsPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
@@ -1245,7 +2356,6 @@ const CandidateDetailsPage = () => {
         </Alert>
       </Snackbar>
 
-      {/* Floating Actions */}
       <Fab color="primary" sx={{ position: 'fixed', bottom: 16, right: 16 }}>
         <EditIcon />
       </Fab>

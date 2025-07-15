@@ -38,7 +38,7 @@ import {
 import axios from "axios";
 import { useParams } from "react-router-dom";
 
-const API_BASE = "https://hire-onboardbackend-13.onrender.com/api";
+const API_BASE = "https://hire-onboardbackend-13.onrender.com";
 
 const EmailTemplateTab = ({ 
     candidate, 
@@ -66,14 +66,14 @@ const EmailTemplateTab = ({
             setSubject(selected.subject);
             
             let formattedBody = selected.body
-                .replace(/{candidate}/g, `${candidate.firstName} ${candidate.lastName}`)
+                .replace(/{recipient}/g, `${candidate.firstName} ${candidate.lastName}`)
                 .replace(/{date}/g, date)
                 .replace(/{time}/g, startTime)
                 .replace(/{duration}/g, duration?.value || duration)
                 .replace(/{timezone}/g, timezone?.value || timezone)
                 .replace(/{platform}/g, platform)
-                .replace(/{interviewer}/g, user.name);
-            
+                .replace(/{interviewer}/g, user.name)
+                .replace(/{feedbackLink}/g, 'Will be provided');
             setBody(formattedBody);
         }
     };
@@ -208,7 +208,7 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
         phone: ""
     });
     const [showPreview, setShowPreview] = useState(false);
-    const [subject, setSubject] = useState(`Online Interview - ${candidate.firstName} ${candidate.lastName}`);
+    const [subject, setSubject] = useState("Online Interview Invitation");
     const [body, setBody] = useState("");
     const [notes, setNotes] = useState("");
     const [loading, setLoading] = useState(false);

@@ -1,4 +1,5 @@
 
+
 // import React, { useState, useEffect } from "react";
 // import { 
 //   Typography, 
@@ -94,51 +95,63 @@
 //   const [salesPersons, setSalesPersons] = useState([]);
 //   const navigate = useNavigate();
 
+//   // Function to format job number as WR01, WR02, etc.
+//   const formatJobNumber = (index) => {
+//     const number = index + 1;
+//     return `WR${number.toString().padStart(2, '0')}`;
+//   };
+
 //   useEffect(() => {
 //     const fetchData = async () => {
 //       try {
 //         setLoading(true);
-        
+
 //         // Fetch jobs
 //         const jobsResponse = await fetchAlljobs();
 //         const allJobs = jobsResponse.jobs;
-        
-//         const activeJobs = allJobs.filter(job => job.status !== 'Archived');
-//         const archived = allJobs.filter(job => job.status === 'Archived');
-        
+
+//         // Add formatted job numbers
+//         const jobsWithNumbers = allJobs.map((job, index) => ({
+//           ...job,
+//           formattedJobNumber: formatJobNumber(index)
+//         }));
+
+//         const activeJobs = jobsWithNumbers.filter(job => job.status !== 'Archived');
+//         const archived = jobsWithNumbers.filter(job => job.status === 'Archived');
+
 //         setJobs(activeJobs);
 //         setArchivedJobs(archived);
-        
+
 //         // Fetch users for recruiters and sales persons
 //         const usersResponse = await getAllUsers();
 //         const allUsers = usersResponse.users;
-        
+
 //         // Extract unique recruiter names from jobs
 //         const jobRecruiters = allJobs.flatMap(job => 
 //           Array.isArray(job.jobFormId?.recruitingPerson) ? 
 //             job.jobFormId.recruitingPerson : 
 //             job.jobFormId?.recruitingPerson ? [job.jobFormId.recruitingPerson] : []
 //         ).filter(Boolean);
-        
+
 //         // Extract unique sales persons from jobs
 //         const jobSalesPersons = allJobs.map(job => 
 //           job.jobFormId?.salesPerson
 //         ).filter(Boolean);
-        
+
 //         // Combine with users data
 //         const uniqueRecruiters = [...new Set([
 //           ...jobRecruiters,
 //           ...allUsers.filter(user => user.role === 'recruiter').map(user => user.username)
 //         ])];
-        
+
 //         const uniqueSalesPersons = [...new Set([
 //           ...jobSalesPersons,
 //           ...allUsers.filter(user => user.role === 'sales').map(user => user.username)
 //         ])];
-        
+
 //         setRecruiters(uniqueRecruiters);
 //         setSalesPersons(uniqueSalesPersons);
-        
+
 //         setLoading(false);
 //       } catch (error) {
 //         console.error('Failed to fetch data:', error);
@@ -149,7 +162,7 @@
 //         setLoading(false);
 //       }
 //     };
-    
+
 //     fetchData();
 //   }, []);
 
@@ -158,23 +171,22 @@
 //     { label: "Business Unit", id: "businessUnit", options: businessUnitOptions },
 //     { label: "Department", id: "department", options: departmentOptions },
 //     { label: "Recruiter", id: "recruiter", options: recruiters },
-//     // { label: "Sales Person", id: "salesPerson", options: salesPersons },
 //     { label: "Location", id: "location", options: locationOptions },
 //   ];
 
 //   useEffect(() => {
 //     const jobsToFilter = showArchived ? archivedJobs : jobs;
 //     let result = jobsToFilter;
-    
+
 //     if (showPriority && !showArchived) {
 //       result = result.filter(job => job.jobFormId?.markPriority);
 //     }
-    
+
 //     if (searchTerm) {
 //       const term = searchTerm.toLowerCase();
 //       result = result.filter(job => 
 //         (job.jobTitle && job.jobTitle.toLowerCase().includes(term)) ||
-//         (job.jobName && job.jobName.toLowerCase().includes(term)) ||
+//         (job.formattedJobNumber && job.formattedJobNumber.toLowerCase().includes(term)) ||
 //         (job.jobFormId?.location && job.jobFormId.location.toLowerCase().includes(term)) ||
 //         (job.department && job.department.toLowerCase().includes(term)) ||
 //         (job.jobFormId?.Client && job.jobFormId.Client.toLowerCase().includes(term)) ||
@@ -183,7 +195,7 @@
 //           job.jobFormId.recruitingPerson.some(r => r.toLowerCase().includes(term)))
 //       );
 //     }
-    
+
 //     Object.entries(filters).forEach(([key, value]) => {
 //       if (value) {
 //         result = result.filter(job => {
@@ -216,7 +228,7 @@
 //         });
 //       }
 //     });
-    
+
 //     setFilteredJobs(result);
 //   }, [jobs, archivedJobs, showArchived, showPriority, searchTerm, filters]);
 
@@ -279,7 +291,7 @@
 //   const handleStatusChange = async (newStatus) => {
 //     try {
 //       await api.patch(`/jobs/${currentJobId}`, { status: newStatus });
-      
+
 //       if (newStatus === 'Archived') {
 //         const jobToArchive = jobs.find(job => job._id === currentJobId);
 //         if (jobToArchive) {
@@ -294,14 +306,14 @@
 //         setJobs(jobs.map(job => 
 //           job._id === currentJobId ? { ...job, status: newStatus } : job
 //         ));
-        
+
 //         if (archivedJobs.some(job => job._id === currentJobId)) {
 //           const jobToActivate = archivedJobs.find(job => job._id === currentJobId);
 //           setArchivedJobs(archivedJobs.filter(job => job._id !== currentJobId));
 //           setJobs([...jobs, {...jobToActivate, status: newStatus}]);
 //         }
 //       }
-      
+
 //       handleStatusMenuClose();
 //       setSnackbar({ open: true, message: `Job status updated to ${newStatus}`, severity: "success" });
 //     } catch (error) {
@@ -313,11 +325,11 @@
 //   const handleArchiveConfirm = async () => {
 //     try {
 //       await api.patch(`/jobs/${jobToArchive}`, { status: 'Archived' });
-      
+
 //       const jobToMove = jobs.find(job => job._id === jobToArchive);
 //       setJobs(jobs.filter(job => job._id !== jobToArchive));
 //       setArchivedJobs([...archivedJobs, {...jobToMove, status: 'Archived'}]);
-      
+
 //       setShowArchiveDialog(false);
 //       setJobToArchive(null);
 //       setSnackbar({ open: true, message: 'Job archived successfully', severity: "success" });
@@ -363,14 +375,20 @@
 //           'Content-Type': 'multipart/form-data'
 //         }
 //       });
-      
+
 //       const allJobs = response.data.jobs;
-//       const activeJobs = allJobs.filter(job => job.status !== 'Archived');
-//       const archived = allJobs.filter(job => job.status === 'Archived');
-      
+//       // Add formatted job numbers to imported jobs
+//       const jobsWithNumbers = allJobs.map((job, index) => ({
+//         ...job,
+//         formattedJobNumber: formatJobNumber(index)
+//       }));
+
+//       const activeJobs = jobsWithNumbers.filter(job => job.status !== 'Archived');
+//       const archived = jobsWithNumbers.filter(job => job.status === 'Archived');
+
 //       setJobs(activeJobs);
 //       setArchivedJobs(archived);
-      
+
 //       setShowImportDialog(false);
 //       setImportFile(null);
 //       setSnackbar({ open: true, message: 'Jobs imported successfully', severity: "success" });
@@ -384,7 +402,7 @@
 
 //   const handleDuplicateJob = async () => {
 //     handleMenuClose();
-    
+
 //     if (!currentJobId) {
 //       setSnackbar({ open: true, message: 'No job selected for duplication', severity: "error" });
 //       return;
@@ -393,8 +411,14 @@
 //     try {
 //       setLoading(true);
 //       const response = await api.post(`/jobs/duplicate/${currentJobId}`);
-      
-//       setJobs([response.data.job, ...jobs]);
+
+//       // Add formatted job number to the duplicated job
+//       const duplicatedJob = {
+//         ...response.data.job,
+//         formattedJobNumber: formatJobNumber(jobs.length)
+//       };
+
+//       setJobs([duplicatedJob, ...jobs]);
 //       setSnackbar({ open: true, message: 'Job duplicated successfully', severity: "success" });
 //     } catch (error) {
 //       console.error('Failed to duplicate job:', error);
@@ -422,7 +446,7 @@
 //   const getJobStatus = (job) => {
 //     const targetDate = job.jobFormId?.targetHireDate ? parseISO(job.jobFormId.targetHireDate) : null;
 //     const isExpired = targetDate && new Date() > targetDate;
-    
+
 //     if (job.status) {
 //       return job.status;
 //     }
@@ -721,7 +745,6 @@
 //                 <TableCell sx={{ fontWeight: 'bold' }}>Client</TableCell>
 //                 <TableCell sx={{ fontWeight: 'bold' }}>Openings</TableCell>
 //                 <TableCell sx={{ fontWeight: 'bold' }}>Hire Date</TableCell>
-//                 {/* <TableCell sx={{ fontWeight: 'bold' }}>Sales Person</TableCell> */}
 //                 <TableCell sx={{ fontWeight: 'bold' }}>Recruiting Member</TableCell>
 //                 <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
 //                 <TableCell sx={{ fontWeight: 'bold' }}>Priority</TableCell>
@@ -745,7 +768,7 @@
 //                       '&:nth-of-type(even)': { backgroundColor: '#fafafa' }
 //                     }}
 //                   >
-//                     <TableCell sx={{ fontWeight: 500 }}>{job.jobName}</TableCell>
+//                     <TableCell sx={{ fontWeight: 500 }}>{job.formattedJobNumber}</TableCell>
 //                     <TableCell>{job.jobTitle}</TableCell>
 //                     <TableCell>{job.department}</TableCell>
 //                     <TableCell>{jobForm.location || "Remote"}</TableCell>
@@ -755,7 +778,6 @@
 //                     <TableCell>
 //                       {targetDate ? format(targetDate, 'MMM dd') : "-"}
 //                     </TableCell>
-//                     {/* <TableCell>{jobForm.salesPerson || "-"}</TableCell> */}
 //                     <TableCell>
 //                       {Array.isArray(jobForm.recruitingPerson) ? 
 //                         jobForm.recruitingPerson.join(', ') : 
@@ -853,7 +875,7 @@
 //                   <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
 //                     <Box>
 //                       <Typography variant="subtitle2" color="primary" fontWeight="bold">
-//                         {job.jobName}
+//                         {job.formattedJobNumber}
 //                       </Typography>
 //                       <Typography variant="subtitle1" fontWeight="bold" noWrap>
 //                         {job.jobTitle}
@@ -930,12 +952,6 @@
 
 //                   <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
 //                     <Box display="flex" alignItems="center" gap={1}>
-//                       {/* <PersonIcon color="action" fontSize="small" /> */}
-//                       {/* <Typography variant="caption" color="text.secondary">
-//                         Sales: {jobForm.salesPerson || "Not assigned"}
-//                       </Typography> */}
-//                     </Box>
-//                     <Box display="flex" alignItems="center" gap={1}>
 //                       <PersonIcon color="action" fontSize="small" />
 //                       <Typography variant="caption" color="text.secondary">
 //                         Recruiter: {Array.isArray(jobForm.recruitingPerson) ? 
@@ -946,12 +962,6 @@
 //                   </Box>
 
 //                   <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
-//                     <Box display="flex" alignItems="center" gap={1} >
-//                       <PersonIcon color="action" fontSize="small" mb={4} />
-//                       <Typography variant="body2" color="text.secondary" >
-//                         New Candidates
-//                       </Typography>
-//                     </Box>
 //                     <Box display="flex" flexDirection="column" alignItems="flex-end">
 //                       <Typography variant="caption" color="text.secondary">
 //                         {jobForm.BusinessUnit === 'external' ? 'External' : 'Internal'}
@@ -998,18 +1008,17 @@
 //   );
 // };
 
-// export default JobsPage
+// export default JobsPage;
 
 
-
-//----------------
+//-----
 
 import React, { useState, useEffect } from "react";
-import { 
-  Typography, 
-  IconButton, 
-  Card, 
-  CardContent, 
+import {
+  Typography,
+  IconButton,
+  Card,
+  CardContent,
   Chip,
   Box,
   Divider,
@@ -1038,11 +1047,14 @@ import {
   DialogActions,
   TextField,
   Snackbar,
-  Alert
+  Alert,
+
+
 } from "@mui/material";
 import {
   Star as StarIcon,
   Person as PersonIcon,
+  Business as BusinessIcon,
   CheckCircle as CheckCircleIcon,
   CalendarToday as CalendarTodayIcon,
   Work as WorkIcon,
@@ -1058,7 +1070,8 @@ import {
   Archive as ArchiveIcon,
   Close as CloseIcon,
   FileUpload as FileUploadIcon,
-  ContentCopy as ContentCopyIcon
+  ContentCopy as ContentCopyIcon,
+
 } from "@mui/icons-material";
 import { parseISO, format } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -1069,7 +1082,7 @@ const statusOptions = {
   'On Hold': ['Active', 'Closed Own', 'Closed Lost', 'Archived'],
   'Closed Own': ['Active', 'On Hold', 'Closed Lost', 'Archived'],
   'Closed Lost': ['Active', 'On Hold', 'Closed Own', 'Archived'],
-  'Archived': ['Active'], 
+  'Archived': ['Active'],
   'Default': ['Active', 'Closed Own', 'Closed Lost', 'On Hold', 'Archived']
 };
 
@@ -1097,9 +1110,14 @@ const JobsPage = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [recruiters, setRecruiters] = useState([]);
   const [salesPersons, setSalesPersons] = useState([]);
+  const [statusChangeDialog, setStatusChangeDialog] = useState({
+    open: false,
+    newStatus: '',
+    reason: '',
+    jobId: null
+  });
   const navigate = useNavigate();
 
-  // Function to format job number as WR01, WR02, etc.
   const formatJobNumber = (index) => {
     const number = index + 1;
     return `WR${number.toString().padStart(2, '0')}`;
@@ -1109,53 +1127,47 @@ const JobsPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        // Fetch jobs
+
         const jobsResponse = await fetchAlljobs();
         const allJobs = jobsResponse.jobs;
-        
-        // Add formatted job numbers
+
         const jobsWithNumbers = allJobs.map((job, index) => ({
           ...job,
           formattedJobNumber: formatJobNumber(index)
         }));
-        
+
         const activeJobs = jobsWithNumbers.filter(job => job.status !== 'Archived');
         const archived = jobsWithNumbers.filter(job => job.status === 'Archived');
-        
+
         setJobs(activeJobs);
         setArchivedJobs(archived);
-        
-        // Fetch users for recruiters and sales persons
+
         const usersResponse = await getAllUsers();
         const allUsers = usersResponse.users;
-        
-        // Extract unique recruiter names from jobs
-        const jobRecruiters = allJobs.flatMap(job => 
-          Array.isArray(job.jobFormId?.recruitingPerson) ? 
-            job.jobFormId.recruitingPerson : 
+
+        const jobRecruiters = allJobs.flatMap(job =>
+          Array.isArray(job.jobFormId?.recruitingPerson) ?
+            job.jobFormId.recruitingPerson :
             job.jobFormId?.recruitingPerson ? [job.jobFormId.recruitingPerson] : []
         ).filter(Boolean);
-        
-        // Extract unique sales persons from jobs
-        const jobSalesPersons = allJobs.map(job => 
+
+        const jobSalesPersons = allJobs.map(job =>
           job.jobFormId?.salesPerson
         ).filter(Boolean);
-        
-        // Combine with users data
+
         const uniqueRecruiters = [...new Set([
           ...jobRecruiters,
           ...allUsers.filter(user => user.role === 'recruiter').map(user => user.username)
         ])];
-        
+
         const uniqueSalesPersons = [...new Set([
           ...jobSalesPersons,
           ...allUsers.filter(user => user.role === 'sales').map(user => user.username)
         ])];
-        
+
         setRecruiters(uniqueRecruiters);
         setSalesPersons(uniqueSalesPersons);
-        
+
         setLoading(false);
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -1166,7 +1178,7 @@ const JobsPage = () => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
 
@@ -1181,25 +1193,25 @@ const JobsPage = () => {
   useEffect(() => {
     const jobsToFilter = showArchived ? archivedJobs : jobs;
     let result = jobsToFilter;
-    
+
     if (showPriority && !showArchived) {
       result = result.filter(job => job.jobFormId?.markPriority);
     }
-    
+
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      result = result.filter(job => 
+      result = result.filter(job =>
         (job.jobTitle && job.jobTitle.toLowerCase().includes(term)) ||
         (job.formattedJobNumber && job.formattedJobNumber.toLowerCase().includes(term)) ||
         (job.jobFormId?.location && job.jobFormId.location.toLowerCase().includes(term)) ||
         (job.department && job.department.toLowerCase().includes(term)) ||
         (job.jobFormId?.Client && job.jobFormId.Client.toLowerCase().includes(term)) ||
         (job.jobFormId?.salesPerson && job.jobFormId.salesPerson.toLowerCase().includes(term)) ||
-        (job.jobFormId?.recruitingPerson && Array.isArray(job.jobFormId.recruitingPerson) && 
+        (job.jobFormId?.recruitingPerson && Array.isArray(job.jobFormId.recruitingPerson) &&
           job.jobFormId.recruitingPerson.some(r => r.toLowerCase().includes(term)))
       );
     }
-    
+
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
         result = result.filter(job => {
@@ -1218,8 +1230,8 @@ const JobsPage = () => {
             case 'department':
               return job.department === value;
             case 'recruiter':
-              const jobRecruiters = Array.isArray(job.jobFormId?.recruitingPerson) ? 
-                job.jobFormId.recruitingPerson : 
+              const jobRecruiters = Array.isArray(job.jobFormId?.recruitingPerson) ?
+                job.jobFormId.recruitingPerson :
                 job.jobFormId?.recruitingPerson ? [job.jobFormId.recruitingPerson] : [];
               return jobRecruiters.includes(value);
             case 'salesPerson':
@@ -1232,7 +1244,7 @@ const JobsPage = () => {
         });
       }
     });
-    
+
     setFilteredJobs(result);
   }, [jobs, archivedJobs, showArchived, showPriority, searchTerm, filters]);
 
@@ -1292,33 +1304,35 @@ const JobsPage = () => {
     setJobToArchive(null);
   };
 
-  const handleStatusChange = async (newStatus) => {
+  const updateJobStatus = async (jobId, newStatus, reason) => {
     try {
-      await api.patch(`/jobs/${currentJobId}`, { status: newStatus });
-      
+      await api.patch(`/jobs/${jobId}/status`, {
+        status: newStatus,
+        statusReason: reason
+      });
+
       if (newStatus === 'Archived') {
-        const jobToArchive = jobs.find(job => job._id === currentJobId);
+        const jobToArchive = jobs.find(job => job._id === jobId);
         if (jobToArchive) {
-          setJobs(jobs.filter(job => job._id !== currentJobId));
-          setArchivedJobs([...archivedJobs, {...jobToArchive, status: 'Archived'}]);
+          setJobs(jobs.filter(job => job._id !== jobId));
+          setArchivedJobs([...archivedJobs, { ...jobToArchive, status: 'Archived' }]);
         } else {
-          setArchivedJobs(archivedJobs.map(job => 
-            job._id === currentJobId ? { ...job, status: newStatus } : job
+          setArchivedJobs(archivedJobs.map(job =>
+            job._id === jobId ? { ...job, status: newStatus } : job
           ));
         }
       } else {
-        setJobs(jobs.map(job => 
-          job._id === currentJobId ? { ...job, status: newStatus } : job
+        setJobs(jobs.map(job =>
+          job._id === jobId ? { ...job, status: newStatus } : job
         ));
-        
-        if (archivedJobs.some(job => job._id === currentJobId)) {
-          const jobToActivate = archivedJobs.find(job => job._id === currentJobId);
-          setArchivedJobs(archivedJobs.filter(job => job._id !== currentJobId));
-          setJobs([...jobs, {...jobToActivate, status: newStatus}]);
+
+        if (archivedJobs.some(job => job._id === jobId)) {
+          const jobToActivate = archivedJobs.find(job => job._id === jobId);
+          setArchivedJobs(archivedJobs.filter(job => job._id !== jobId));
+          setJobs([...jobs, { ...jobToActivate, status: newStatus }]);
         }
       }
-      
-      handleStatusMenuClose();
+
       setSnackbar({ open: true, message: `Job status updated to ${newStatus}`, severity: "success" });
     } catch (error) {
       console.error('Failed to update job status:', error);
@@ -1326,14 +1340,47 @@ const JobsPage = () => {
     }
   };
 
+  const handleStatusChange = async (newStatus) => {
+    if (['Closed Own', 'Closed Lost', 'On Hold', 'Archived'].includes(newStatus)) {
+      setStatusChangeDialog({
+        open: true,
+        newStatus,
+        reason: '',
+        jobId: currentJobId
+      });
+      handleStatusMenuClose();
+      return;
+    }
+
+    await updateJobStatus(currentJobId, newStatus, '');
+  };
+
+  const handleStatusChangeDialogClose = () => {
+    setStatusChangeDialog({
+      open: false,
+      newStatus: '',
+      reason: '',
+      jobId: null
+    });
+  };
+
+  const handleStatusReasonSubmit = async () => {
+    await updateJobStatus(
+      statusChangeDialog.jobId,
+      statusChangeDialog.newStatus,
+      statusChangeDialog.reason
+    );
+    handleStatusChangeDialogClose();
+  };
+
   const handleArchiveConfirm = async () => {
     try {
       await api.patch(`/jobs/${jobToArchive}`, { status: 'Archived' });
-      
+
       const jobToMove = jobs.find(job => job._id === jobToArchive);
       setJobs(jobs.filter(job => job._id !== jobToArchive));
-      setArchivedJobs([...archivedJobs, {...jobToMove, status: 'Archived'}]);
-      
+      setArchivedJobs([...archivedJobs, { ...jobToMove, status: 'Archived' }]);
+
       setShowArchiveDialog(false);
       setJobToArchive(null);
       setSnackbar({ open: true, message: 'Job archived successfully', severity: "success" });
@@ -1379,20 +1426,19 @@ const JobsPage = () => {
           'Content-Type': 'multipart/form-data'
         }
       });
-      
+
       const allJobs = response.data.jobs;
-      // Add formatted job numbers to imported jobs
       const jobsWithNumbers = allJobs.map((job, index) => ({
         ...job,
         formattedJobNumber: formatJobNumber(index)
       }));
-      
+
       const activeJobs = jobsWithNumbers.filter(job => job.status !== 'Archived');
       const archived = jobsWithNumbers.filter(job => job.status === 'Archived');
-      
+
       setJobs(activeJobs);
       setArchivedJobs(archived);
-      
+
       setShowImportDialog(false);
       setImportFile(null);
       setSnackbar({ open: true, message: 'Jobs imported successfully', severity: "success" });
@@ -1406,7 +1452,7 @@ const JobsPage = () => {
 
   const handleDuplicateJob = async () => {
     handleMenuClose();
-    
+
     if (!currentJobId) {
       setSnackbar({ open: true, message: 'No job selected for duplication', severity: "error" });
       return;
@@ -1415,13 +1461,12 @@ const JobsPage = () => {
     try {
       setLoading(true);
       const response = await api.post(`/jobs/duplicate/${currentJobId}`);
-      
-      // Add formatted job number to the duplicated job
+
       const duplicatedJob = {
         ...response.data.job,
         formattedJobNumber: formatJobNumber(jobs.length)
       };
-      
+
       setJobs([duplicatedJob, ...jobs]);
       setSnackbar({ open: true, message: 'Job duplicated successfully', severity: "success" });
     } catch (error) {
@@ -1450,7 +1495,7 @@ const JobsPage = () => {
   const getJobStatus = (job) => {
     const targetDate = job.jobFormId?.targetHireDate ? parseISO(job.jobFormId.targetHireDate) : null;
     const isExpired = targetDate && new Date() > targetDate;
-    
+
     if (job.status) {
       return job.status;
     }
@@ -1484,6 +1529,37 @@ const JobsPage = () => {
           <Button onClick={handleArchiveDialogClose}>Cancel</Button>
           <Button onClick={handleArchiveConfirm} color="primary" variant="contained">
             Archive
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={statusChangeDialog.open} onClose={handleStatusChangeDialogClose}>
+        <DialogTitle>Change Status to {statusChangeDialog.newStatus}</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label={`Reason for ${statusChangeDialog.newStatus}`}
+            fullWidth
+            multiline
+            rows={4}
+            value={statusChangeDialog.reason}
+            onChange={(e) => setStatusChangeDialog(prev => ({
+              ...prev,
+              reason: e.target.value
+            }))}
+            required
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleStatusChangeDialogClose}>Cancel</Button>
+          <Button
+            onClick={handleStatusReasonSubmit}
+            color="primary"
+            variant="contained"
+            disabled={!statusChangeDialog.reason.trim()}
+          >
+            Submit
           </Button>
         </DialogActions>
       </Dialog>
@@ -1525,9 +1601,9 @@ const JobsPage = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleImportDialogClose}>Cancel</Button>
-          <Button 
-            onClick={handleImportSubmit} 
-            color="primary" 
+          <Button
+            onClick={handleImportSubmit}
+            color="primary"
             variant="contained"
             disabled={!importFile}
           >
@@ -1542,8 +1618,8 @@ const JobsPage = () => {
         onClose={handleSnackbarClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleSnackbarClose} 
+        <Alert
+          onClose={handleSnackbarClose}
           severity={snackbar.severity}
           sx={{ width: '100%' }}
         >
@@ -1763,11 +1839,11 @@ const JobsPage = () => {
                 const availableStatusChanges = getAvailableStatusChanges(status);
 
                 return (
-                  <TableRow 
-                    key={job._id} 
-                    hover 
+                  <TableRow
+                    key={job._id}
+                    hover
                     onClick={() => handleJobCardClick(job._id)}
-                    sx={{ 
+                    sx={{
                       cursor: 'pointer',
                       '&:nth-of-type(even)': { backgroundColor: '#fafafa' }
                     }}
@@ -1783,15 +1859,15 @@ const JobsPage = () => {
                       {targetDate ? format(targetDate, 'MMM dd') : "-"}
                     </TableCell>
                     <TableCell>
-                      {Array.isArray(jobForm.recruitingPerson) ? 
-                        jobForm.recruitingPerson.join(', ') : 
+                      {Array.isArray(jobForm.recruitingPerson) ?
+                        jobForm.recruitingPerson.join(', ') :
                         jobForm.recruitingPerson || "-"}
                     </TableCell>
                     <TableCell>
-                      <Chip 
-                        label={status} 
-                        size="small" 
-                        color={getStatusColor(status)} 
+                      <Chip
+                        label={status}
+                        size="small"
+                        color={getStatusColor(status)}
                         variant="outlined"
                         sx={{ borderRadius: 1 }}
                       />
@@ -1823,14 +1899,14 @@ const JobsPage = () => {
                           Change {status} to:
                         </Typography>
                         {availableStatusChanges.map(status => (
-                          <MenuItem 
-                            key={status} 
+                          <MenuItem
+                            key={status}
                             onClick={() => handleStatusChange(status)}
                             sx={{ minWidth: 150 }}
                           >
-                            <CheckCircleIcon 
-                              color={getStatusColor(status)} 
-                              sx={{ mr: 1, fontSize: '1rem' }} 
+                            <CheckCircleIcon
+                              color={getStatusColor(status)}
+                              sx={{ mr: 1, fontSize: '1rem' }}
                             />
                             {status}
                           </MenuItem>
@@ -1844,7 +1920,7 @@ const JobsPage = () => {
           </Table>
         </TableContainer>
       ) : (
-        <Box sx={{ 
+        <Box sx={{
           display: 'grid',
           gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
           gap: 3,
@@ -1858,10 +1934,10 @@ const JobsPage = () => {
             const availableStatusChanges = getAvailableStatusChanges(status);
 
             return (
-              <Card 
+              <Card
                 key={job._id}
                 onClick={() => handleJobCardClick(job._id)}
-                sx={{ 
+                sx={{
                   cursor: 'pointer',
                   height: '100%',
                   display: 'flex',
@@ -1914,19 +1990,19 @@ const JobsPage = () => {
                   </Box>
 
                   <Stack direction="row" spacing={1} mb={1} flexWrap="wrap" useFlexGap>
-                    <Chip 
+                    <Chip
                       icon={<GroupIcon fontSize="small" />}
                       label={`${jobForm.openings || 0} openings`}
                       size="small"
                       variant="outlined"
                     />
-                    <Chip 
+                    <Chip
                       icon={<MoneyIcon fontSize="small" />}
                       label={`${jobForm.currency || 'USD'} ${jobForm.amount || '0'}`}
                       size="small"
                       variant="outlined"
                     />
-                    <Chip 
+                    <Chip
                       icon={<TimeIcon fontSize="small" />}
                       label={jobForm.jobType || 'Full-time'}
                       size="small"
@@ -1938,15 +2014,22 @@ const JobsPage = () => {
                     <Box display="flex" alignItems="center" gap={1}>
                       <CalendarTodayIcon color="action" fontSize="small" />
                       <Box>
-                        <Typography variant="caption" color="text.secondary">
-                          Hire Date
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            fontWeight: 'bold',
+                            paddingX: 1,
+                            borderRadius: 1,
+                            display: 'inline-block'
+                          }}
+                        >
+                          Hire Date: {targetDate ? format(targetDate, 'MMM dd') : "Not set"}
                         </Typography>
-                        <Typography variant="body2" fontWeight={500}>
-                          {targetDate ? format(targetDate, 'MMM dd') : "Not set"}
-                        </Typography>
+
                       </Box>
                     </Box>
-                    <Chip 
+                    <Chip
                       label={status}
                       size="small"
                       color={getStatusColor(status)}
@@ -1957,9 +2040,16 @@ const JobsPage = () => {
                   <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
                     <Box display="flex" alignItems="center" gap={1}>
                       <PersonIcon color="action" fontSize="small" />
-                      <Typography variant="caption" color="text.secondary">
-                        Recruiter: {Array.isArray(jobForm.recruitingPerson) ? 
-                          jobForm.recruitingPerson.join(', ') : 
+                      <Typography variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          fontWeight: 'bold',
+                          paddingX: 1,
+                          borderRadius: 1,
+                          display: 'inline-block'
+                        }}>
+                        Recruiter: {Array.isArray(jobForm.recruitingPerson) ?
+                          jobForm.recruitingPerson.join(', ') :
                           jobForm.recruitingPerson || "Not assigned"}
                       </Typography>
                     </Box>
@@ -1967,19 +2057,33 @@ const JobsPage = () => {
 
                   <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
                     <Box display="flex" flexDirection="column" alignItems="flex-end">
-                      <Typography variant="caption" color="text.secondary">
-                        {jobForm.BusinessUnit === 'external' ? 'External' : 'Internal'}
-                      </Typography>
-                      {jobForm.BusinessUnit === 'external' && jobForm.Client && (
-                        <Typography variant="caption" fontWeight={600}>
-                          Client: {jobForm.Client}
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        <BusinessIcon fontSize="small" color="action" />
+                        <Typography variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          fontWeight: 'bold',
+                          paddingX: 1,
+                          borderRadius: 1,
+                          display: 'inline-block'
+                        }}>
+                          Unit: {jobForm.BusinessUnit === 'external' ? 'External' : 'Internal'}
                         </Typography>
+                      </Box>
+
+                      {jobForm.BusinessUnit === 'external' && jobForm.Client && (
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          <PersonIcon fontSize="small" color="action" />
+                          <Typography variant="caption" fontWeight={600} >
+                            Client: {jobForm.Client}
+                          </Typography>
+                        </Box>
                       )}
                     </Box>
                   </Box>
+
                 </CardContent>
 
-                {/* Status change menu */}
                 <Menu
                   anchorEl={statusMenuAnchorEl}
                   open={Boolean(statusMenuAnchorEl && currentJobId === job._id)}
@@ -1990,14 +2094,14 @@ const JobsPage = () => {
                     Change {status} to:
                   </Typography>
                   {availableStatusChanges.map(status => (
-                    <MenuItem 
-                      key={status} 
+                    <MenuItem
+                      key={status}
                       onClick={() => handleStatusChange(status)}
                       sx={{ minWidth: 150 }}
                     >
-                      <CheckCircleIcon 
-                        color={getStatusColor(status)} 
-                        sx={{ mr: 1, fontSize: '1rem' }} 
+                      <CheckCircleIcon
+                        color={getStatusColor(status)}
+                        sx={{ mr: 1, fontSize: '1rem' }}
                       />
                       {status}
                     </MenuItem>

@@ -2,7 +2,7 @@
 import axios from "axios";
 
 // Base URL for the API
-const BASE_URL = "https://hire-onboardbackend-13.onrender.com/api";
+const BASE_URL = "https://hire-onboardbackend-13.onrender.com";
 
 // Create an axios instance
 const api = axios.create({
@@ -41,6 +41,17 @@ api.interceptors.request.use(
     return config;
   },
   error => Promise.reject(error)
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("access_token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default api;
@@ -97,12 +108,28 @@ export const fetchJobFormOptions = async () => {
   };
 export const getAllUsers = async () => {
     try {
-      const response = await api.get("https://hire-onboardbackend-13.onrender.com/user/allUsers");
+      const response = await api.get("http://localhost:8000/user/allUsers");
       return response.data;
     } catch (err) {
       throw new Error(err.response?.data?.error || err.message);
     }
   };
+
+  export const addNewLocation = async (location) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/job-forms/locations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location })
+      });
+      if (!response.ok) throw new Error('Failed to add location');
+      return await response.json();
+    } catch (error) {
+      console.error('Error adding location:', error);
+      throw error;
+    }
+  };
+  
   
 
 
@@ -298,7 +325,7 @@ export const deleteStageRecord = async (stageChangeId) => {
 
 export const sendBulkEmails = async (emailData) => {
   try {
-      const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/candidates/send-bulk-emails', {
+      const response = await fetch('https://hire-onboardbackend-13.onrender.com/candidates/send-bulk-emails', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -320,7 +347,7 @@ export const sendBulkEmails = async (emailData) => {
 // for stages
 export const getAllStages = async () => {
   try {
-    const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/stages/all');
+    const response = await fetch('https://hire-onboardbackend-13.onrender.com/stages/all');
     if (!response.ok) {
       throw new Error('Failed to fetch stages');
     }
@@ -336,8 +363,50 @@ export const getAllStages = async () => {
 
 // Fetch only Sales Persons
 export const getAllEmployees = async () => {
-  const response = await fetch("https://hire-onboardbackend-13.onrender.com/api/employees");
+  const response = await fetch("https://hire-onboardbackend-13.onrender.com/employees");
   if (!response.ok) throw new Error("Failed to fetch employees");
   const data = await response.json();
   return data;
 };
+
+// Resume-specific functions with proper auth handling
+export const downloadCandidateResume = async (candidateId) => {
+  try {
+    const response = await api.get(`/resumes/${candidateId}/download`, {
+      responseType: 'blob',
+      validateStatus: (status) => status < 500 // Don't reject for 404
+    });
+    
+    if (response.status >= 400) {
+      const error = new Error(response.data?.error || 'Download failed');
+      error.response = response;
+      throw error;
+    }
+    
+    return response;
+  } catch (err) {
+    console.error('Download API error:', err);
+    throw err;
+  }
+};
+
+export const previewCandidateResume = async (candidateId) => {
+  try {
+    const response = await api.get(`/resumes/${candidateId}`, {
+      responseType: 'blob',
+      validateStatus: (status) => status < 500
+    });
+    
+    if (response.status >= 400) {
+      const error = new Error(response.data?.error || 'Preview failed');
+      error.response = response;
+      throw error;
+    }
+    
+    return response;
+  } catch (err) {
+    console.error('Preview API error:', err);
+    throw err;
+  }
+};
+

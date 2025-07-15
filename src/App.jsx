@@ -31,6 +31,7 @@ import JobsPage from './jobs/JobsPage';
 import RejectedCadnidates from './jobs/RejectedCandidates';
 import Layout from './components/Layout';
 import ScheduleOnlineInterviewForm from './Interviews/ScheduleOnlineInterviewForm';
+import FeedbackForm from './components/FeedbackForm';
 // import JobCandidates from './jobs/JobCandidates';
 // import JobForm from './jobs/JobForm';
 
@@ -71,9 +72,11 @@ const App = () => {
           <Route path="/candidates-details" element={<Layout />} />
           <Route path="/interviews/schedule" element={<ScheduleOnlineInterviewForm />} />
           <Route path="/jobs/update/:id" element={<JobCreationPage />} />
+          <Route path="/feedback/:interviewId/:interviewerId" element={<FeedbackForm />} />
+          
 
 
-           {/* 🛡️ Protected Routes for Users */}
+           {/*  Protected Routes for Users */}
   {/* <Route element={<ProtectedRoute allowedRoles={['candidate']} />}> */}
     <Route
       path="/dashboard"
