@@ -32,7 +32,7 @@
 //   useEffect(() => {
 //     const fetchJobById = async () => {
 //       try {
-//         const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/jobs/byId/${jobId}`);
+//         const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/jobs/byId/${jobId}`);
 //         setJob(response.data.job);
 //       } catch (error) {
 //         console.error("Error fetching job:", error);
@@ -351,7 +351,7 @@ const JobInfo = () => {
   useEffect(() => {
     const fetchJobById = async () => {
       try {
-        const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/jobs/byId/${jobId}`);
+        const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/jobs/byId/${jobId}`);
         // Clean the job description before setting state
         const jobData = response.data.job;
         if (jobData.jobDesc) {

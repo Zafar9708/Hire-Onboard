@@ -181,19 +181,19 @@
 // };
 
 // const fetchCandidateById = async (id) => {
-//   const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/candidates/${id}`);
+//   const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/candidates/${id}`);
 //   return response.data;
 // };
 
 // const downloadCandidateResume = async (id) => {
-//   const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/resumes/${id}`, {
+//   const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/resumes/${id}`, {
 //     responseType: 'blob'
 //   });
 //   return response;
 // };
 
 // const previewCandidateResume = async (id) => {
-//   const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/resumes/${id}`, {
+//   const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/resumes/${id}`, {
 //     responseType: 'blob'
 //   });
 //   return response;
@@ -219,7 +219,7 @@
 
 //   const { data: feedbackData } = useQuery({
 //     queryKey: ['candidateFeedback', id],
-//     queryFn: () => axios.get(`https://hire-onboardbackend-13.onrender.com/feedback/candidate/${id}`).then(res => res.data),
+//     queryFn: () => axios.get(`https://hire-onboardbackend-13.onrender.com/api/feedback/candidate/${id}`).then(res => res.data),
 //     enabled: !!candidate && (candidate.stage?.name === 'Hired' || candidate.stage?.name === 'Rejected')
 //   });
 
@@ -340,7 +340,7 @@
 //       return;
 //     }
 
-//     const resumeUrl = `https://hire-onboardbackend-13.onrender.com/resumes/${id}`;
+//     const resumeUrl = `https://hire-onboardbackend-13.onrender.com/api/resumes/${id}`;
 
 //     try {
 //       if (method === 'native' && navigator.share) {
@@ -1165,52 +1165,52 @@ const RatingStars = ({ value }) => {
 };
 
 const fetchCandidateById = async (id) => {
-  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/candidates/${id}`);
+  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/candidates/${id}`);
   return response.data;
 };
 
 const fetchCandidateMessages = async (id) => {
-  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/messages/${id}`);
+  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/messages/${id}`);
   return response.data;
 };
 
 const fetchCandidateRemarks = async (id) => {
   console.log("Fetching remarks for ID:", id);
 
-  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/candidate-comments/${id}`);
+  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/candidate-comments/${id}`);
   console.log(response)
   return response.data;
 };
 
 const fetchCandidateNotes = async (id) => {
-  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/candidate-notes/candidate/${id}`);
+  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/candidate-notes/candidate/${id}`);
   return response.data;
 };
 
 const createCandidateNote = async (noteData) => {
-  const response = await axios.post(`https://hire-onboardbackend-13.onrender.com/candidate-notes`, noteData);
+  const response = await axios.post(`https://hire-onboardbackend-13.onrender.com/api/candidate-notes`, noteData);
   return response.data;
 };
 
 const updateCandidateNote = async ({ id, noteData }) => {
-  const response = await axios.put(`https://hire-onboardbackend-13.onrender.com/candidate-notes/${id}`, noteData);
+  const response = await axios.put(`https://hire-onboardbackend-13.onrender.com/api/candidate-notes/${id}`, noteData);
   return response.data;
 };
 
 const deleteCandidateNote = async (id) => {
-  const response = await axios.delete(`https://hire-onboardbackend-13.onrender.com/candidate-notes/${id}`);
+  const response = await axios.delete(`https://hire-onboardbackend-13.onrender.com/api/candidate-notes/${id}`);
   return response.data;
 };
 
 const downloadCandidateResume = async (id) => {
-  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/resumes/${id}`, {
+  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/resumes/${id}`, {
     responseType: 'blob'
   });
   return response;
 };
 
 const previewCandidateResume = async (id) => {
-  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/resumes/${id}`, {
+  const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/resumes/${id}`, {
     responseType: 'blob'
   });
   return response;
@@ -1264,7 +1264,7 @@ const CandidateDetailsPage = () => {
 
   const { data: feedbackData } = useQuery({
     queryKey: ['candidateFeedback', id],
-    queryFn: () => axios.get(`https://hire-onboardbackend-13.onrender.com/feedback/candidate/${id}`).then(res => res.data),
+    queryFn: () => axios.get(`https://hire-onboardbackend-13.onrender.com/api/feedback/candidate/${id}`).then(res => res.data),
     enabled: !!candidate && (candidate.stage?.name === 'Hired' || candidate.stage?.name === 'Rejected')
   });
 
@@ -1436,7 +1436,7 @@ const CandidateDetailsPage = () => {
       return;
     }
 
-    const resumeUrl = `https://hire-onboardbackend-13.onrender.com/resumes/${id}`;
+    const resumeUrl = `https://hire-onboardbackend-13.onrender.com/api/resumes/${id}`;
 
     try {
       if (method === 'native' && navigator.share) {
@@ -1475,7 +1475,7 @@ const CandidateDetailsPage = () => {
       window.open(url, '_blank');
 
       // Save message to database
-      await axios.post(`https://hire-onboardbackend-13.onrender.com/messages`, {
+      await axios.post(`https://hire-onboardbackend-13.onrender.com/api/messages`, {
         candidateId: id,
         content: newMessage,
         sender: 'Admin',

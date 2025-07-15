@@ -78,7 +78,7 @@ const OnlineInterviews = () => {
   useEffect(() => {
     const fetchInterviews = async () => {
       try {
-        const response = await axios.get('https://hire-onboardbackend-13.onrender.com/interviews/schedule');
+        const response = await axios.get('https://hire-onboardbackend-13.onrender.com/api/interviews/schedule');
         setInterviews(response.data.data);
       } catch (err) {
         setError('Failed to fetch interviews. Please try again.');

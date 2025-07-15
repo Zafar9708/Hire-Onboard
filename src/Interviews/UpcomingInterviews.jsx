@@ -66,7 +66,7 @@ const UpcomingInterviews = () => {
   useEffect(() => {
     const fetchInterviews = async () => {
       try {
-        const response = await axios.get('https://hire-onboardbackend-13.onrender.com/interviews/upcoming');
+        const response = await axios.get('https://hire-onboardbackend-13.onrender.com/api/interviews/upcoming');
         setInterviews(response.data.data);
       } catch (err) {
         setError('Failed to fetch upcoming interviews. Please try again.');
@@ -92,7 +92,7 @@ const UpcomingInterviews = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('https://hire-onboardbackend-13.onrender.com/interviews/upcoming');
+      const response = await axios.get('https://hire-onboardbackend-13.onrender.com/api/interviews/upcoming');
       setInterviews(response.data.data);
     } catch (err) {
       setError('Failed to refresh upcoming interviews.');

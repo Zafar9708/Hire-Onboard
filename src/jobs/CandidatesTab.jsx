@@ -114,7 +114,7 @@ const CandidatesTab = () => {
     useEffect(() => {
         const fetchStages = async () => {
             try {
-                const response = await fetch('https://hire-onboardbackend-13.onrender.com/stages/all');
+                const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/stages/all');
                 if (!response.ok) {
                     throw new Error('Failed to fetch stages');
                 }
@@ -132,7 +132,7 @@ const CandidatesTab = () => {
     useEffect(() => {
         const fetchStageOptions = async () => {
             try {
-                const response = await fetch('https://hire-onboardbackend-13.onrender.com/stages/options');
+                const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/stages/options');
                 if (!response.ok) {
                     throw new Error('Failed to fetch stage options');
                 }
@@ -521,7 +521,7 @@ const CandidatesTab = () => {
 
     const handleSubmitRemarks = async () => {
         try {
-            const response = await fetch('https://hire-onboardbackend-13.onrender.com/remarks', {
+            const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/remarks', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

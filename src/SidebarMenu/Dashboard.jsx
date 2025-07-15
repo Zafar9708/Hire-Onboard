@@ -42,7 +42,7 @@
 
 //     // ✅ Fetch interviews from API
 //     try {
-//       const response = await fetch('https://hire-onboardbackend-13.onrender.com/interviews/upcoming');
+//       const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/interviews/upcoming');
 //       const data = await response.json();
 
 //       // ✅ Filter only today's interviews
@@ -524,7 +524,7 @@ const MenuDashboard = () => {
     setFilteredJobsActive(allJobsActive);
 
     try {
-      const response = await fetch('https://hire-onboardbackend-13.onrender.com/interviews/upcoming');
+      const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/interviews/upcoming');
       const data = await response.json();
       if (data.success) {
         const today = new Date().toISOString().split('T')[0];

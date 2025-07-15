@@ -92,11 +92,11 @@
 //         setError(null);
 
 //         if (jobId) {
-//           const jobResponse = await axios.get(`https://hire-onboardbackend-13.onrender.com/jobs/byId/${jobId}`);
+//           const jobResponse = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/jobs/byId/${jobId}`);
 //           setJob(jobResponse.data.job);
 
 //           // Fetch pipeline data from the new API endpoint
-//           const pipelineResponse = await axios.get(`https://hire-onboardbackend-13.onrender.com/stages/by-job/${jobId}`);
+//           const pipelineResponse = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/stages/by-job/${jobId}`);
 //           const candidates = pipelineResponse.data.candidates || [];
 //           setAppliedCandidat(candidates);
 
@@ -123,9 +123,9 @@
 //         }
 
 //         const [onlineInterviewsRes, offlineInterviewsRes, upcomingInterviewsRes] = await Promise.all([
-//           axios.get('https://hire-onboardbackend-13.onrender.com/interviews/schedule'),
-//           axios.get('https://hire-onboardbackend-13.onrender.com/offline-interviews/get'),
-//           axios.get('https://hire-onboardbackend-13.onrender.com/interviews/upcoming')
+//           axios.get('https://hire-onboardbackend-13.onrender.com/api/interviews/schedule'),
+//           axios.get('https://hire-onboardbackend-13.onrender.com/api/offline-interviews/get'),
+//           axios.get('https://hire-onboardbackend-13.onrender.com/api/interviews/upcoming')
 //         ]);
 
 //         const offlineInterviewsCount = offlineInterviewsRes.data.data ? offlineInterviewsRes.data.data.length : 0;
@@ -1003,7 +1003,7 @@ const Dashboard = () => {
       setNotesLoading(true);
       const token = localStorage.getItem("access_token");
       console.log("Authorization header:", `Bearer ${token}`)
-      const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/notes/${jobId}`, {
+      const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/notes/${jobId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -1026,11 +1026,11 @@ const Dashboard = () => {
         await fetchNotes();
 
         if (jobId) {
-          const jobResponse = await axios.get(`https://hire-onboardbackend-13.onrender.com/jobs/byId/${jobId}`);
+          const jobResponse = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/jobs/byId/${jobId}`);
           setJob(jobResponse.data.job);
 
           // Fetch pipeline data
-          const pipelineResponse = await axios.get(`https://hire-onboardbackend-13.onrender.com/stages/by-job/${jobId}`);
+          const pipelineResponse = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/stages/by-job/${jobId}`);
           const candidates = pipelineResponse.data.candidates || [];
           setAppliedCandidat(candidates);
 
@@ -1057,9 +1057,9 @@ const Dashboard = () => {
         }
 
         const [onlineInterviewsRes, offlineInterviewsRes, upcomingInterviewsRes] = await Promise.all([
-          axios.get('https://hire-onboardbackend-13.onrender.com/interviews/schedule'),
-          axios.get('https://hire-onboardbackend-13.onrender.com/offline-interviews/get'),
-          axios.get('https://hire-onboardbackend-13.onrender.com/interviews/upcoming')
+          axios.get('https://hire-onboardbackend-13.onrender.com/api/interviews/schedule'),
+          axios.get('https://hire-onboardbackend-13.onrender.com/api/offline-interviews/get'),
+          axios.get('https://hire-onboardbackend-13.onrender.com/api/interviews/upcoming')
         ]);
 
         const offlineInterviewsCount = offlineInterviewsRes.data.data ? offlineInterviewsRes.data.data.length : 0;
@@ -1102,7 +1102,7 @@ const Dashboard = () => {
        console.log("Authorization header:", `Bearer ${token}`); 
         // Update existing note
         await axios.put(
-          `https://hire-onboardbackend-13.onrender.com/notes/${editingNoteId}`,
+          `https://hire-onboardbackend-13.onrender.com/api/notes/${editingNoteId}`,
           { content: newNote },
           {
             headers: {
@@ -1115,7 +1115,7 @@ const Dashboard = () => {
         const token = localStorage.getItem("access_token");
        console.log("Authorization header:", `Bearer ${token}`); 
         await axios.post(
-          `https://hire-onboardbackend-13.onrender.com/notes/${jobId}`,
+          `https://hire-onboardbackend-13.onrender.com/api/notes/${jobId}`,
           { content: newNote },
           {
             headers: {
@@ -1142,7 +1142,7 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem("access_token");
        console.log("Authorization header:", `Bearer ${token}`); 
-      await axios.delete(`https://hire-onboardbackend-13.onrender.com/notes/${id}`, {
+      await axios.delete(`https://hire-onboardbackend-13.onrender.com/api/notes/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

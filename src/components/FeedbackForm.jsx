@@ -88,7 +88,7 @@
         
 //         try {
 //             const response = await axios.post(
-//                 `https://hire-onboardbackend-13.onrender.com/feedback/${interviewId}/${interviewerId}`,
+//                 `https://hire-onboardbackend-13.onrender.com/api/feedback/${interviewId}/${interviewerId}`,
 //                 formData,
 //                 {
 //                   headers: {
@@ -318,7 +318,7 @@ const FeedbackForm = () => {
         const fetchInterviewDetails = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/interviews/${interviewId}`);
+                const response = await axios.get(`https://hire-onboardbackend-13.onrender.com/api/interviews/${interviewId}`);
                 
                 if (!response.data || !response.data.success) {
                     throw new Error(response.data?.message || 'No interview data received');
@@ -364,7 +364,7 @@ const FeedbackForm = () => {
         
         try {
             const response = await axios.post(
-                `https://hire-onboardbackend-13.onrender.com/feedback/${interviewId}/${interviewerId}`,
+                `https://hire-onboardbackend-13.onrender.com/api/feedback/${interviewId}/${interviewerId}`,
                 formData,
                 {
                     headers: {
