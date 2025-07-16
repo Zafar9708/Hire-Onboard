@@ -916,7 +916,7 @@ import axios from "axios";
 import {
   Box, Typography, Card, CardContent, Divider, Button,
   TextField, Avatar, Stack, IconButton, Paper, LinearProgress,
-  Chip, useTheme, styled, alpha, CircularProgress
+  Chip, useTheme, styled, alpha, CircularProgress,Alert
 } from "@mui/material";
 import {
   AccessTime as TimeIcon,
@@ -992,7 +992,7 @@ const Dashboard = () => {
     upcomingInterviews: []
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("You haven't added any candidates for this position yet. Start building your talent pipeline by adding candidates now.");
   const [notesLoading, setNotesLoading] = useState(false);
   const theme = useTheme();
   const navigate = useNavigate();
@@ -1072,8 +1072,11 @@ const Dashboard = () => {
         });
 
       } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load data. Please try again later.");
+        {error && (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
       } finally {
         setLoading(false);
       }
@@ -1190,11 +1193,11 @@ const Dashboard = () => {
     }
 
     return [
-      { name: 'Sourced', value: 15, color: getStageColor('Sourced') },
-      { name: 'Screening', value: 8, color: getStageColor('Screening') },
-      { name: 'Interview', value: 5, color: getStageColor('Interview') },
-      { name: 'Hired', value: 2, color: getStageColor('Hired') },
-      { name: 'Rejected', value: 10, color: getStageColor('Rejected') }
+      { name: 'Sourced', value: 0, color: getStageColor('Sourced') },
+      { name: 'Screening', value: 0, color: getStageColor('Screening') },
+      { name: 'Interview', value: 0, color: getStageColor('Interview') },
+      { name: 'Hired', value: 0, color: getStageColor('Hired') },
+      { name: 'Rejected', value: 0, color: getStageColor('Rejected') }
     ];
   };
 
@@ -1514,6 +1517,9 @@ const Dashboard = () => {
                   <TimelineIcon sx={{ mr: 1.5, color: theme.palette.info.main }} />
                   Candidate Pipeline
                 </Typography>
+                <Typography variant="body2" color="text.primary" sx={{ textAlign: 'center', mt: 1 }}>
+                     No Pipeline data found for this position
+                  </Typography>
                 <Box sx={{ height: 300 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -1540,7 +1546,7 @@ const Dashboard = () => {
                 </Box>
                 {pipelineData.length === 0 && (
                   <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 1 }}>
-                    Demo data shown - no pipeline data found for this position
+                    No data found for this position
                   </Typography>
                 )}
               </CardContent>
