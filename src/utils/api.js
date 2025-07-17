@@ -2,7 +2,7 @@
 import axios from "axios";
 
 // Base URL for the API
-const BASE_URL = "https://hire-onboardbackend-13.onrender.com/api";
+const BASE_URL = "https://hire-onboardbackend-production.up.railway.app/api";
 
 // Create an axios instance
 const api = axios.create({
@@ -108,7 +108,7 @@ export const fetchJobFormOptions = async () => {
   };
 export const getAllUsers = async () => {
     try {
-      const response = await api.get("https://hire-onboardbackend-13.onrender.com/user/allUsers");
+      const response = await api.get("https://hire-onboardbackend-production.up.railway.app/user/allUsers");
       return response.data;
     } catch (err) {
       throw new Error(err.response?.data?.error || err.message);
@@ -325,7 +325,7 @@ export const deleteStageRecord = async (stageChangeId) => {
 
 export const sendBulkEmails = async (emailData) => {
   try {
-      const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/candidates/send-bulk-emails', {
+      const response = await fetch('https://hire-onboardbackend-production.up.railway.app/api/candidates/send-bulk-emails', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -347,7 +347,7 @@ export const sendBulkEmails = async (emailData) => {
 // for stages
 export const getAllStages = async () => {
   try {
-    const response = await fetch('https://hire-onboardbackend-13.onrender.com/api/stages/all');
+    const response = await fetch('https://hire-onboardbackend-production.up.railway.app/api/stages/all');
     if (!response.ok) {
       throw new Error('Failed to fetch stages');
     }
@@ -363,7 +363,7 @@ export const getAllStages = async () => {
 
 // Fetch only Sales Persons
 export const getAllEmployees = async () => {
-  const response = await fetch("https://hire-onboardbackend-13.onrender.com/api/employees");
+  const response = await fetch("https://hire-onboardbackend-production.up.railway.app/api/employees");
   if (!response.ok) throw new Error("Failed to fetch employees");
   const data = await response.json();
   return data;
