@@ -60,7 +60,7 @@ const OfflineInterviews = () => {
   useEffect(() => {
     const fetchInterviews = async () => {
       try {
-        const response = await axios.get('https://hire-onboardbackend-production.up.railway.app/api/offline-interviews/get');
+        const response = await axios.get('https://hire-onboardbackend-key.up.railway.app/api/offline-interviews/get');
         setInterviews(response.data.data);
       } catch (err) {
         setError('Failed to fetch offline interviews. Please try again.');

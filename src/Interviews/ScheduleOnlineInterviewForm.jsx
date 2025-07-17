@@ -38,7 +38,7 @@ import {
 import axios from "axios";
 import { useParams } from "react-router-dom";
 
-const API_BASE = "https://hire-onboardbackend-production.up.railway.app/api";
+const API_BASE = "https://hire-onboardbackend-key.up.railway.app/api";
 
 const EmailTemplateTab = ({ 
     candidate, 

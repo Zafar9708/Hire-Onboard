@@ -54,7 +54,7 @@ const JobInfo = () => {
   useEffect(() => {
     const fetchJobById = async () => {
       try {
-        const response = await axios.get(`https://hire-onboardbackend-production.up.railway.app/api/jobs/byId/${jobId}`);
+        const response = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/jobs/byId/${jobId}`);
         // Clean the job description before setting state
         const jobData = response.data.job;
         if (jobData.jobDesc) {

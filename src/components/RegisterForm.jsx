@@ -40,7 +40,7 @@ const RegisterForm = () => {
     setErrorMessage("");
 
     try {
-      const response = await fetch("https://hire-onboardbackend-production.up.railway.app/user/register/", {
+      const response = await fetch("https://hire-onboardbackend-key.up.railway.app/user/register/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

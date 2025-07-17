@@ -90,7 +90,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const res = await fetch("https://hire-onboardbackend-production.up.railway.app/api/employees");
+        const res = await fetch("https://hire-onboardbackend-key.up.railway.app/api/employees");
         const data = await res.json();
         if (Array.isArray(data)) {
           setAllUsers(data);
@@ -153,7 +153,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
 
   const handleSaveNewSalesPerson = async () => {
     try {
-      const response = await fetch("https://hire-onboardbackend-production.up.railway.app/api/employees", {
+      const response = await fetch("https://hire-onboardbackend-key.up.railway.app/api/employees", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newSalesPerson),
@@ -173,7 +173,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
       setSalesPerson(newUserObj._id);
       
       try {
-        await fetch("https://hire-onboardbackend-production.up.railway.app/api/send-welcome-email", {
+        await fetch("https://hire-onboardbackend-key.up.railway.app/api/send-welcome-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -208,7 +208,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
 
   const handleSaveNewRecruiter = async () => {
     try {
-      const response = await fetch("https://hire-onboardbackend-production.up.railway.app/api/employees", {
+      const response = await fetch("https://hire-onboardbackend-key.up.railway.app/api/employees", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newRecruiter),
