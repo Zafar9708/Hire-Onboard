@@ -32,7 +32,7 @@ const LoginForm = () => {
     setIsLoading(true); 
     setErrorMessage("");
     try {
-      const response = await fetch("https://hire-onboardbackend-production.up.railway.app/user/login/", {
+      const response = await fetch("https://hire-onboardbackend-key.up.railway.app/user/login/user/login/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,7 +46,7 @@ const LoginForm = () => {
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("refresh_token", data.refresh_token);
 
-        const userDetailsResponse = await fetch("https://hire-onboardbackend-production.up.railway.app/user/details/", {
+        const userDetailsResponse = await fetch("https://hire-onboardbackend-key.up.railway.app/user/details/", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${data.access_token}`,
