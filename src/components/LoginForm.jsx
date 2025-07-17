@@ -32,7 +32,7 @@ const LoginForm = () => {
     setIsLoading(true); 
     setErrorMessage("");
     try {
-      const response = await fetch("https://hire-onboardbackend-key.up.railway.app/user/login/user/login/", {
+      const response = await fetch("https://hire-onboardbackend-key.up.railway.app/user/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
