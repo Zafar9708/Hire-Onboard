@@ -1,3 +1,6 @@
+
+
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -19,7 +22,8 @@ import {
   Person as PersonIcon,
   Schedule as ScheduleIcon,
   Description as DescriptionIcon,
-  EventNote as EventNoteIcon
+  EventNote as EventNoteIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -49,7 +53,7 @@ const StatusBadge = styled(Chip)(({ theme, status }) => ({
     : theme.palette.warning.dark,
 }));
 
-const OfflineInterviews = () => {
+const OfflineInterviews = ({ searchTerm, statusFilter, dateRangeFilter, selectedDate }) => {
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -86,6 +90,70 @@ const OfflineInterviews = () => {
     setExpandedInterview(expandedInterview === interviewId ? null : interviewId);
   };
 
+  const filterInterviews = () => {
+    let filtered = [...interviews];
+
+    // Apply search term filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(interview => 
+        interview.candidate?.name?.toLowerCase().includes(term) ||
+        interview.candidate?.email?.toLowerCase().includes(term) ||
+        interview.interviewers?.some(i => i.name?.toLowerCase().includes(term)) ||
+        interview.scheduledBy?.toLowerCase().includes(term)
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(interview => interview.status === statusFilter);
+    }
+
+    // Apply date range filter
+    if (dateRangeFilter !== 'all') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      filtered = filtered.filter(interview => {
+        const interviewDate = new Date(interview.date);
+        interviewDate.setHours(0, 0, 0, 0);
+
+        if (dateRangeFilter === 'custom' && selectedDate) {
+          const filterDate = new Date(selectedDate);
+          filterDate.setHours(0, 0, 0, 0);
+          return interviewDate.getTime() === filterDate.getTime();
+        }
+
+        switch (dateRangeFilter) {
+          case 'today':
+            return interviewDate.getTime() === today.getTime();
+          case 'tomorrow':
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            return interviewDate.getTime() === tomorrow.getTime();
+          case 'this_week':
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay());
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            return interviewDate >= startOfWeek && interviewDate <= endOfWeek;
+          case 'next_week':
+            const nextWeekStart = new Date(today);
+            nextWeekStart.setDate(today.getDate() + (7 - today.getDay()));
+            const nextWeekEnd = new Date(nextWeekStart);
+            nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
+            return interviewDate >= nextWeekStart && interviewDate <= nextWeekEnd;
+          default:
+            return true;
+        }
+      });
+    }
+
+    return filtered;
+  };
+
+  const filteredInterviews = filterInterviews();
+
   if (loading) {
     return (
       <Box sx={{ 
@@ -115,7 +183,7 @@ const OfflineInterviews = () => {
         </Typography>
         <Button 
           variant="contained" 
-          color="primary"
+          color="secondary"
           onClick={() => window.location.reload()}
           sx={{ borderRadius: 2, px: 4 }}
         >
@@ -154,32 +222,29 @@ const OfflineInterviews = () => {
             Offline Interviews
           </Typography>
         </Box>
-        <Badge 
-          badgeContent={interviews.length} 
-          color="secondary"
-          sx={{ 
-            '& .MuiBadge-badge': { 
-              fontSize: '0.9rem', 
-              height: 26, 
-              minWidth: 26,
-              borderRadius: 13,
-              padding: '0 8px'
-            } 
-          }}
-        >
-          <Button
-            variant="contained"
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="subtitle1" color="text.secondary">
+            Showing {filteredInterviews.length} of {interviews.length} interviews
+          </Typography>
+          <Badge 
+            badgeContent={interviews.length} 
             color="secondary"
-            startIcon={<CalendarIcon />}
-            onClick={() => navigate('/interviews/schedule-offline')}
-            sx={{ borderRadius: 2 }}
+            sx={{ 
+              '& .MuiBadge-badge': { 
+                fontSize: '0.9rem', 
+                height: 26, 
+                minWidth: 26,
+                borderRadius: 13,
+                padding: '0 8px'
+              } 
+            }}
           >
-            Schedule Offline
-          </Button>
-        </Badge>
+            
+          </Badge>
+        </Box>
       </Box>
 
-      {interviews.length === 0 ? (
+      {filteredInterviews.length === 0 ? (
         <Paper 
           elevation={0}
           sx={{ 
@@ -203,10 +268,12 @@ const OfflineInterviews = () => {
             <LocationIcon sx={{ fontSize: 48, color: theme.palette.text.secondary }} />
           </Box>
           <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
-            No Offline Interviews Scheduled
+            {interviews.length === 0 ? 'No Offline Interviews Scheduled' : 'No Interviews Match Filters'}
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 500, margin: '0 auto' }}>
-            You haven't scheduled any offline interviews yet. Click below to schedule an in-person interview.
+            {interviews.length === 0 
+              ? "You haven't scheduled any offline interviews yet. Click below to schedule an in-person interview."
+              : "No offline interviews match your current filters. Try adjusting your search criteria."}
           </Typography>
           <Button
             variant="contained"
@@ -221,10 +288,10 @@ const OfflineInterviews = () => {
         </Paper>
       ) : (
         <Box>
-          {interviews.map((interview) => (
+          {filteredInterviews.map((interview) => (
             <InterviewCard key={interview._id} elevation={2}>
               <CardContent>
-                <Box sx={{ 
+               <Box sx={{ 
                   display: 'flex', 
                   justifyContent: 'space-between',
                   alignItems: 'flex-start',

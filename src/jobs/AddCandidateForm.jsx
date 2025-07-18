@@ -76,33 +76,37 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await uploadResume(file);
-            setFormData((prev) => ({
-                ...prev,
-                firstName: data.firstName || "",
-                middleName: data.middleName || "",
-                lastName: data.lastName || "",
-                email: data.email || "",
-                mobile: data.phone || "",
-                skills: Array.isArray(data.skills) ? data.skills.join(", ") : data.skills || "",
-                experience: data.experience || "",
-                education: data.education || "",
-                resume: file,
-            }));
-        } catch (error) {
-            console.error("Error parsing resume:", error);
-            setError("Failed to parse resume. Please try again.");
+          const data = await uploadResume(file);
+          setFormData((prev) => ({
+            ...prev,
+            firstName: data.firstName || "",
+            middleName: data.middleName || "",
+            lastName: data.lastName || "",
+            email: data.email || "",
+            mobile: data.phone || "",
+            skills: Array.isArray(data.skills) ? data.skills.join(", ") : data.skills || "",
+            experience: data.experience || "",
+            education: data.education || "",
+            resume: file,
+          }));
+        } catch (err) {
+          console.error("Error parsing resume:", err);
+          setError(err.message || "Failed to parse resume. Please try again.");
         } finally {
-            setIsLoading(false);
+          setIsLoading(false);
         }
-    };
-
-    const handleResumeUpload = (e) => {
+      };
+      
+      const handleResumeUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
-            extractResumeData(file);
+          if (file.size > 5 * 1024 * 1024) {
+            setError("File size should be less than 5MB");
+            return;
+          }
+          extractResumeData(file);
         }
-    };
+      };
 
     const handleDocsUpload = (e) => {
         const file = e.target.files[0];

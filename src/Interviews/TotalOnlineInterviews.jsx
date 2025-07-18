@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -24,6 +23,7 @@ import {
   Description as DescriptionIcon,
   EventNote as EventNoteIcon,
   Work as WorkIcon,
+  Assignment as AssignmentIcon,
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 import axios from 'axios';
@@ -67,7 +67,7 @@ const PlatformIcon = ({ platform }) => {
   }
 };
 
-const OnlineInterviews = () => {
+const OnlineInterviews = ({ searchTerm, statusFilter, dateRangeFilter, selectedDate }) => {
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -103,6 +103,72 @@ const OnlineInterviews = () => {
   const handleExpandClick = (interviewId) => {
     setExpandedInterview(expandedInterview === interviewId ? null : interviewId);
   };
+
+  const filterInterviews = () => {
+    let filtered = [...interviews];
+  
+    // Apply search term filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(interview => (
+        interview.candidate?.name?.toLowerCase().includes(term) ||
+        interview.candidate?.email?.toLowerCase().includes(term) ||
+        interview.interviewers?.some(i => i.name?.toLowerCase().includes(term)) ||
+        interview.scheduledBy?.toLowerCase().includes(term) ||
+        (interview.jobId?.jobName && interview.jobId.jobName.toLowerCase().includes(term)) ||
+        (interview.jobId?.jobTitle && interview.jobId.jobTitle.toLowerCase().includes(term))
+      ));
+    }
+  
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(interview => interview.status === statusFilter);
+    }
+  
+    // Apply date range filter
+    if (dateRangeFilter !== 'all') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+  
+      filtered = filtered.filter(interview => {
+        const interviewDate = new Date(interview.date);
+        interviewDate.setHours(0, 0, 0, 0);
+  
+        if (dateRangeFilter === 'custom' && selectedDate) {
+          const filterDate = new Date(selectedDate);
+          filterDate.setHours(0, 0, 0, 0);
+          return interviewDate.getTime() === filterDate.getTime();
+        }
+  
+        switch (dateRangeFilter) {
+          case 'today':
+            return interviewDate.getTime() === today.getTime();
+          case 'tomorrow':
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            return interviewDate.getTime() === tomorrow.getTime();
+          case 'this_week':
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay());
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            return interviewDate >= startOfWeek && interviewDate <= endOfWeek;
+          case 'next_week':
+            const nextWeekStart = new Date(today);
+            nextWeekStart.setDate(today.getDate() + (7 - today.getDay()));
+            const nextWeekEnd = new Date(nextWeekStart);
+            nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
+            return interviewDate >= nextWeekStart && interviewDate <= nextWeekEnd;
+          default:
+            return true;
+        }
+      });
+    }
+  
+    return filtered;
+  };
+
+  const filteredInterviews = filterInterviews();
 
   if (loading) {
     return (
@@ -173,33 +239,12 @@ const OnlineInterviews = () => {
             Interview Schedule
           </Typography>
         </Box>
-        <Box sx={{
-          display: 'flex',
-          alignItems: 'center',
-          mb: 4,
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 2
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-
-            <IconButton
-              onClick={() => navigate(-1)}
-              sx={{
-                mr: 2,
-                backgroundColor: theme.palette.action.hover,
-                '&:hover': {
-                  backgroundColor: theme.palette.action.selected
-                }
-              }}
-            >
-            </IconButton>
-          </Box>
-        </Box>
-
+        <Typography variant="subtitle1" color="text.secondary">
+          Showing {filteredInterviews.length} of {interviews.length} interviews
+        </Typography>
       </Box>
 
-      {interviews.length === 0 ? (
+      {filteredInterviews.length === 0 ? (
         <Paper
           elevation={0}
           sx={{
@@ -223,10 +268,12 @@ const OnlineInterviews = () => {
             <CalendarIcon sx={{ fontSize: 48, color: theme.palette.text.secondary }} />
           </Box>
           <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
-            No Interviews Scheduled
+            No Interviews Found
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 500, margin: '0 auto' }}>
-            You haven't scheduled any interviews yet. Click below to schedule your first interview.
+            {interviews.length === 0
+              ? "You haven't scheduled any interviews yet. Click below to schedule your first interview."
+              : "No interviews match your current filters. Try adjusting your search criteria."}
           </Typography>
           <Button
             variant="contained"
@@ -240,7 +287,7 @@ const OnlineInterviews = () => {
         </Paper>
       ) : (
         <Box>
-          {interviews.map((interview) => (
+          {filteredInterviews.map((interview) => (
             <InterviewCard key={interview._id} elevation={2}>
               <CardContent>
                 <Box sx={{
@@ -253,17 +300,23 @@ const OnlineInterviews = () => {
                 }}>
                   <Box>
                     <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-                      {interview.candidate.name}
+                      {interview.candidate?.name || 'No candidate name'}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
                       <EmailIcon fontSize="small" sx={{ mr: 1 }} />
-                      {interview.candidate.email}
+                      {interview.candidate?.email || 'No email'}
                     </Typography>
                     {interview.jobId && (
-                      <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                        <WorkIcon fontSize="small" sx={{ mr: 1 }} />
-                        {interview.jobId.jobTitle || 'No job specified'}
-                      </Typography>
+                      <>
+                        <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                          <AssignmentIcon fontSize="small" sx={{ mr: 1 }} />
+                          {interview.jobId.jobName || 'No job name'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                          <WorkIcon fontSize="small" sx={{ mr: 1 }} />
+                          {interview.jobId.jobTitle || 'No job title'}
+                        </Typography>
+                      </>
                     )}
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -351,6 +404,9 @@ const OnlineInterviews = () => {
                           <Typography variant="body2" sx={{ fontWeight: 500 }}>
                             {interview.jobId.jobTitle || 'No job specified'}
                           </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {interview.jobId.jobName || 'No job name'}
+                          </Typography>
                           {interview.jobId._id && (
                             <Button
                               size="small"
@@ -378,7 +434,7 @@ const OnlineInterviews = () => {
                       gap: 1,
                       mb: 3
                     }}>
-                      {interview.interviewers.map((interviewer) => (
+                      {interview.interviewers?.map((interviewer) => (
                         <Chip
                           key={interviewer._id}
                           avatar={<Avatar alt={interviewer.name} sx={{ width: 24, height: 24 }}>{interviewer.name.charAt(0)}</Avatar>}
