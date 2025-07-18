@@ -155,12 +155,15 @@ export const createCandidate = async (formData) => {
 
 export const uploadResume = async (resumeFile) => {
   try {
+    const token = localStorage.getItem("access_token");
+
     const formData = new FormData();
     formData.append("resume", resumeFile);
     
     const response = await api.post("/resumes/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
+        "Authorization": `Bearer ${token}`,
       },
     });
     return response.data;
