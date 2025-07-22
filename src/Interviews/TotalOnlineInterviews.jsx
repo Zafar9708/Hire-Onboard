@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -67,7 +68,7 @@ const PlatformIcon = ({ platform }) => {
   }
 };
 
-const OnlineInterviews = ({ searchTerm, statusFilter, dateRangeFilter, selectedDate }) => {
+const OnlineInterviews = ({ searchTerm, statusFilter, selectedDate }) => {
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -125,43 +126,15 @@ const OnlineInterviews = ({ searchTerm, statusFilter, dateRangeFilter, selectedD
       filtered = filtered.filter(interview => interview.status === statusFilter);
     }
   
-    // Apply date range filter
-    if (dateRangeFilter !== 'all') {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-  
+    // Apply date filter
+    if (selectedDate) {
+      const filterDate = new Date(selectedDate);
+      filterDate.setHours(0, 0, 0, 0);
+      
       filtered = filtered.filter(interview => {
         const interviewDate = new Date(interview.date);
         interviewDate.setHours(0, 0, 0, 0);
-  
-        if (dateRangeFilter === 'custom' && selectedDate) {
-          const filterDate = new Date(selectedDate);
-          filterDate.setHours(0, 0, 0, 0);
-          return interviewDate.getTime() === filterDate.getTime();
-        }
-  
-        switch (dateRangeFilter) {
-          case 'today':
-            return interviewDate.getTime() === today.getTime();
-          case 'tomorrow':
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            return interviewDate.getTime() === tomorrow.getTime();
-          case 'this_week':
-            const startOfWeek = new Date(today);
-            startOfWeek.setDate(today.getDate() - today.getDay());
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 6);
-            return interviewDate >= startOfWeek && interviewDate <= endOfWeek;
-          case 'next_week':
-            const nextWeekStart = new Date(today);
-            nextWeekStart.setDate(today.getDate() + (7 - today.getDay()));
-            const nextWeekEnd = new Date(nextWeekStart);
-            nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
-            return interviewDate >= nextWeekStart && interviewDate <= nextWeekEnd;
-          default:
-            return true;
-        }
+        return interviewDate.getTime() === filterDate.getTime();
       });
     }
   

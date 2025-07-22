@@ -1,5 +1,6 @@
 
 
+
 import React, { useState } from 'react';
 import {
   Box,
@@ -27,11 +28,7 @@ import OfflineInterviews from './TotalOfflineInterviews';
 import VideoCameraFrontIcon from '@mui/icons-material/VideoCameraFront';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import SearchIcon from '@mui/icons-material/Search';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import ClearIcon from '@mui/icons-material/Clear';
-import DateRangeIcon from '@mui/icons-material/DateRange';
-import PersonIcon from '@mui/icons-material/Person';
-import EmailIcon from '@mui/icons-material/Email';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -41,9 +38,8 @@ const TotalInterviews = () => {
   const [tabValue, setTabValue] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [dateRangeFilter, setDateRangeFilter] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [filterExpanded, setFilterExpanded] = useState(false);
   const theme = useTheme();
 
@@ -54,7 +50,6 @@ const TotalInterviews = () => {
   const handleClearFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
-    setDateRangeFilter('all');
     setSelectedDate(null);
   };
 
@@ -65,20 +60,10 @@ const TotalInterviews = () => {
     { value: 'cancelled', label: 'Cancelled' }
   ];
 
-  const dateRangeOptions = [
-    { value: 'all', label: 'All Dates' },
-    { value: 'today', label: 'Today' },
-    { value: 'tomorrow', label: 'Tomorrow' },
-    { value: 'this_week', label: 'This Week' },
-    { value: 'next_week', label: 'Next Week' },
-    { value: 'custom', label: 'Custom Date' }
-  ];
-
   const getFilterBadgeCount = () => {
     let count = 0;
     if (searchTerm) count++;
     if (statusFilter !== 'all') count++;
-    if (dateRangeFilter !== 'all') count++;
     if (selectedDate) count++;
     return count;
   };
@@ -203,7 +188,7 @@ const TotalInterviews = () => {
 
             <Grid container spacing={2}>
               {/* Status Filter */}
-              <Grid item xs={12} sm={6} md={4}>
+              <Grid item xs={12} sm={6} md={6}>
                 <FormControl fullWidth>
                   <InputLabel sx={{ 
                     color: theme.palette.text.secondary,
@@ -256,83 +241,53 @@ const TotalInterviews = () => {
                 </FormControl>
               </Grid>
 
-              {/* Date Range Filter */}
-              <Grid item xs={12} sm={6} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel sx={{ 
-                    color: theme.palette.text.secondary,
-                    '&.Mui-focused': {
-                      color: theme.palette.primary.main
+              {/* Date Picker */}
+              <Grid item xs={12} sm={6} md={6}>
+                <TextField
+                  fullWidth
+                  type="date"
+                  label="Select Interview Date"
+                  value={selectedDate || ''}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  InputLabelProps={{ 
+                    shrink: true,
+                    sx: {
+                      color: theme.palette.text.secondary,
+                      '&.Mui-focused': {
+                        color: theme.palette.primary.main
+                      }
                     }
-                  }}>
-                    Date Range
-                  </InputLabel>
-                  <Select
-                    value={dateRangeFilter}
-                    onChange={(e) => setDateRangeFilter(e.target.value)}
-                    label="Date Range"
-                    sx={{
-                      borderRadius: 2,
-                      '& .MuiOutlinedInput-notchedOutline': {
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CalendarTodayIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: selectedDate && (
+                      <IconButton
+                        edge="end"
+                        onClick={() => setSelectedDate(null)}
+                        size="small"
+                        sx={{ color: theme.palette.text.secondary }}
+                      >
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    ),
+                  }}
+                  sx={{
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
                         borderColor: theme.palette.divider,
                       },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                      '&:hover fieldset': {
                         borderColor: theme.palette.primary.light,
                       },
-                    }}
-                  >
-                    {dateRangeOptions.map((option) => (
-                      <MenuItem 
-                        key={option.value} 
-                        value={option.value}
-                        sx={{
-                          '&.Mui-selected': {
-                            backgroundColor: theme.palette.action.selected,
-                          },
-                          '&:hover': {
-                            backgroundColor: theme.palette.action.hover,
-                          }
-                        }}
-                      >
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                    }
+                  }}
+                />
               </Grid>
-
-              {/* Custom Date Picker */}
-              {dateRangeFilter === 'custom' && (
-                <Grid item xs={12} sm={6} md={4}>
-                  <TextField
-                    fullWidth
-                    type="date"
-                    label="Select Date"
-                    value={selectedDate || ''}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    InputLabelProps={{ 
-                      shrink: true,
-                      sx: {
-                        color: theme.palette.text.secondary,
-                        '&.Mui-focused': {
-                          color: theme.palette.primary.main
-                        }
-                      }
-                    }}
-                    sx={{
-                      borderRadius: 2,
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': {
-                          borderColor: theme.palette.divider,
-                        },
-                        '&:hover fieldset': {
-                          borderColor: theme.palette.primary.light,
-                        },
-                      }
-                    }}
-                  />
-                </Grid>
-              )}
             </Grid>
 
             {/* Filter Actions */}
@@ -442,7 +397,6 @@ const TotalInterviews = () => {
           <OnlineInterviews 
             searchTerm={searchTerm}
             statusFilter={statusFilter}
-            dateRangeFilter={dateRangeFilter}
             selectedDate={selectedDate}
           />
         )}
@@ -450,7 +404,6 @@ const TotalInterviews = () => {
           <OfflineInterviews 
             searchTerm={searchTerm}
             statusFilter={statusFilter}
-            dateRangeFilter={dateRangeFilter}
             selectedDate={selectedDate}
           />
         )}

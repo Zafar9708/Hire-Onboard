@@ -153,21 +153,44 @@ export const createCandidate = async (formData) => {
   }
 };
 
+// utils/api.js
 export const uploadResume = async (resumeFile) => {
   try {
+    console.log('Preparing upload for file:', resumeFile.name);
+    
     const token = localStorage.getItem("access_token");
     const formData = new FormData();
-    formData.append("resume", resumeFile);
     
-    const response = await api.post("/resumes/upload", formData, {
+    // Important: Use the same field name as in multer ('resume')
+    formData.append('resume', resumeFile, resumeFile.name);
+    
+    // Debug FormData contents
+    console.log('FormData entries:');
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
+    const response = await api.post('/resumes/upload', formData, {
       headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`,
+        // Add these debug headers
+        'X-Debug-Filename': resumeFile.name,
+        'X-Debug-Size': resumeFile.size,
+        'X-Debug-Type': resumeFile.type
       },
+      // Add timeout
+      timeout: 30000
     });
+
     return response.data;
   } catch (err) {
-    throw new Error(err.response?.data?.error || err.message);
+    console.error('Upload error details:', {
+      message: err.message,
+      response: err.response?.data,
+      stack: err.stack
+    });
+    throw new Error(err.response?.data?.error || 'File upload failed');
   }
 };
 
