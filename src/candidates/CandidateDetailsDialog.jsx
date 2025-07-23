@@ -1,7 +1,3 @@
-
-
-
-
 import React from "react";
 import {
   Box,
@@ -237,14 +233,14 @@ const deleteCandidateNote = async (id) => {
 };
 
 const downloadCandidateResume = async (id) => {
-  const response = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/resumes/${id}`, {
+  const response = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/resumes/download/${id}`, {
     responseType: 'blob'
   });
   return response;
 };
 
 const previewCandidateResume = async (id) => {
-  const response = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/resumes/${id}`, {
+  const response = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/resumes/preview/${id}`, {
     responseType: 'blob'
   });
   return response;
@@ -391,108 +387,115 @@ const CandidateDetailsPage = () => {
   };
 
   const handleDownloadResume = async () => {
-    if (!candidate?.resume?.path) {
-      setSnackbarMessage('No resume available to download');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      return;
+  if (!candidate?.resume) {
+    setSnackbarMessage('No resume available to download');
+    setSnackbarSeverity('error');
+    setSnackbarOpen(true);
+    return;
+  }
+
+  setIsResumeLoading(true);
+  try {
+    const response = await downloadCandidateResume(candidate._id);
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = `${candidate.firstName}_${candidate.lastName}_Resume.pdf`;
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename=(.+)/);
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1].replace(/['"]/g, '');
+      }
     }
 
-    setIsResumeLoading(true);
-    try {
-      const response = await downloadCandidateResume(id);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-      const contentType = response.headers['content-type'];
-      let fileExt = '.pdf';
-      if (contentType.includes('msword')) fileExt = '.doc';
-      if (contentType.includes('vnd.openxmlformats')) fileExt = '.docx';
+    setTimeout(() => window.URL.revokeObjectURL(url), 100);
 
-      link.setAttribute('download', `${candidate.firstName}_${candidate.lastName}_Resume${fileExt}`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    setSnackbarMessage('Download started');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+  } catch (error) {
+    console.error('Download error:', error);
+    setSnackbarMessage(error.response?.data?.error || 'Failed to download resume');
+    setSnackbarSeverity('error');
+    setSnackbarOpen(true);
+  } finally {
+    setIsResumeLoading(false);
+  }
+};
 
-      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+const handlePreviewResume = async () => {
+  if (!candidate?.resume) {
+    setSnackbarMessage('No resume available to preview');
+    setSnackbarSeverity('error');
+    setSnackbarOpen(true);
+    return;
+  }
 
-      setSnackbarMessage('Download started');
+  setIsResumeLoading(true);
+  try {
+    const response = await previewCandidateResume(candidate._id);
+    const blob = new Blob([response.data], { type: response.headers['content-type'] });
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  } catch (error) {
+    console.error('Preview error:', error);
+    setSnackbarMessage(error.response?.data?.error || 'Failed to preview resume');
+    setSnackbarSeverity('error');
+    setSnackbarOpen(true);
+  } finally {
+    setIsResumeLoading(false);
+  }
+};
+
+const handleShareClick = () => {
+  setShareDialogOpen(true);
+};
+
+const handleShareDialogClose=()=>{
+      setShareDialogOpen(false);
+
+
+}
+
+const handleShareResume = async (method = 'clipboard') => {
+  if (!candidate?.resume) {
+    setSnackbarMessage('No resume available to share');
+    setSnackbarSeverity('error');
+    setSnackbarOpen(true);
+    return;
+  }
+
+  const resumeUrl = `https://hire-onboardbackend-key.up.railway.app/api/resumes/${candidate._id}`;
+
+  try {
+    if (method === 'native' && navigator.share) {
+      await navigator.share({
+        title: `${candidate.firstName} ${candidate.lastName}'s Resume`,
+        text: `Check out ${candidate.firstName}'s resume`,
+        url: resumeUrl,
+      });
+    } else {
+      await navigator.clipboard.writeText(resumeUrl);
+      setSnackbarMessage('Resume link copied to clipboard!');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
-    } catch (error) {
-      console.error('Download error:', error);
-      setSnackbarMessage(error.response?.data?.error || 'Failed to download resume');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    } finally {
-      setIsResumeLoading(false);
     }
-  };
-
-  const handlePreviewResume = async () => {
-    if (!candidate?.resume?.path) {
-      setSnackbarMessage('No resume available to preview');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      return;
-    }
-
-    setIsResumeLoading(true);
-    try {
-      const response = await previewCandidateResume(id);
-      const blob = new Blob([response.data], { type: response.headers['content-type'] });
-      const url = window.URL.createObjectURL(blob);
-      window.open(url, '_blank');
-    } catch (error) {
-      console.error('Preview error:', error);
-      setSnackbarMessage(error.response?.data?.error || 'Failed to preview resume');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    } finally {
-      setIsResumeLoading(false);
-    }
-  };
-
-  const handleShareClick = () => {
-    setShareDialogOpen(true);
-  };
-
-  const handleShareDialogClose = () => {
     setShareDialogOpen(false);
-  };
-
-  const handleShareResume = async (method = 'clipboard') => {
-    if (!candidate?.resume?.path) {
-      setSnackbarMessage('No resume available to share');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      return;
-    }
-
-    const resumeUrl = `https://hire-onboardbackend-key.up.railway.app/api/resumes/${id}`;
-
-    try {
-      if (method === 'native' && navigator.share) {
-        await navigator.share({
-          title: `${candidate.firstName} ${candidate.lastName}'s Resume`,
-          text: `Check out ${candidate.firstName}'s resume`,
-          url: resumeUrl,
-        });
-      } else {
-        await navigator.clipboard.writeText(resumeUrl);
-        setSnackbarMessage('Resume link copied to clipboard!');
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
-      }
-      setShareDialogOpen(false);
-    } catch (err) {
-      console.error('Error sharing:', err);
-      setSnackbarMessage('Failed to share resume');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    }
-  };
+  } catch (err) {
+    console.error('Error sharing:', err);
+    setSnackbarMessage('Failed to share resume');
+    setSnackbarSeverity('error');
+    setSnackbarOpen(true);
+  }
+};
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
@@ -761,98 +764,98 @@ const CandidateDetailsPage = () => {
             </Box>
           )}
 
-          {tabValue === 1 && (
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6" fontWeight="bold">Resume</Typography>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button
-                      variant="contained"
-                      startIcon={<DownloadIcon />}
-                      onClick={handleDownloadResume}
-                      disabled={!candidate?.resume?.path || isResumeLoading}
-                    >
-                      {isResumeLoading ? 'Loading...' : 'Download'}
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      startIcon={<ShareIcon />}
-                      onClick={handleShareClick}
-                      disabled={!candidate?.resume?.path}
-                    >
-                      Share
-                    </Button>
-                  </Box>
-                </Box>
+         {tabValue === 1 && (
+  <Card>
+    <CardContent>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6" fontWeight="bold">Resume</Typography>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="contained"
+            startIcon={<DownloadIcon />}
+            onClick={handleDownloadResume}
+            disabled={!candidate?.resume || isResumeLoading}
+          >
+            {isResumeLoading ? 'Loading...' : 'Download'}
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<ShareIcon />}
+            onClick={handleShareClick}
+            disabled={!candidate?.resume}
+          >
+            Share
+          </Button>
+        </Box>
+      </Box>
 
-                <ResumeViewer>
-                  <ResumeToolbar>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        startIcon={<FileIcon />}
-                        onClick={handleDownloadResume}
-                        disabled={!candidate?.resume?.path || isResumeLoading}
-                      >
-                        {isResumeLoading ? 'Loading...' : 'Download'}
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        startIcon={<PdfIcon />}
-                        onClick={handlePreviewResume}
-                        disabled={!candidate?.resume?.path || isResumeLoading}
-                      >
-                        {isResumeLoading ? 'Loading...' : 'Preview'}
-                      </Button>
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton
-                        size="small"
-                        onClick={handleDownloadResume}
-                        disabled={!candidate?.resume?.path || isResumeLoading}
-                      >
-                        <DownloadIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={handleShareClick}
-                        disabled={!candidate?.resume?.path}
-                      >
-                        <ShareIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  </ResumeToolbar>
-                  <ResumeContent>
-                    {candidate?.resume?.path ? (
-                      isResumeLoading ? (
-                        <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                          <CircularProgress />
-                        </Box>
-                      ) : (
-                        <iframe
-                          src={resumeBlobUrl}
-                          style={{ width: '100%', height: '100%', border: 'none' }}
-                          title="Resume Viewer"
-                        />
-                      )
-                    ) : (
-                      <Box textAlign="center" pt={4}>
-                        <Typography variant="h6" color="textSecondary">
-                          No resume available for this candidate
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary" mt={2}>
-                          Upload a resume to view it here
-                        </Typography>
-                      </Box>
-                    )}
-                  </ResumeContent>
-                </ResumeViewer>
-              </CardContent>
-            </Card>
+      <ResumeViewer>
+        <ResumeToolbar>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<FileIcon />}
+              onClick={handleDownloadResume}
+              disabled={!candidate?.resume || isResumeLoading}
+            >
+              {isResumeLoading ? 'Loading...' : 'Download'}
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<PdfIcon />}
+              onClick={handlePreviewResume}
+              disabled={!candidate?.resume || isResumeLoading}
+            >
+              {isResumeLoading ? 'Loading...' : 'Preview'}
+            </Button>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <IconButton
+              size="small"
+              onClick={handleDownloadResume}
+              disabled={!candidate?.resume || isResumeLoading}
+            >
+              <DownloadIcon fontSize="small" />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={handleShareClick}
+              disabled={!candidate?.resume}
+            >
+              <ShareIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </ResumeToolbar>
+        <ResumeContent>
+          {candidate?.resume ? (
+            isResumeLoading ? (
+              <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                <CircularProgress />
+              </Box>
+            ) : (
+              <iframe
+                src={`https://hire-onboardbackend-key.up.railway.app/api/resumes/preview/${candidate._id}`}
+                style={{ width: '100%', height: '100%', border: 'none' }}
+                title="Resume Viewer"
+              />
+            )
+          ) : (
+            <Box textAlign="center" pt={4}>
+              <Typography variant="h6" color="textSecondary">
+                No resume available for this candidate
+              </Typography>
+              <Typography variant="body2" color="textSecondary" mt={2}>
+                Upload a resume to view it here
+              </Typography>
+            </Box>
           )}
+        </ResumeContent>
+      </ResumeViewer>
+    </CardContent>
+  </Card>
+)}
 
           {tabValue === 2 && (
             <Card>
@@ -1350,34 +1353,34 @@ const CandidateDetailsPage = () => {
         </MenuItem>
       </Menu>
 
-      <Dialog open={shareDialogOpen} onClose={handleShareDialogClose}>
-        <DialogTitle>Share Resume</DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" gutterBottom>
-            Choose how you want to share {candidate.firstName}'s resume:
-          </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<ShareIcon />}
-              onClick={() => handleShareResume('native')}
-              disabled={!navigator.share}
-            >
-              Share via...
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<FileIcon />}
-              onClick={() => handleShareResume('clipboard')}
-            >
-              Copy Link to Clipboard
-            </Button>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleShareDialogClose}>Cancel</Button>
-        </DialogActions>
-      </Dialog>
+     <Dialog open={shareDialogOpen} onClose={handleShareDialogClose}>
+  <DialogTitle>Share Resume</DialogTitle>
+  <DialogContent>
+    <Typography variant="body1" gutterBottom>
+      Choose how you want to share {candidate.firstName}'s resume:
+    </Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+      <Button
+        variant="contained"
+        startIcon={<ShareIcon />}
+        onClick={() => handleShareResume('native')}
+        disabled={!navigator.share}
+      >
+        Share via...
+      </Button>
+      <Button
+        variant="outlined"
+        startIcon={<FileIcon />}
+        onClick={() => handleShareResume('clipboard')}
+      >
+        Copy Link to Clipboard
+      </Button>
+    </Box>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={handleShareDialogClose}>Cancel</Button>
+  </DialogActions>
+</Dialog>
 
       <Snackbar
         open={snackbarOpen}

@@ -130,68 +130,29 @@ export const getAllUsers = async () => {
     }
   };
   
-  
 
-
-
-export const createCandidate = async (formData) => {
-  try {
-    const response = await api.post('/candidates', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-
-    if (response.status===201) {
-      return  response.data;
-    }
-
+export const uploadResume = async (file, jobId) => {
+    const formData = new FormData();
+    formData.append('resume', file);
+    if (jobId) formData.append('jobId', jobId);
     
-  } catch (error) {
-    console.error('API Error:', error);
-    throw error;
-  }
+    const response = await api.post('https://hire-onboardbackend-key.up.railway.app/api/resumes/upload', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+    });
+    return response.data.data; // Assuming your API returns { data: { ...resumeData } }
 };
 
-// utils/api.js
-export const uploadResume = async (resumeFile) => {
-  try {
-    console.log('Preparing upload for file:', resumeFile.name);
-    
-    const token = localStorage.getItem("access_token");
-    const formData = new FormData();
-    
-    // Important: Use the same field name as in multer ('resume')
-    formData.append('resume', resumeFile, resumeFile.name);
-    
-    // Debug FormData contents
-    console.log('FormData entries:');
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-
-    const response = await api.post('/resumes/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${token}`,
-        // Add these debug headers
-        'X-Debug-Filename': resumeFile.name,
-        'X-Debug-Size': resumeFile.size,
-        'X-Debug-Type': resumeFile.type
-      },
-      // Add timeout
-      timeout: 30000
+export const createCandidate = async (formData) => {
+    const response = await api.post('https://hire-onboardbackend-key.up.railway.app/api/candidates', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
     });
-
     return response.data;
-  } catch (err) {
-    console.error('Upload error details:', {
-      message: err.message,
-      response: err.response?.data,
-      stack: err.stack
-    });
-    throw new Error(err.response?.data?.error || 'File upload failed');
-  }
 };
 
 // Function to fetch resume by candidate ID
