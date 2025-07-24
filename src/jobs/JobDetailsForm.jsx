@@ -631,7 +631,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/clients");
+        const res = await fetch("https://hire-onboardbackend-key.up.railway.app/api/clients");
         const data = await res.json();
         if (data.success && Array.isArray(data.clients)) {
           setClients(data.clients);
@@ -784,7 +784,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
 
   const handleSaveNewClient = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/clients", {
+      const response = await fetch("https://hire-onboardbackend-key.up.railway.app/api/clients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newClientName }),
@@ -805,7 +805,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
 
   const handleDeleteClient = async (clientId) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/clients/${clientId}`, {
+      const response = await fetch(`https://hire-onboardbackend-key.up.railway.app/api/clients/${clientId}`, {
         method: "DELETE",
       });
 
