@@ -20,7 +20,7 @@ const Sidebar = () => {
     const navigate = useNavigate();
     const loacation = useLocation();
 
-    const handleNavigation = (path,index) => {
+    const handleNavigation = (path, index) => {
         setActiveIndex(index)
         navigate(path);
     };
@@ -45,7 +45,7 @@ const Sidebar = () => {
                     textAlign: 'center',
                     fontWeight: 'bold',
                     color: 'violet',
-                    mt:0.5,
+                    mt: 0.5,
                     mb: 3,
                     fontSize: '1.30rem'
                 }}
@@ -75,29 +75,46 @@ const Sidebar = () => {
                 ].map((item, index) => {
                     const isActive = location.pathname === item.path || (index !== 0 && location.pathname.startsWith(item.path));
                     return (
-                    <Button
-                        key={index}
-                        onClick={() => handleNavigation(item.path,index)}
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            color: isActive ? 'primary.contrastText' : 'white', // Change text color based on active state
-                            backgroundColor: isActive? 'primary.main' : 'transparent',
-                            py: 1.5,
-                            '&:hover': {
-                                backgroundColor: 'primary.light',
-                            }
-                        }}
-                        disableRipple
-                    >
-                        {item.icon}
-                        <Typography variant="caption" sx={{ mt: 0.5 }}>
-                            {item.text}
-                        </Typography>
-                    </Button>
-                )})}
+                        <Button
+                            key={index}
+                            onClick={() => handleNavigation(item.path, index)}
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                color: isActive ? 'primary.contrastText' : 'white', 
+                                backgroundColor: isActive ? 'primary.main' : 'transparent',
+                                py: 1.5,
+                                '&:hover': {
+                                    backgroundColor: 'primary.light',
+                                }
+                            }}
+                            disableRipple
+                        >
+                            {item.icon}
+                            <Typography variant="caption" sx={{ mt: 0.5 }}>
+                                {item.text}
+                            </Typography>
+                        </Button>
+                    )
+                })}
             </Box>
+            <Typography
+                variant="caption"
+                sx={{
+                    textAlign: 'center',
+                    mt: 2,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    background: 'linear-gradient(90deg, #06b6d4, #3b82f6, #8b5cf6)', 
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    display: 'inline-block',
+                }}
+            >
+                Powered by Wrocus Technology
+            </Typography>
+
         </Box>
     );
 };
