@@ -18,7 +18,7 @@ const api = axios.create({
     const token = localStorage.getItem("access_token");
     console.log("Authorization header:", `Bearer ${token}`); 
 
-    const response = await api.post("/jobs", jobData, {
+    const response = await api.post("https://hire-onboardbackend-key.up.railway.app/api/jobs", jobData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -115,20 +115,42 @@ export const getAllUsers = async () => {
     }
   };
 
-  export const addNewLocation = async (location) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/job-forms/locations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ location })
-      });
-      if (!response.ok) throw new Error('Failed to add location');
-      return await response.json();
-    } catch (error) {
-      console.error('Error adding location:', error);
-      throw error;
+export const addNewLocation = async (locationName) => {
+  try {
+    const response = await fetch('https://hire-onboardbackend-key.up.railway.app/api/locations', {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem('token')}` // Add if using auth
+      },
+      body: JSON.stringify({ 
+        name: locationName.trim() // Ensure we send trimmed name
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to add location');
     }
-  };
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding location:', error);
+    throw error;
+  }
+};
+
+export const fetchLocations = async () => {
+  try {
+    const response = await fetch('https://hire-onboardbackend-key.up.railway.app/api/locations');
+    if (!response.ok) throw new Error('Failed to fetch locations');
+    const data = await response.json();
+    return data.data; // Assuming your API returns { success: true, data: [...] }
+  } catch (error) {
+    console.error('Error fetching locations:', error);
+    throw error;
+  }
+};
   
 
 export const uploadResume = async (file, jobId) => {
@@ -167,12 +189,37 @@ export const fetchCandidateResume = async (candidateId) => {
 
 export const fetchAlljobs = async ()=>{
   try {
-    const response = await api.get(`/jobs`);
+    const response = await api.get(`https://hire-onboardbackend-key.up.railway.app/api/jobs`);
     return response.data;
   } catch (err) {
     throw new Error(err.response?.data?.error || err.message);
   }
 };
+export const getAllLocations = async ()=>{
+  try {
+    const response = await api.get(`https://hire-onboardbackend-key.up.railway.app/api/locations`);
+    return response.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.error || err.message);
+  }
+};
+export const getAllDepartments = async ()=>{
+  try {
+    const response = await api.get(`https://hire-onboardbackend-key.up.railway.app/api/departments`);
+    return response.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.error || err.message);
+  }
+};
+export const getAllRecuiter = async ()=>{
+  try {
+    const response = await api.get(`https://hire-onboardbackend-key.up.railway.app/api/employees`);
+    return response.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.error || err.message);
+  }
+};
+
 
 export const updateJob = async (id, jobData) => {
   try {

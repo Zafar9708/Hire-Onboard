@@ -35,8 +35,6 @@
 //   TextField,
 //   Snackbar,
 //   Alert,
-
-
 // } from "@mui/material";
 // import {
 //   Star as StarIcon,
@@ -51,6 +49,7 @@
 //   Group as GroupIcon,
 //   ViewModule as ViewModuleIcon,
 //   TableRows as TableRowsIcon,
+
 //   ArrowDropDown as ArrowDropDownIcon,
 //   FilterList as FilterListIcon,
 //   MoreVert as MoreVertIcon,
@@ -58,9 +57,10 @@
 //   Close as CloseIcon,
 //   FileUpload as FileUploadIcon,
 //   ContentCopy as ContentCopyIcon,
-
 // } from "@mui/icons-material";
 // import { parseISO, format } from "date-fns";
+// import GridViewIcon from '@mui/icons-material/GridView';
+// import ViewListIcon from '@mui/icons-material/ViewList';
 // import { useNavigate } from "react-router-dom";
 // import api, { fetchAlljobs, getAllUsers } from "../utils/api";
 
@@ -97,6 +97,7 @@
 //   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 //   const [recruiters, setRecruiters] = useState([]);
 //   const [salesPersons, setSalesPersons] = useState([]);
+//   const [clients, setClients] = useState([]);
 //   const [statusChangeDialog, setStatusChangeDialog] = useState({
 //     open: false,
 //     newStatus: '',
@@ -110,13 +111,51 @@
 //     return `WR${number.toString().padStart(2, '0')}`;
 //   };
 
+//   const getClientName = (clientId) => {
+//     if (!clientId) return "Not assigned";
+//     const client = clients.find(c => c._id === clientId);
+//     return client ? client.name : clientId;
+//   };
+
+//   const getLocationNames = (locations) => {
+//     if (!locations || !Array.isArray(locations)) return "Remote";
+//     return locations.map(loc => loc.name).join(', ');
+//   };
+
 //   useEffect(() => {
 //     const fetchData = async () => {
 //       try {
 //         setLoading(true);
 
-//         const jobsResponse = await fetchAlljobs();
-//         const allJobs = jobsResponse.jobs;
+//         // Fetch all data in parallel
+//         const [jobsResponse, usersResponse, clientsResponse] = await Promise.all([
+//           fetchAlljobs(),
+//           getAllUsers(),
+//           api.get('/clients')
+//         ]);
+
+//         // Validate jobs response
+//         const allJobs = jobsResponse?.jobs || [];
+//         if (!Array.isArray(allJobs)) {
+//           console.error('Invalid jobs data format:', jobsResponse);
+//           throw new Error('Invalid jobs data format');
+//         }
+
+//         // Validate users response
+//         const allUsers = usersResponse?.users || [];
+//         if (!Array.isArray(allUsers)) {
+//           console.error('Invalid users data format:', usersResponse);
+//           throw new Error('Invalid users data format');
+//         }
+
+//         // Validate clients response
+//         const allClients = clientsResponse?.data?.clients || [];
+//         if (!Array.isArray(allClients)) {
+//           console.error('Invalid clients data format:', clientsResponse);
+//           throw new Error('Invalid clients data format');
+//         }
+
+//         setClients(allClients);
 
 //         const jobsWithNumbers = allJobs.map((job, index) => ({
 //           ...job,
@@ -128,9 +167,6 @@
 
 //         setJobs(activeJobs);
 //         setArchivedJobs(archived);
-
-//         const usersResponse = await getAllUsers();
-//         const allUsers = usersResponse.users;
 
 //         const jobRecruiters = allJobs.flatMap(job =>
 //           Array.isArray(job.jobFormId?.recruitingPerson) ?
@@ -155,19 +191,25 @@
 //         setRecruiters(uniqueRecruiters);
 //         setSalesPersons(uniqueSalesPersons);
 
-//         setLoading(false);
 //       } catch (error) {
 //         console.error('Failed to fetch data:', error);
 //         if (error.response?.status === 401) {
 //           localStorage.removeItem('token');
 //           navigate('/login');
 //         }
+//         setJobs([]);
+//         setArchivedJobs([]);
+//         setClients([]);
+//         setRecruiters([]);
+//         setSalesPersons([]);
+//       } finally {
 //         setLoading(false);
 //       }
 //     };
 
+
 //     fetchData();
-//   }, []);
+//   }, [navigate]);
 
 //   const filtersConfig = [
 //     { label: "Status", id: "status", options: ["Active", "On Hold", "Closed Own", "Closed Lost"] },
@@ -188,22 +230,20 @@
 //     if (searchTerm) {
 //       const term = searchTerm.toLowerCase();
 //       result = result.filter(job => {
-//         // Safely get all searchable fields with fallbacks
 //         const jobTitle = job.jobTitle || '';
 //         const jobNumber = job.formattedJobNumber || '';
 //         const location = (job.jobFormId?.location || '').toString();
 //         const department = job.department || '';
-//         const client = (job.jobFormId?.Client || '').toString();
+//         const client = (job.jobFormId?.Client ? getClientName(job.jobFormId.Client) : '').toString();
 //         const salesPerson = (job.jobFormId?.salesPerson || '').toString();
-        
-//         // Handle recruitingPerson which could be an array or string
+
 //         let recruitingPersons = [];
 //         if (Array.isArray(job.jobFormId?.recruitingPerson)) {
 //           recruitingPersons = job.jobFormId.recruitingPerson.map(p => p?.toString() || '');
 //         } else if (job.jobFormId?.recruitingPerson) {
 //           recruitingPersons = [job.jobFormId.recruitingPerson.toString()];
 //         }
-    
+
 //         return (
 //           jobTitle.toLowerCase().includes(term) ||
 //           jobNumber.toLowerCase().includes(term) ||
@@ -250,7 +290,7 @@
 //     });
 
 //     setFilteredJobs(result);
-//   }, [jobs, archivedJobs, showArchived, showPriority, searchTerm, filters]);
+//   }, [jobs, archivedJobs, showArchived, showPriority, searchTerm, filters, clients]);
 
 //   const activeJobsCount = jobs.filter(job => {
 //     const targetDate = job.jobFormId?.targetHireDate ? parseISO(job.jobFormId.targetHireDate) : null;
@@ -631,7 +671,6 @@
 //         </Alert>
 //       </Snackbar>
 
-//       {/* Header Section */}
 //       <Paper elevation={0} sx={{
 //         display: "flex",
 //         flexWrap: "wrap",
@@ -668,14 +707,14 @@
 //               color={view === "card" ? "primary" : "default"}
 //               size="small"
 //             >
-//               <ViewModuleIcon />
+//               <GridViewIcon />
 //             </IconButton>
 //             <IconButton
 //               onClick={() => setView("table")}
 //               color={view === "table" ? "primary" : "default"}
 //               size="small"
 //             >
-//               <TableRowsIcon />
+//               <ViewListIcon />
 //             </IconButton>
 //           </Box>
 
@@ -786,7 +825,6 @@
 //             </Grid>
 //           </Grid>
 
-//           {/* Search Input Section */}
 //           <Box sx={{ mt: 2, display: 'flex', maxWidth: '100%' }}>
 //             <InputBase
 //               fullWidth
@@ -809,7 +847,6 @@
 //         </Paper>
 //       )}
 
-//       {/* Job List Section */}
 //       {filteredJobs.length === 0 ? (
 //         <Box display="flex" justifyContent="center" mt={4}>
 //           <Typography variant="h6">
@@ -855,9 +892,11 @@
 //                     <TableCell sx={{ fontWeight: 500 }}>{job.formattedJobNumber}</TableCell>
 //                     <TableCell>{job.jobTitle}</TableCell>
 //                     <TableCell>{job.department}</TableCell>
-//                     <TableCell>{jobForm.location || "Remote"}</TableCell>
+//                     <TableCell>
+//                       {jobForm.locations ? getLocationNames(jobForm.locations) : "Remote"}
+//                     </TableCell>
 //                     <TableCell>{jobForm.BusinessUnit ? jobForm.BusinessUnit.charAt(0).toUpperCase() + jobForm.BusinessUnit.slice(1) : "-"}</TableCell>
-//                     <TableCell>{jobForm.Client ? `Client: ${jobForm.Client}` : "-"}</TableCell>
+//                     <TableCell>{jobForm.Client ? getClientName(jobForm.Client) : "-"}</TableCell>
 //                     <TableCell align="center">{jobForm.openings || 0}</TableCell>
 //                     <TableCell>
 //                       {targetDate ? format(targetDate, 'MMM dd') : "-"}
@@ -989,7 +1028,7 @@
 //                     <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
 //                     <LocationIcon color="action" fontSize="small" />
 //                     <Typography variant="body2" color="text.secondary" noWrap>
-//                       {jobForm.location || "Remote"}
+//                       {jobForm.locations ? getLocationNames(jobForm.locations) : "Remote"}
 //                     </Typography>
 //                   </Box>
 
@@ -1030,7 +1069,6 @@
 //                         >
 //                           Hire Date: {targetDate ? format(targetDate, 'MMM dd') : "Not set"}
 //                         </Typography>
-
 //                       </Box>
 //                     </Box>
 //                     <Chip
@@ -1060,32 +1098,36 @@
 //                   </Box>
 
 //                   <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
-//                     <Box display="flex" flexDirection="column" alignItems="flex-end">
+//                     <Box display="flex" flexDirection="column" alignItems="flex-start">
 //                       <Box display="flex" alignItems="center" gap={0.5}>
 //                         <BusinessIcon fontSize="small" color="action" />
 //                         <Typography variant="caption"
-//                         color="text.secondary"
-//                         sx={{
-//                           fontWeight: 'bold',
-//                           paddingX: 1,
-//                           borderRadius: 1,
-//                           display: 'inline-block'
-//                         }}>
+//                           color="text.secondary"
+//                           sx={{
+//                             fontWeight: 'bold',
+//                             paddingLeft: 1,
+//                             display: 'inline-block'
+//                           }}>
 //                           Unit: {jobForm.BusinessUnit === 'external' ? 'External' : 'Internal'}
 //                         </Typography>
 //                       </Box>
 
 //                       {jobForm.BusinessUnit === 'external' && jobForm.Client && (
-//                         <Box display="flex" alignItems="center" gap={0.5}>
+//                         <Box display="flex" alignItems="center" gap={0.5} sx={{ mt: 0.5 }}>
 //                           <PersonIcon fontSize="small" color="action" />
-//                           <Typography variant="caption" fontWeight={600} >
-//                             Client: {jobForm.Client}
+//                           <Typography variant="caption"
+//                             color="text.secondary"
+//                             sx={{
+//                               fontWeight: 'bold',
+//                               paddingLeft: 1,
+//                               display: 'inline-block'
+//                             }}>
+//                             Client: {getClientName(jobForm.Client)}
 //                           </Typography>
 //                         </Box>
 //                       )}
 //                     </Box>
 //                   </Box>
-
 //                 </CardContent>
 
 //                 <Menu
@@ -1121,6 +1163,10 @@
 // };
 
 // export default JobsPage;
+
+//----------
+
+
 
 import React, { useState, useEffect } from "react";
 import {
@@ -1180,8 +1226,10 @@ import {
   ContentCopy as ContentCopyIcon,
 } from "@mui/icons-material";
 import { parseISO, format } from "date-fns";
+import GridViewIcon from '@mui/icons-material/GridView';
+import ViewListIcon from '@mui/icons-material/ViewList';
 import { useNavigate } from "react-router-dom";
-import api, { fetchAlljobs, getAllUsers } from "../utils/api";
+import api, { fetchAlljobs, getAllUsers,getAllLocations, getAllRecuiter, getAllDepartments } from "../utils/api";
 
 const statusOptions = {
   'Active': ['Closed Own', 'Closed Lost', 'On Hold', 'Archived'],
@@ -1192,8 +1240,6 @@ const statusOptions = {
   'Default': ['Active', 'Closed Own', 'Closed Lost', 'On Hold', 'Archived']
 };
 
-const departmentOptions = ["Developer", "Tester", "QA", "UI/UX", "DevOps", "Support"];
-const locationOptions = ["Mumbai", "Gurgaon", "Delhi", "Bengaluru", "Pune"];
 const businessUnitOptions = ["Internal", "External"];
 
 const JobsPage = () => {
@@ -1217,6 +1263,8 @@ const JobsPage = () => {
   const [recruiters, setRecruiters] = useState([]);
   const [salesPersons, setSalesPersons] = useState([]);
   const [clients, setClients] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [statusChangeDialog, setStatusChangeDialog] = useState({
     open: false,
     newStatus: '',
@@ -1236,101 +1284,133 @@ const JobsPage = () => {
     return client ? client.name : clientId;
   };
 
+  const getLocationNames = (locations) => {
+    if (!locations || !Array.isArray(locations)) return "Remote";
+    return locations.map(loc => loc.name).join(', ');
+  };
+
   useEffect(() => {
     const fetchData = async () => {
-  try {
-    setLoading(true);
+      try {
+        setLoading(true);
 
-    // Fetch all data in parallel
-    const [jobsResponse, usersResponse, clientsResponse] = await Promise.all([
-      fetchAlljobs(),
-      getAllUsers(),
-      api.get('/clients')
-    ]);
+        // Fetch all data in parallel
+        const [
+          jobsResponse, 
+          usersResponse, 
+          clientsResponse,
+          departmentsResponse,
+          locationsResponse,
+          employeesResponse
+        ] = await Promise.all([
+          fetchAlljobs(),
+          getAllUsers(),
+          api.get('/clients'),
+          getAllDepartments(),
+          getAllLocations(),
+          getAllRecuiter()
+        ]);
 
-    // Validate jobs response
-    const allJobs = jobsResponse?.jobs || [];
-    if (!Array.isArray(allJobs)) {
-      console.error('Invalid jobs data format:', jobsResponse);
-      throw new Error('Invalid jobs data format');
-    }
+        // Set departments
+        const departmentsData = await getAllDepartments();
+        setDepartments(departmentsData);
 
-    // Validate users response
-    const allUsers = usersResponse?.users || [];
-    if (!Array.isArray(allUsers)) {
-      console.error('Invalid users data format:', usersResponse);
-      throw new Error('Invalid users data format');
-    }
+        // Set locations
+        const locationsData = locationsResponse.data || [];
+        setLocations(locationsData);
 
-    // Validate clients response
-    const allClients = clientsResponse?.data?.clients || [];
-    if (!Array.isArray(allClients)) {
-      console.error('Invalid clients data format:', clientsResponse);
-      throw new Error('Invalid clients data format');
-    }
+        // Set recruiters (only HR/Recruiter role)
+        const employeesData = employeesResponse.data || [];
+        const recruiterEmployees = employeesData.filter(emp => emp.role === 'HR/Recruiter');
+        setRecruiters(recruiterEmployees.map(emp => emp.name));
 
-    setClients(allClients);
+        // Validate jobs response
+        const allJobs = jobsResponse?.jobs || [];
+        if (!Array.isArray(allJobs)) {
+          console.error('Invalid jobs data format:', jobsResponse);
+          throw new Error('Invalid jobs data format');
+        }
 
-    const jobsWithNumbers = allJobs.map((job, index) => ({
-      ...job,
-      formattedJobNumber: formatJobNumber(index)
-    }));
+        // Validate users response
+        const allUsers = usersResponse?.users || [];
+        if (!Array.isArray(allUsers)) {
+          console.error('Invalid users data format:', usersResponse);
+          throw new Error('Invalid users data format');
+        }
 
-    const activeJobs = jobsWithNumbers.filter(job => job.status !== 'Archived');
-    const archived = jobsWithNumbers.filter(job => job.status === 'Archived');
+        // Validate clients response
+        const allClients = clientsResponse?.data?.clients || [];
+        if (!Array.isArray(allClients)) {
+          console.error('Invalid clients data format:', clientsResponse);
+          throw new Error('Invalid clients data format');
+        }
 
-    setJobs(activeJobs);
-    setArchivedJobs(archived);
+        setClients(allClients);
 
-    const jobRecruiters = allJobs.flatMap(job =>
-      Array.isArray(job.jobFormId?.recruitingPerson) ?
-        job.jobFormId.recruitingPerson :
-        job.jobFormId?.recruitingPerson ? [job.jobFormId.recruitingPerson] : []
-    ).filter(Boolean);
+        const jobsWithNumbers = allJobs.map((job, index) => ({
+          ...job,
+          formattedJobNumber: formatJobNumber(index)
+        }));
 
-    const jobSalesPersons = allJobs.map(job =>
-      job.jobFormId?.salesPerson
-    ).filter(Boolean);
+        const activeJobs = jobsWithNumbers.filter(job => job.status !== 'Archived');
+        const archived = jobsWithNumbers.filter(job => job.status === 'Archived');
 
-    const uniqueRecruiters = [...new Set([
-      ...jobRecruiters,
-      ...allUsers.filter(user => user.role === 'recruiter').map(user => user.username)
-    ])];
+        setJobs(activeJobs);
+        setArchivedJobs(archived);
 
-    const uniqueSalesPersons = [...new Set([
-      ...jobSalesPersons,
-      ...allUsers.filter(user => user.role === 'sales').map(user => user.username)
-    ])];
+        const jobRecruiters = allJobs.flatMap(job =>
+          Array.isArray(job.jobFormId?.recruitingPerson) ?
+            job.jobFormId.recruitingPerson :
+            job.jobFormId?.recruitingPerson ? [job.jobFormId.recruitingPerson] : []
+        ).filter(Boolean);
 
-    setRecruiters(uniqueRecruiters);
-    setSalesPersons(uniqueSalesPersons);
+        const jobSalesPersons = allJobs.map(job =>
+          job.jobFormId?.salesPerson
+        ).filter(Boolean);
 
-  } catch (error) {
-    console.error('Failed to fetch data:', error);
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      navigate('/login');
-    }
-      setJobs([]);
-    setArchivedJobs([]);
-    setClients([]);
-    setRecruiters([]);
-    setSalesPersons([]);
-  } finally {
-    setLoading(false);
-  }
-};
+        const uniqueRecruiters = [...new Set([
+          ...jobRecruiters,
+          ...recruiterEmployees.map(emp => emp.name)
+        ])];
 
+        const uniqueSalesPersons = [...new Set([
+          ...jobSalesPersons,
+          ...allUsers.filter(user => user.role === 'sales').map(user => user.username)
+        ])];
+
+        setRecruiters(uniqueRecruiters);
+        setSalesPersons(uniqueSalesPersons);
+
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        if (error.response?.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/login');
+        }
+        setJobs([]);
+        setArchivedJobs([]);
+        setClients([]);
+        setRecruiters([]);
+        setSalesPersons([]);
+        setDepartments([]);
+        setLocations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchData();
   }, [navigate]);
 
-    const filtersConfig = [
+  const filtersConfig = [
     { label: "Status", id: "status", options: ["Active", "On Hold", "Closed Own", "Closed Lost"] },
     { label: "Business Unit", id: "businessUnit", options: businessUnitOptions },
-    { label: "Department", id: "department", options: departmentOptions },
-    { label: "Recruiter", id: "recruiter", options: recruiters },
-    { label: "Location", id: "location", options: locationOptions },
+{ 
+    label: "Department", 
+    id: "department", 
+    options: Array.isArray(departments) ? departments : [] 
+  },    { label: "Recruiter", id: "recruiter", options: recruiters },
+    { label: "Location", id: "location", options: locations.map(loc => loc.name) },
   ];
 
   useEffect(() => {
@@ -1346,22 +1426,22 @@ const JobsPage = () => {
       result = result.filter(job => {
         const jobTitle = job.jobTitle || '';
         const jobNumber = job.formattedJobNumber || '';
-        const location = (job.jobFormId?.location || '').toString();
+        const locationNames = job.jobFormId?.locations ? getLocationNames(job.jobFormId.locations) : '';
         const department = job.department || '';
         const client = (job.jobFormId?.Client ? getClientName(job.jobFormId.Client) : '').toString();
         const salesPerson = (job.jobFormId?.salesPerson || '').toString();
-        
+
         let recruitingPersons = [];
         if (Array.isArray(job.jobFormId?.recruitingPerson)) {
           recruitingPersons = job.jobFormId.recruitingPerson.map(p => p?.toString() || '');
         } else if (job.jobFormId?.recruitingPerson) {
           recruitingPersons = [job.jobFormId.recruitingPerson.toString()];
         }
-    
+
         return (
           jobTitle.toLowerCase().includes(term) ||
           jobNumber.toLowerCase().includes(term) ||
-          location.toLowerCase().includes(term) ||
+          locationNames.toLowerCase().includes(term) ||
           department.toLowerCase().includes(term) ||
           client.toLowerCase().includes(term) ||
           salesPerson.toLowerCase().includes(term) ||
@@ -1395,7 +1475,8 @@ const JobsPage = () => {
             case 'salesPerson':
               return job.jobFormId?.salesPerson === value;
             case 'location':
-              return job.jobFormId?.location === value;
+              const jobLocations = job.jobFormId?.locations || [];
+              return jobLocations.some(loc => loc.name === value);
             default:
               return true;
           }
@@ -1821,14 +1902,14 @@ const JobsPage = () => {
               color={view === "card" ? "primary" : "default"}
               size="small"
             >
-              <ViewModuleIcon />
+              <GridViewIcon />
             </IconButton>
             <IconButton
               onClick={() => setView("table")}
               color={view === "table" ? "primary" : "default"}
               size="small"
             >
-              <TableRowsIcon />
+              <ViewListIcon />
             </IconButton>
           </Box>
 
@@ -2006,7 +2087,9 @@ const JobsPage = () => {
                     <TableCell sx={{ fontWeight: 500 }}>{job.formattedJobNumber}</TableCell>
                     <TableCell>{job.jobTitle}</TableCell>
                     <TableCell>{job.department}</TableCell>
-                    <TableCell>{jobForm.location || "Remote"}</TableCell>
+                    <TableCell>
+                      {jobForm.locations ? getLocationNames(jobForm.locations) : "Remote"}
+                    </TableCell>
                     <TableCell>{jobForm.BusinessUnit ? jobForm.BusinessUnit.charAt(0).toUpperCase() + jobForm.BusinessUnit.slice(1) : "-"}</TableCell>
                     <TableCell>{jobForm.Client ? getClientName(jobForm.Client) : "-"}</TableCell>
                     <TableCell align="center">{jobForm.openings || 0}</TableCell>
@@ -2140,7 +2223,7 @@ const JobsPage = () => {
                     <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
                     <LocationIcon color="action" fontSize="small" />
                     <Typography variant="body2" color="text.secondary" noWrap>
-                      {jobForm.location || "Remote"}
+                      {jobForm.locations ? getLocationNames(jobForm.locations) : "Remote"}
                     </Typography>
                   </Box>
 
@@ -2227,7 +2310,7 @@ const JobsPage = () => {
                       {jobForm.BusinessUnit === 'external' && jobForm.Client && (
                         <Box display="flex" alignItems="center" gap={0.5} sx={{ mt: 0.5 }}>
                           <PersonIcon fontSize="small" color="action" />
-                          <Typography variant="caption" 
+                          <Typography variant="caption"
                             color="text.secondary"
                             sx={{
                               fontWeight: 'bold',
