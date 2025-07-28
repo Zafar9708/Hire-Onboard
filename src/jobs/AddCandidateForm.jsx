@@ -908,11 +908,11 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                             Upload Resume (PDF, DOC, DOCX)
                         </Typography>
-                        
+                        {formData.resumeFile && (
                             <Typography variant="body2" sx={{ mt: 1 }}>
                                 {formData.resumeFile.name}
                             </Typography>
-                        
+                        )}
                     </Box>
 
                     {/* Candidate Information Header with Analysis Button */}
