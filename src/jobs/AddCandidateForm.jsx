@@ -1361,7 +1361,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                 fullWidth
             >
                 <DialogTitle>Resume Analysis</DialogTitle>
-                <DialogContent dividers>
+                {/* <DialogContent dividers>
                     {analysisData && (
                         <Box>
                             <Typography variant="h6" gutterBottom>
@@ -1433,7 +1433,111 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                             </Typography>
                         </Box>
                     )}
-                </DialogContent>
+                </DialogContent> */}
+
+                <DialogContent dividers>
+  {analysisData && (
+    <Box>
+      {/* Handle both matchPercentage and matchingScore */}
+      <Typography variant="h6" gutterBottom>
+        Matching Score: {analysisData.resume.matchPercentage || analysisData.resume.matchingScore || 0}%
+      </Typography>
+      
+      <Divider sx={{ my: 2 }} />
+      
+      {/* Show recommendation if exists */}
+      {analysisData.resume.aiAnalysis.recommendation && (
+        <>
+          <Typography variant="subtitle1" gutterBottom>
+            Recommendation:
+          </Typography>
+          <Typography variant="body2" paragraph>
+            {analysisData.resume.aiAnalysis.recommendation}
+          </Typography>
+          <Divider sx={{ my: 2 }} />
+        </>
+      )}
+      
+      {/* Matching Skills - handle empty case */}
+      <Typography variant="subtitle1" gutterBottom>
+        Matching Skills:
+      </Typography>
+      {analysisData.resume.aiAnalysis.matchingSkills?.length > 0 ? (
+        <Box sx={{ mb: 3 }}>
+          {analysisData.resume.aiAnalysis.matchingSkills.map((skill, index) => (
+            <Box key={index} sx={{ mb: 1 }}>
+              <Typography variant="body2">
+                {skill.skill} ({(skill.confidence * 100).toFixed(0)}% match)
+              </Typography>
+              <LinearProgress
+                variant="determinate"
+                value={skill.confidence * 100}
+                sx={{ height: 8, borderRadius: 4 }}
+              />
+            </Box>
+          ))}
+        </Box>
+      ) : (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          No matching skills identified
+        </Typography>
+      )}
+      
+      <Divider sx={{ my: 2 }} />
+      
+      {/* Missing Skills - your backend does provide these */}
+      <Typography variant="subtitle1" gutterBottom>
+        Missing Skills:
+      </Typography>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+        {analysisData.resume.aiAnalysis.missingSkills.map((skill, index) => (
+          <Chip
+            key={index}
+            label={skill}
+            color="error"
+            variant="outlined"
+            sx={{ mb: 1 }}
+          />
+        ))}
+      </Box>
+      
+      {/* Only show education/experience if they have content */}
+      {analysisData.resume.aiAnalysis.educationMatch && (
+        <>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="subtitle1" gutterBottom>
+            Education Match:
+          </Typography>
+          <Typography variant="body2" paragraph>
+            {analysisData.resume.aiAnalysis.educationMatch}
+          </Typography>
+        </>
+      )}
+      
+      {analysisData.resume.aiAnalysis.experienceMatch && (
+        <>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="subtitle1" gutterBottom>
+            Experience Match:
+          </Typography>
+          <Typography variant="body2" paragraph>
+            {analysisData.resume.aiAnalysis.experienceMatch}
+          </Typography>
+        </>
+      )}
+      
+      <Divider sx={{ my: 2 }} />
+      
+      {/* Always show analysis summary */}
+      <Typography variant="subtitle1" gutterBottom>
+        Analysis Summary:
+      </Typography>
+      <Typography variant="body2" paragraph sx={{ whiteSpace: 'pre-line' }}>
+        {analysisData.resume.aiAnalysis.analysis}
+      </Typography>
+    </Box>
+  )}
+</DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseAnalysisDialog}>Close</Button>
                 </DialogActions>
