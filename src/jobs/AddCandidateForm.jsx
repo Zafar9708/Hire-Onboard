@@ -1,6 +1,7 @@
 
 
 // import React, { useState, useRef, useEffect } from "react";
+// import axios from "axios";
 // import {
 //     Box,
 //     Card,
@@ -16,9 +17,17 @@
 //     Grid,
 //     CircularProgress,
 //     Snackbar,
-//     Alert
+//     Alert,
+//     Dialog,
+//     DialogTitle,
+//     DialogContent,
+//     DialogActions,
+//     Chip,
+//     LinearProgress,
+//     Divider,
+//     Stack
 // } from "@mui/material";
-// import { CloudUpload as CloudUploadIcon, AttachFile as AttachFileIcon } from "@mui/icons-material";
+// import { CloudUpload as CloudUploadIcon, AttachFile as AttachFileIcon, Analytics } from "@mui/icons-material";
 // import { createCandidate, uploadResume, getAllStages } from "../utils/api";
 // import { useParams } from "react-router-dom";
 
@@ -31,6 +40,8 @@
 //         message: "",
 //         severity: "success"
 //     });
+//     const [analysisData, setAnalysisData] = useState(null);
+//     const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
 
 //     const [formData, setFormData] = useState({
 //         firstName: "",
@@ -50,8 +61,8 @@
 //         experience: "",
 //         education: "",
 //         additionalDocuments: null,
-//         resume: null, // Will store resume ID
-//         resumeFile: null // Will store file object
+//         resume: null,
+//         resumeFile: null
 //     });
 
 //     const [isLoading, setIsLoading] = useState(false);
@@ -109,9 +120,13 @@
 //                 skills: Array.isArray(response.skills) ? response.skills.join(", ") : response.skills || prev.skills,
 //                 experience: response.experience || prev.experience,
 //                 education: response.education || prev.education,
-//                 resume: response._id, // Store the resume ID
+//                 resume: response._id,
 //                 resumeFile: file
 //             }));
+
+//             // Fetch the full analysis data
+//             const analysisResponse = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/resumes/getResume/${response._id}`);
+//             setAnalysisData(analysisResponse.data);
 
 //             setSnackbar({
 //                 open: true,
@@ -121,8 +136,8 @@
 //         } catch (error) {
 //             setSnackbar({
 //                 open: true,
-//                 message: error.response?.data?.message || "Failed to upload resume",
-//                 severity: "error"
+//                 message: error.response?.data?.message || "Resume Uploaded Successfully",
+//                 // severity: "error"
 //             });
 //         } finally {
 //             setIsLoading(false);
@@ -146,12 +161,11 @@
 //         try {
 //             const formDataToSend = new FormData();
 
-//             // Append all form fields
 //             for (const [key, value] of Object.entries(formData)) {
 //                 if (value === null || value === undefined) continue;
                 
 //                 if (key === "resumeFile") {
-//                     continue; // Skip - we already uploaded the file
+//                     continue;
 //                 } else if (key === "additionalDocuments") {
 //                     if (value) formDataToSend.append(key, value);
 //                 } else {
@@ -159,15 +173,8 @@
 //                 }
 //             }
 
-//             // Ensure jobId is included
 //             if (jobId) {
 //                 formDataToSend.append("jobId", jobId);
-//             }
-
-//             // Debug: Log form data before submission
-//             console.log("Submitting with resume ID:", formData.resume);
-//             for (let [key, value] of formDataToSend.entries()) {
-//                 console.log(key, value);
 //             }
 
 //             const response = await onSubmit(formDataToSend);
@@ -192,6 +199,14 @@
 
 //     const handleCloseSnackbar = () => {
 //         setSnackbar(prev => ({ ...prev, open: false }));
+//     };
+
+//     const handleShowAnalysis = () => {
+//         setShowAnalysisDialog(true);
+//     };
+
+//     const handleCloseAnalysisDialog = () => {
+//         setShowAnalysisDialog(false);
 //     };
 
 //     return (
@@ -226,18 +241,26 @@
 //                                 {formData.resumeFile.name}
 //                             </Typography>
 //                         )}
-//                         {formData.resume && (
-//                             <Typography variant="caption" color="success.main">
-//                                 Resume ID: {formData.resume}
-//                             </Typography>
-//                         )}
 //                     </Box>
+
+//                     {/* Candidate Information Header with Analysis Button */}
+//                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+//                         <Typography variant="h6">
+//                             Candidate Information
+//                         </Typography>
+//                         {formData.resume && (
+//                             <Button
+//                                 variant="outlined"
+//                                 startIcon={<Analytics />}
+//                                 onClick={handleShowAnalysis}
+//                                 size="small"
+//                             >
+//                                 View Analysis
+//                             </Button>
+//                         )}
+//                     </Stack>
                     
-//                     <Typography variant="h6" sx={{ mb: 1 }}>
-//                         Candidate Information
-//                     </Typography>
-                    
-//                     {/* Full width first name */}
+//                     {/* Form Fields */}
 //                     <TextField
 //                         fullWidth
 //                         label="First Name"
@@ -250,7 +273,7 @@
 //                         required
 //                     />
                     
-//                     {/* Middle and Last name in one row */}
+//                     {/* Rest of the form fields remain unchanged */}
 //                     <Grid container spacing={2} sx={{ mt: 2, mb: 3 }}>
 //                         <Grid item xs={6}>
 //                             <TextField
@@ -289,7 +312,6 @@
 //                         </Grid>
 //                     </Grid>
                     
-//                     {/* Email and Mobile in one row */}
 //                     <Grid container spacing={2} sx={{ mt: 0 }}>
 //                         <Grid item xs={6}>
 //                             <TextField
@@ -330,7 +352,6 @@
 //                         </Grid>
 //                     </Grid>
                     
-//                     {/* Stage and Source in one row */}
 //                     <Grid container spacing={2} sx={{ mt: 0 }}>
 //                         <Grid item xs={6}>
 //                             <FormControl fullWidth margin="normal" size="small">
@@ -393,7 +414,6 @@
 //                         </Grid>
 //                     </Grid>
                     
-//                     {/* Available to join and Current location in one row */}
 //                     <Grid container spacing={2} sx={{ mt: 0 }}>
 //                         <Grid item xs={6}>
 //                             <TextField
@@ -443,7 +463,6 @@
 //                         </Grid>
 //                     </Grid>
                     
-//                     {/* Preferred location and Gender in one row */}
 //                     <Grid container spacing={2} sx={{ mt: 0 }}>
 //                         <Grid item xs={6}>
 //                             <FormControl fullWidth margin="normal" size="small">
@@ -499,7 +518,6 @@
 //                         </Grid>
 //                     </Grid>
                     
-//                     {/* DOB and Owner in one row */}
 //                     <Grid container spacing={2} sx={{ mt: 0 }}>
 //                         <Grid item xs={6}>
 //                             <TextField
@@ -546,7 +564,6 @@
 //                         </Grid>
 //                     </Grid>
                     
-//                     {/* Skills (full width) */}
 //                     <TextField
 //                         fullWidth
 //                         label="Skills"
@@ -558,7 +575,6 @@
 //                         helperText="Separate multiple skills with commas"
 //                     />
                     
-//                     {/* Experience and Education in one row */}
 //                     <Grid container spacing={2} sx={{ mt: 0 }}>
 //                         <Grid item xs={6}>
 //                             <TextField
@@ -600,7 +616,6 @@
 //                         </Grid>
 //                     </Grid>
                     
-//                     {/* Additional Documents */}
 //                     <Grid item xs={12}>
 //                         <input
 //                             type="file"
@@ -632,8 +647,7 @@
 //                         )}
 //                     </Grid>
                     
-//                     {/* Action Buttons */}
-//                   <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+//                     <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
 //                         <Button 
 //                             onClick={onClose} 
 //                             variant="outlined" 
@@ -666,11 +680,101 @@
 //                     {snackbar.message}
 //                 </Alert>
 //             </Snackbar>
+
+//             {/* Analysis Dialog */}
+//             <Dialog 
+//                 open={showAnalysisDialog} 
+//                 onClose={handleCloseAnalysisDialog} 
+//                 maxWidth="md" 
+//                 fullWidth
+//             >
+//                 <DialogTitle>Resume Analysis</DialogTitle>
+//                 <DialogContent dividers>
+//                     {analysisData && (
+//                         <Box>
+//                             <Typography variant="h6" gutterBottom>
+//                                 Matching Score: {analysisData.resume.matchingScore}%
+//                             </Typography>
+                            
+//                             <Divider sx={{ my: 2 }} />
+                            
+//                             <Typography variant="subtitle1" gutterBottom>
+//                                 Matching Skills:
+//                             </Typography>
+//                             <Box sx={{ mb: 3 }}>
+//                                 {analysisData.resume.aiAnalysis.matchingSkills.map((skill, index) => (
+//                                     <Box key={index} sx={{ mb: 1 }}>
+//                                         <Typography variant="body2">
+//                                             {skill.skill} ({(skill.confidence * 100).toFixed(0)}% match)
+//                                         </Typography>
+//                                         <LinearProgress
+//                                             variant="determinate"
+//                                             value={skill.confidence * 100}
+//                                             sx={{ height: 8, borderRadius: 4 }}
+//                                         />
+//                                     </Box>
+//                                 ))}
+//                             </Box>
+                            
+//                             <Divider sx={{ my: 2 }} />
+                            
+//                             <Typography variant="subtitle1" gutterBottom>
+//                                 Missing Skills:
+//                             </Typography>
+//                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+//                                 {analysisData.resume.aiAnalysis.missingSkills.map((skill, index) => (
+//                                     <Chip
+//                                         key={index}
+//                                         label={skill}
+//                                         color="error"
+//                                         variant="outlined"
+//                                         sx={{ mb: 1 }}
+//                                     />
+//                                 ))}
+//                             </Box>
+                            
+//                             <Divider sx={{ my: 2 }} />
+                            
+//                             <Typography variant="subtitle1" gutterBottom>
+//                                 Education Match:
+//                             </Typography>
+//                             <Typography variant="body2" paragraph>
+//                                 {analysisData.resume.aiAnalysis.educationMatch}
+//                             </Typography>
+                            
+//                             <Divider sx={{ my: 2 }} />
+                            
+//                             <Typography variant="subtitle1" gutterBottom>
+//                                 Experience Match:
+//                             </Typography>
+//                             <Typography variant="body2" paragraph>
+//                                 {analysisData.resume.aiAnalysis.experienceMatch}
+//                             </Typography>
+                            
+//                             <Divider sx={{ my: 2 }} />
+                            
+//                             <Typography variant="subtitle1" gutterBottom>
+//                                 Analysis Summary:
+//                             </Typography>
+//                             <Typography variant="body2" paragraph sx={{ whiteSpace: 'pre-line' }}>
+//                                 {analysisData.resume.aiAnalysis.analysis}
+//                             </Typography>
+//                         </Box>
+//                     )}
+//                 </DialogContent>
+//                 <DialogActions>
+//                     <Button onClick={handleCloseAnalysisDialog}>Close</Button>
+//                 </DialogActions>
+//             </Dialog>
 //         </Box>
 //     );
 // };
 
 // export default AddCandidateForm;
+
+//--------
+
+
 
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
@@ -714,6 +818,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
     });
     const [analysisData, setAnalysisData] = useState(null);
     const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
+    const [resumeId, setResumeId] = useState(null); // Store resume ID separately
 
     const [formData, setFormData] = useState({
         firstName: "",
@@ -733,8 +838,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
         experience: "",
         education: "",
         additionalDocuments: null,
-        resume: null,
-        resumeFile: null
+        resumeFile: null // Removed resume ID from formData
     });
 
     const [isLoading, setIsLoading] = useState(false);
@@ -781,6 +885,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
         setIsLoading(true);
         try {
             const response = await uploadResume(file, jobId);
+            setResumeId(response._id); // Store resume ID separately
             
             setFormData(prev => ({
                 ...prev,
@@ -792,7 +897,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                 skills: Array.isArray(response.skills) ? response.skills.join(", ") : response.skills || prev.skills,
                 experience: response.experience || prev.experience,
                 education: response.education || prev.education,
-                // resume: response._id,
                 resumeFile: file
             }));
 
@@ -808,8 +912,8 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
         } catch (error) {
             setSnackbar({
                 open: true,
-                message: error.response?.data?.message || "Resume Uploaded Successfully",
-                // severity: "error"
+                message: error.response?.data?.message || "Resume uploaded with some issues",
+                severity: "warning"
             });
         } finally {
             setIsLoading(false);
@@ -833,16 +937,24 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
         try {
             const formDataToSend = new FormData();
 
+            // Add all form data except files
             for (const [key, value] of Object.entries(formData)) {
-                if (value === null || value === undefined) continue;
-                
-                if (key === "resumeFile") {
-                    continue;
-                } else if (key === "additionalDocuments") {
-                    if (value) formDataToSend.append(key, value);
-                } else {
-                    formDataToSend.append(key, value);
-                }
+                if (value === null || value === undefined || key === "resumeFile" || key === "additionalDocuments") continue;
+                formDataToSend.append(key, value);
+            }
+
+            // Add files separately
+            if (formData.additionalDocuments) {
+                formDataToSend.append("additionalDocuments", formData.additionalDocuments);
+            }
+
+            // Add resume ID if available
+            if (resumeId) {
+                formDataToSend.append("resume", resumeId);
+            } else if (formData.resumeFile) {
+                // Upload resume if not already done
+                const response = await uploadResume(formData.resumeFile, jobId);
+                formDataToSend.append("resume", response._id);
             }
 
             if (jobId) {
@@ -920,7 +1032,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                         <Typography variant="h6">
                             Candidate Information
                         </Typography>
-                        {formData.resume && (
+                        {analysisData && (
                             <Button
                                 variant="outlined"
                                 startIcon={<Analytics />}
@@ -1334,7 +1446,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                             variant="contained" 
                             color="primary" 
                             size="small"
-                            disabled={isLoading || !formData.resume}
+                            disabled={isLoading || !formData.resumeFile}
                         >
                             {isLoading ? <CircularProgress size={24} /> : "Add Candidate"}
                         </Button>
