@@ -16,7 +16,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8080', // Your backend URL
+        target: 'https://hire-onboardbackend-key.up.railway.app', // Your backend URL
         changeOrigin: true,
         secure: false,
       }
