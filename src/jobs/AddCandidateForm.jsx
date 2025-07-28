@@ -792,7 +792,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                 skills: Array.isArray(response.skills) ? response.skills.join(", ") : response.skills || prev.skills,
                 experience: response.experience || prev.experience,
                 education: response.education || prev.education,
-                resume: response._id,
+                // resume: response._id,
                 resumeFile: file
             }));
 
