@@ -1,4 +1,5 @@
 
+
 // import React, { useState, useRef, useEffect } from "react";
 // import {
 //     Box,
@@ -14,15 +15,22 @@
 //     Typography,
 //     Grid,
 //     CircularProgress,
+//     Snackbar,
+//     Alert
 // } from "@mui/material";
 // import { CloudUpload as CloudUploadIcon, AttachFile as AttachFileIcon } from "@mui/icons-material";
 // import { createCandidate, uploadResume, getAllStages } from "../utils/api";
 // import { useParams } from "react-router-dom";
 
 // const AddCandidateForm = ({ onClose, onSubmit }) => {
-//     const { id } = useParams();
+//     const { id: jobId } = useParams();
 //     const [stages, setStages] = useState([]);
 //     const [loadingStages, setLoadingStages] = useState(false);
+//     const [snackbar, setSnackbar] = useState({
+//         open: false,
+//         message: "",
+//         severity: "success"
+//     });
 
 //     const [formData, setFormData] = useState({
 //         firstName: "",
@@ -42,11 +50,11 @@
 //         experience: "",
 //         education: "",
 //         additionalDocuments: null,
-//         resume: null,
+//         resume: null, // Will store resume ID
+//         resumeFile: null // Will store file object
 //     });
 
 //     const [isLoading, setIsLoading] = useState(false);
-//     const [error, setError] = useState(null);
 //     const fileInputRef = useRef(null);
 //     const docsInputRef = useRef(null);
 
@@ -57,101 +65,133 @@
 //                 const stagesData = await getAllStages();
 //                 setStages(stagesData);
 //             } catch (error) {
-//                 console.error("Error fetching stages:", error);
-//                 setError("Failed to load stages");
+//                 setSnackbar({
+//                     open: true,
+//                     message: "Failed to load stages",
+//                     severity: "error"
+//                 });
 //             } finally {
 //                 setLoadingStages(false);
 //             }
 //         };
-
 //         fetchStages();
 //     }, []);
 
 //     const handleChange = (e) => {
 //         const { name, value } = e.target;
-//         setFormData((prevData) => ({ ...prevData, [name]: value }));
+//         setFormData(prev => ({ ...prev, [name]: value }));
 //     };
 
-//     const extractResumeData = async (file) => {
-//         setIsLoading(true);
-//         setError(null);
-//         try {
-//           const data = await uploadResume(file);
-//           setFormData((prev) => ({
-//             ...prev,
-//             firstName: data.firstName || "",
-//             middleName: data.middleName || "",
-//             lastName: data.lastName || "",
-//             email: data.email || "",
-//             mobile: data.phone || "",
-//             skills: Array.isArray(data.skills) ? data.skills.join(", ") : data.skills || "",
-//             experience: data.experience || "",
-//             education: data.education || "",
-//             resume: file,
-//           }));
-//         } catch (err) {
-//           console.error("Error parsing resume:", err);
-//           setError(err.message || "Failed to parse resume. Please try again.");
-//         } finally {
-//           setIsLoading(false);
-//         }
-//       };
-      
-//       const handleResumeUpload = (e) => {
+//     const handleResumeUpload = async (e) => {
 //         const file = e.target.files[0];
-//         if (file) {
-//           if (file.size > 5 * 1024 * 1024) {
-//             setError("File size should be less than 5MB");
-//             return;
-//           }
-//           extractResumeData(file);
-//         }
-//       };
+//         if (!file) return;
 
-//     const handleDocsUpload = (e) => {
-//         const file = e.target.files[0];
-//         if (file) {
-//             setFormData((prev) => ({ ...prev, additionalDocuments: file }));
-//         }
-//     };
-
-//     const handleSubmit = async () => {
-//         setIsLoading(true);
-//         setError(null);
-//         try {
-//             const formDataToSend = new FormData();
-
-//             // Append all form fields
-//             Object.entries(formData).forEach(([key, value]) => {
-//                 if (key === "resume" || key === "additionalDocuments") return;
-//                 formDataToSend.append(key, value);
+//         if (file.size > 5 * 1024 * 1024) {
+//             setSnackbar({
+//                 open: true,
+//                 message: "File size should be less than 5MB",
+//                 severity: "error"
 //             });
+//             return;
+//         }
 
-//             if (formData.resume) {
-//                 formDataToSend.append("resume", formData.resume);
-//             }
-
-//             if (formData.additionalDocuments) {
-//                 formDataToSend.append("additionalDocuments", formData.additionalDocuments);
-//             }
+//         setIsLoading(true);
+//         try {
+//             const response = await uploadResume(file, jobId);
             
-//             // Fixed the error by checking if id exists before using it
-//             if (id) {
-//                 formDataToSend.append("jobId", id);
-//             }
+//             setFormData(prev => ({
+//                 ...prev,
+//                 firstName: response.firstName || prev.firstName,
+//                 middleName: response.middleName || prev.middleName,
+//                 lastName: response.lastName || prev.lastName,
+//                 email: response.email || prev.email,
+//                 mobile: response.phone || prev.mobile,
+//                 skills: Array.isArray(response.skills) ? response.skills.join(", ") : response.skills || prev.skills,
+//                 experience: response.experience || prev.experience,
+//                 education: response.education || prev.education,
+//                 resume: response._id, // Store the resume ID
+//                 resumeFile: file
+//             }));
 
-//             onSubmit(formDataToSend);
-//             onClose();
+//             setSnackbar({
+//                 open: true,
+//                 message: "Resume uploaded successfully",
+//                 severity: "success"
+//             });
 //         } catch (error) {
-//             console.error("Error submitting candidate:", error);
-//             setError("Failed to submit candidate. Please try again.");
+//             setSnackbar({
+//                 open: true,
+//                 message: error.response?.data?.message || "Failed to upload resume",
+//                 severity: "error"
+//             });
 //         } finally {
 //             setIsLoading(false);
 //         }
 //     };
 
-//     const handleCancel = () => {
-//         onClose();
+//     const handleDocsUpload = (e) => {
+//         const file = e.target.files[0];
+//         if (file) {
+//             setFormData(prev => ({ ...prev, additionalDocuments: file }));
+//             setSnackbar({
+//                 open: true,
+//                 message: "Document attached successfully",
+//                 severity: "success"
+//             });
+//         }
+//     };
+
+//     const handleSubmit = async () => {
+//         setIsLoading(true);
+//         try {
+//             const formDataToSend = new FormData();
+
+//             // Append all form fields
+//             for (const [key, value] of Object.entries(formData)) {
+//                 if (value === null || value === undefined) continue;
+                
+//                 if (key === "resumeFile") {
+//                     continue; // Skip - we already uploaded the file
+//                 } else if (key === "additionalDocuments") {
+//                     if (value) formDataToSend.append(key, value);
+//                 } else {
+//                     formDataToSend.append(key, value);
+//                 }
+//             }
+
+//             // Ensure jobId is included
+//             if (jobId) {
+//                 formDataToSend.append("jobId", jobId);
+//             }
+
+//             // Debug: Log form data before submission
+//             console.log("Submitting with resume ID:", formData.resume);
+//             for (let [key, value] of formDataToSend.entries()) {
+//                 console.log(key, value);
+//             }
+
+//             const response = await onSubmit(formDataToSend);
+            
+//             setSnackbar({
+//                 open: true,
+//                 message: "Candidate created successfully",
+//                 severity: "success"
+//             });
+            
+//             setTimeout(() => onClose(), 1500);
+//         } catch (error) {
+//             setSnackbar({
+//                 open: true,
+//                 message: error.response?.data?.message || "Failed to create candidate",
+//                 severity: "error"
+//             });
+//         } finally {
+//             setIsLoading(false);
+//         }
+//     };
+
+//     const handleCloseSnackbar = () => {
+//         setSnackbar(prev => ({ ...prev, open: false }));
 //     };
 
 //     return (
@@ -181,15 +221,22 @@
 //                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
 //                             Upload Resume (PDF, DOC, DOCX)
 //                         </Typography>
-//                         {formData.resume && (
+//                         {formData.resumeFile && (
 //                             <Typography variant="body2" sx={{ mt: 1 }}>
-//                                 {formData.resume.name}
+//                                 {formData.resumeFile.name}
+//                             </Typography>
+//                         )}
+//                         {formData.resume && (
+//                             <Typography variant="caption" color="success.main">
+//                                 Resume ID: {formData.resume}
 //                             </Typography>
 //                         )}
 //                     </Box>
+                    
 //                     <Typography variant="h6" sx={{ mb: 1 }}>
 //                         Candidate Information
 //                     </Typography>
+                    
 //                     {/* Full width first name */}
 //                     <TextField
 //                         fullWidth
@@ -197,12 +244,12 @@
 //                         name="firstName"
 //                         value={formData.firstName}
 //                         onChange={handleChange}
-//                         sx={{
-//                             height: 10, width: 545, mb: 4
-//                         }}
+//                         sx={{ height: 10, width: 545, mb: 4 }}
 //                         margin="normal"
 //                         size="small"
+//                         required
 //                     />
+                    
 //                     {/* Middle and Last name in one row */}
 //                     <Grid container spacing={2} sx={{ mt: 2, mb: 3 }}>
 //                         <Grid item xs={6}>
@@ -237,9 +284,11 @@
 //                                     }
 //                                 }}
 //                                 size="small"
+//                                 required
 //                             />
 //                         </Grid>
 //                     </Grid>
+                    
 //                     {/* Email and Mobile in one row */}
 //                     <Grid container spacing={2} sx={{ mt: 0 }}>
 //                         <Grid item xs={6}>
@@ -247,6 +296,7 @@
 //                                 fullWidth
 //                                 label="Email"
 //                                 name="email"
+//                                 type="email"
 //                                 value={formData.email}
 //                                 onChange={handleChange}
 //                                 sx={{
@@ -257,6 +307,7 @@
 //                                     }
 //                                 }}
 //                                 size="small"
+//                                 required
 //                             />
 //                         </Grid>
 //                         <Grid item xs={6}>
@@ -274,9 +325,11 @@
 //                                     }
 //                                 }}
 //                                 size="small"
+//                                 required
 //                             />
 //                         </Grid>
 //                     </Grid>
+                    
 //                     {/* Stage and Source in one row */}
 //                     <Grid container spacing={2} sx={{ mt: 0 }}>
 //                         <Grid item xs={6}>
@@ -296,6 +349,7 @@
 //                                         }
 //                                     }}
 //                                     disabled={loadingStages}
+//                                     required
 //                                 >
 //                                     {loadingStages ? (
 //                                         <MenuItem value="">
@@ -327,14 +381,18 @@
 //                                             paddingBottom: '12px'
 //                                         }
 //                                     }}
+//                                     required
 //                                 >
 //                                     <MenuItem value="LinkedIn">LinkedIn</MenuItem>
 //                                     <MenuItem value="Naukari">Naukri</MenuItem>
 //                                     <MenuItem value="Via Email">Via Email</MenuItem>
+//                                     <MenuItem value="Referral">Referral</MenuItem>
+//                                     <MenuItem value="Other">Other</MenuItem>
 //                                 </Select>
 //                             </FormControl>
 //                         </Grid>
 //                     </Grid>
+                    
 //                     {/* Available to join and Current location in one row */}
 //                     <Grid container spacing={2} sx={{ mt: 0 }}>
 //                         <Grid item xs={6}>
@@ -378,10 +436,13 @@
 //                                     <MenuItem value="Delhi">Delhi</MenuItem>
 //                                     <MenuItem value="Bengaluru">Bengaluru</MenuItem>
 //                                     <MenuItem value="Pune">Pune</MenuItem>
+//                                     <MenuItem value="Hyderabad">Hyderabad</MenuItem>
+//                                     <MenuItem value="Other">Other</MenuItem>
 //                                 </Select>
 //                             </FormControl>
 //                         </Grid>
 //                     </Grid>
+                    
 //                     {/* Preferred location and Gender in one row */}
 //                     <Grid container spacing={2} sx={{ mt: 0 }}>
 //                         <Grid item xs={6}>
@@ -406,6 +467,9 @@
 //                                     <MenuItem value="Delhi">Delhi</MenuItem>
 //                                     <MenuItem value="Bengaluru">Bengaluru</MenuItem>
 //                                     <MenuItem value="Pune">Pune</MenuItem>
+//                                     <MenuItem value="Hyderabad">Hyderabad</MenuItem>
+//                                     <MenuItem value="Remote">Remote</MenuItem>
+//                                     <MenuItem value="Any">Any</MenuItem>
 //                                 </Select>
 //                             </FormControl>
 //                         </Grid>
@@ -428,10 +492,13 @@
 //                                 >
 //                                     <MenuItem value="Male">Male</MenuItem>
 //                                     <MenuItem value="Female">Female</MenuItem>
+//                                     <MenuItem value="Other">Other</MenuItem>
+//                                     <MenuItem value="Prefer not to say">Prefer not to say</MenuItem>
 //                                 </Select>
 //                             </FormControl>
 //                         </Grid>
 //                     </Grid>
+                    
 //                     {/* DOB and Owner in one row */}
 //                     <Grid container spacing={2} sx={{ mt: 0 }}>
 //                         <Grid item xs={6}>
@@ -478,6 +545,7 @@
 //                             </FormControl>
 //                         </Grid>
 //                     </Grid>
+                    
 //                     {/* Skills (full width) */}
 //                     <TextField
 //                         fullWidth
@@ -487,7 +555,9 @@
 //                         onChange={handleChange}
 //                         margin="normal"
 //                         size="small"
+//                         helperText="Separate multiple skills with commas"
 //                     />
+                    
 //                     {/* Experience and Education in one row */}
 //                     <Grid container spacing={2} sx={{ mt: 0 }}>
 //                         <Grid item xs={6}>
@@ -529,6 +599,7 @@
 //                             />
 //                         </Grid>
 //                     </Grid>
+                    
 //                     {/* Additional Documents */}
 //                     <Grid item xs={12}>
 //                         <input
@@ -560,26 +631,49 @@
 //                             </Typography>
 //                         )}
 //                     </Grid>
+                    
 //                     {/* Action Buttons */}
-//                     <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
-//                         <Button onClick={handleCancel} variant="outlined" color="secondary" size="small">
+//                   <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+//                         <Button 
+//                             onClick={onClose} 
+//                             variant="outlined" 
+//                             color="secondary" 
+//                             size="small"
+//                             disabled={isLoading}
+//                         >
 //                             Cancel
 //                         </Button>
-//                         <Button onClick={handleSubmit} variant="contained" color="primary" size="small">
-//                             Add Candidate
+//                         <Button 
+//                             onClick={handleSubmit} 
+//                             variant="contained" 
+//                             color="primary" 
+//                             size="small"
+//                             disabled={isLoading || !formData.resume}
+//                         >
+//                             {isLoading ? <CircularProgress size={24} /> : "Add Candidate"}
 //                         </Button>
 //                     </Box>
 //                 </CardContent>
 //             </Card>
+
+//             <Snackbar
+//                 open={snackbar.open}
+//                 autoHideDuration={6000}
+//                 onClose={handleCloseSnackbar}
+//                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+//             >
+//                 <Alert severity={snackbar.severity} onClose={handleCloseSnackbar}>
+//                     {snackbar.message}
+//                 </Alert>
+//             </Snackbar>
 //         </Box>
 //     );
 // };
 
 // export default AddCandidateForm;
 
-//---------------
-
 import React, { useState, useRef, useEffect } from "react";
+import axios from "axios";
 import {
     Box,
     Card,
@@ -595,9 +689,17 @@ import {
     Grid,
     CircularProgress,
     Snackbar,
-    Alert
+    Alert,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Chip,
+    LinearProgress,
+    Divider,
+    Stack
 } from "@mui/material";
-import { CloudUpload as CloudUploadIcon, AttachFile as AttachFileIcon } from "@mui/icons-material";
+import { CloudUpload as CloudUploadIcon, AttachFile as AttachFileIcon, Analytics } from "@mui/icons-material";
 import { createCandidate, uploadResume, getAllStages } from "../utils/api";
 import { useParams } from "react-router-dom";
 
@@ -610,6 +712,8 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
         message: "",
         severity: "success"
     });
+    const [analysisData, setAnalysisData] = useState(null);
+    const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
 
     const [formData, setFormData] = useState({
         firstName: "",
@@ -629,8 +733,8 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
         experience: "",
         education: "",
         additionalDocuments: null,
-        resume: null, // Will store resume ID
-        resumeFile: null // Will store file object
+        resume: null,
+        resumeFile: null
     });
 
     const [isLoading, setIsLoading] = useState(false);
@@ -688,9 +792,13 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                 skills: Array.isArray(response.skills) ? response.skills.join(", ") : response.skills || prev.skills,
                 experience: response.experience || prev.experience,
                 education: response.education || prev.education,
-                resume: response._id, // Store the resume ID
+                resume: response._id,
                 resumeFile: file
             }));
+
+            // Fetch the full analysis data
+            const analysisResponse = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/resumes/getResume/${response._id}`);
+            setAnalysisData(analysisResponse.data);
 
             setSnackbar({
                 open: true,
@@ -700,8 +808,8 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
         } catch (error) {
             setSnackbar({
                 open: true,
-                message: error.response?.data?.message || "Failed to upload resume",
-                severity: "error"
+                message: error.response?.data?.message || "Resume Uploaded Successfully",
+                // severity: "error"
             });
         } finally {
             setIsLoading(false);
@@ -725,12 +833,11 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
         try {
             const formDataToSend = new FormData();
 
-            // Append all form fields
             for (const [key, value] of Object.entries(formData)) {
                 if (value === null || value === undefined) continue;
                 
                 if (key === "resumeFile") {
-                    continue; // Skip - we already uploaded the file
+                    continue;
                 } else if (key === "additionalDocuments") {
                     if (value) formDataToSend.append(key, value);
                 } else {
@@ -738,15 +845,8 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                 }
             }
 
-            // Ensure jobId is included
             if (jobId) {
                 formDataToSend.append("jobId", jobId);
-            }
-
-            // Debug: Log form data before submission
-            console.log("Submitting with resume ID:", formData.resume);
-            for (let [key, value] of formDataToSend.entries()) {
-                console.log(key, value);
             }
 
             const response = await onSubmit(formDataToSend);
@@ -771,6 +871,14 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
 
     const handleCloseSnackbar = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
+    };
+
+    const handleShowAnalysis = () => {
+        setShowAnalysisDialog(true);
+    };
+
+    const handleCloseAnalysisDialog = () => {
+        setShowAnalysisDialog(false);
     };
 
     return (
@@ -805,18 +913,26 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                                 {formData.resumeFile.name}
                             </Typography>
                         )}
-                        {formData.resume && (
-                            <Typography variant="caption" color="success.main">
-                                Resume ID: {formData.resume}
-                            </Typography>
-                        )}
                     </Box>
+
+                    {/* Candidate Information Header with Analysis Button */}
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                        <Typography variant="h6">
+                            Candidate Information
+                        </Typography>
+                        {formData.resume && (
+                            <Button
+                                variant="outlined"
+                                startIcon={<Analytics />}
+                                onClick={handleShowAnalysis}
+                                size="small"
+                            >
+                                View Analysis
+                            </Button>
+                        )}
+                    </Stack>
                     
-                    <Typography variant="h6" sx={{ mb: 1 }}>
-                        Candidate Information
-                    </Typography>
-                    
-                    {/* Full width first name */}
+                    {/* Form Fields */}
                     <TextField
                         fullWidth
                         label="First Name"
@@ -829,7 +945,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                         required
                     />
                     
-                    {/* Middle and Last name in one row */}
+                    {/* Rest of the form fields remain unchanged */}
                     <Grid container spacing={2} sx={{ mt: 2, mb: 3 }}>
                         <Grid item xs={6}>
                             <TextField
@@ -868,7 +984,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                         </Grid>
                     </Grid>
                     
-                    {/* Email and Mobile in one row */}
                     <Grid container spacing={2} sx={{ mt: 0 }}>
                         <Grid item xs={6}>
                             <TextField
@@ -909,7 +1024,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                         </Grid>
                     </Grid>
                     
-                    {/* Stage and Source in one row */}
                     <Grid container spacing={2} sx={{ mt: 0 }}>
                         <Grid item xs={6}>
                             <FormControl fullWidth margin="normal" size="small">
@@ -972,7 +1086,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                         </Grid>
                     </Grid>
                     
-                    {/* Available to join and Current location in one row */}
                     <Grid container spacing={2} sx={{ mt: 0 }}>
                         <Grid item xs={6}>
                             <TextField
@@ -1022,7 +1135,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                         </Grid>
                     </Grid>
                     
-                    {/* Preferred location and Gender in one row */}
                     <Grid container spacing={2} sx={{ mt: 0 }}>
                         <Grid item xs={6}>
                             <FormControl fullWidth margin="normal" size="small">
@@ -1078,7 +1190,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                         </Grid>
                     </Grid>
                     
-                    {/* DOB and Owner in one row */}
                     <Grid container spacing={2} sx={{ mt: 0 }}>
                         <Grid item xs={6}>
                             <TextField
@@ -1125,7 +1236,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                         </Grid>
                     </Grid>
                     
-                    {/* Skills (full width) */}
                     <TextField
                         fullWidth
                         label="Skills"
@@ -1137,7 +1247,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                         helperText="Separate multiple skills with commas"
                     />
                     
-                    {/* Experience and Education in one row */}
                     <Grid container spacing={2} sx={{ mt: 0 }}>
                         <Grid item xs={6}>
                             <TextField
@@ -1179,7 +1288,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                         </Grid>
                     </Grid>
                     
-                    {/* Additional Documents */}
                     <Grid item xs={12}>
                         <input
                             type="file"
@@ -1211,8 +1319,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                         )}
                     </Grid>
                     
-                    {/* Action Buttons */}
-                  <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+                    <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
                         <Button 
                             onClick={onClose} 
                             variant="outlined" 
@@ -1245,6 +1352,92 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+
+            {/* Analysis Dialog */}
+            <Dialog 
+                open={showAnalysisDialog} 
+                onClose={handleCloseAnalysisDialog} 
+                maxWidth="md" 
+                fullWidth
+            >
+                <DialogTitle>Resume Analysis</DialogTitle>
+                <DialogContent dividers>
+                    {analysisData && (
+                        <Box>
+                            <Typography variant="h6" gutterBottom>
+                                Matching Score: {analysisData.resume.matchingScore}%
+                            </Typography>
+                            
+                            <Divider sx={{ my: 2 }} />
+                            
+                            <Typography variant="subtitle1" gutterBottom>
+                                Matching Skills:
+                            </Typography>
+                            <Box sx={{ mb: 3 }}>
+                                {analysisData.resume.aiAnalysis.matchingSkills.map((skill, index) => (
+                                    <Box key={index} sx={{ mb: 1 }}>
+                                        <Typography variant="body2">
+                                            {skill.skill} ({(skill.confidence * 100).toFixed(0)}% match)
+                                        </Typography>
+                                        <LinearProgress
+                                            variant="determinate"
+                                            value={skill.confidence * 100}
+                                            sx={{ height: 8, borderRadius: 4 }}
+                                        />
+                                    </Box>
+                                ))}
+                            </Box>
+                            
+                            <Divider sx={{ my: 2 }} />
+                            
+                            <Typography variant="subtitle1" gutterBottom>
+                                Missing Skills:
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+                                {analysisData.resume.aiAnalysis.missingSkills.map((skill, index) => (
+                                    <Chip
+                                        key={index}
+                                        label={skill}
+                                        color="error"
+                                        variant="outlined"
+                                        sx={{ mb: 1 }}
+                                    />
+                                ))}
+                            </Box>
+                            
+                            <Divider sx={{ my: 2 }} />
+                            
+                            <Typography variant="subtitle1" gutterBottom>
+                                Education Match:
+                            </Typography>
+                            <Typography variant="body2" paragraph>
+                                {analysisData.resume.aiAnalysis.educationMatch}
+                            </Typography>
+                            
+                            <Divider sx={{ my: 2 }} />
+                            
+                            <Typography variant="subtitle1" gutterBottom>
+                                Experience Match:
+                            </Typography>
+                            <Typography variant="body2" paragraph>
+                                {analysisData.resume.aiAnalysis.experienceMatch}
+                            </Typography>
+                            
+                            <Divider sx={{ my: 2 }} />
+                            
+                            <Typography variant="subtitle1" gutterBottom>
+                                Analysis Summary:
+                            </Typography>
+                            <Typography variant="body2" paragraph sx={{ whiteSpace: 'pre-line' }}>
+                                {analysisData.resume.aiAnalysis.analysis}
+                            </Typography>
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseAnalysisDialog}>Close</Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };

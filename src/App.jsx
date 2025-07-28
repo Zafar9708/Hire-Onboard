@@ -32,12 +32,50 @@ import RejectedCadnidates from './jobs/RejectedCandidates';
 import Layout from './components/Layout';
 import ScheduleOnlineInterviewForm from './Interviews/ScheduleOnlineInterviewForm';
 import FeedbackForm from './components/FeedbackForm';
+import ResumeAnalysisPage from './pages/ResumeAnalysisPage';
 // import JobCandidates from './jobs/JobCandidates';
 // import JobForm from './jobs/JobForm';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+
 
 
 
 const queryClient = new QueryClient();
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#9c27b0',
+    },
+    background: {
+      default: '#f5f5f5',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontWeight: 700,
+    },
+    h2: {
+      fontWeight: 600,
+    },
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          transition: 'transform 0.3s ease-in-out',
+          '&:hover': {
+            transform: 'translateY(-5px)',
+          },
+        },
+      },
+    },
+  },
+});
 
 const App = () => {
   return (
@@ -73,6 +111,8 @@ const App = () => {
           <Route path="/interviews/schedule" element={<ScheduleOnlineInterviewForm />} />
           <Route path="/jobs/update/:id" element={<JobCreationPage />} />
           <Route path="/feedback/:interviewId/:interviewerId" element={<FeedbackForm />} />
+          <Route path="/resumes/:resumeId" element={<ResumeAnalysisPage/>} />
+
           
 
 
