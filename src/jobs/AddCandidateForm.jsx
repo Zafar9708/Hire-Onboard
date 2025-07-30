@@ -1471,7 +1471,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
               </Typography>
               <LinearProgress
                 variant="determinate"
-                value={skill.confidence * 100}
+                value={skill.confidence}
                 sx={{ height: 8, borderRadius: 4 }}
               />
             </Box>
