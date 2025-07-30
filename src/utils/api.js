@@ -158,7 +158,7 @@ export const uploadResume = async (file, jobId) => {
     formData.append('resume', file);
     if (jobId) formData.append('jobId', jobId);
     
-    const response = await api.post('https://hire-onboardbackend-key.up.railway.app/api/resumes/upload', formData, {
+    const response = await api.post('https://hire-onboardbackend-production.up.railway.app/api/resumes/upload', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
