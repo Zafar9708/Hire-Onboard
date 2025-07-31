@@ -39,7 +39,7 @@ import {
 } from "@mui/icons-material";
 import axios from "axios";
 
-const API_BASE = "https://hire-onboardbackend-key.up.railway.app/api";
+const API_BASE = "https://hire-onboardbackend-production.up.railway.app/api";
 
 const EmailTemplateTab = ({
     candidate,

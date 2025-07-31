@@ -114,7 +114,7 @@
 //     useEffect(() => {
 //         const fetchStages = async () => {
 //             try {
-//                 const response = await fetch('https://hire-onboardbackend-key.up.railway.app/api/stages/all');
+//                 const response = await fetch('https://hire-onboardbackend-production.up.railway.app/api/stages/all');
 //                 if (!response.ok) {
 //                     throw new Error('Failed to fetch stages');
 //                 }
@@ -132,7 +132,7 @@
 //     useEffect(() => {
 //         const fetchStageOptions = async () => {
 //             try {
-//                 const response = await fetch('https://hire-onboardbackend-key.up.railway.app/api/stages/options');
+//                 const response = await fetch('https://hire-onboardbackend-production.up.railway.app/api/stages/options');
 //                 if (!response.ok) {
 //                     throw new Error('Failed to fetch stage options');
 //                 }
@@ -521,7 +521,7 @@
 
 //     const handleSubmitRemarks = async () => {
 //         try {
-//             const response = await fetch('https://hire-onboardbackend-key.up.railway.app/api/remarks', {
+//             const response = await fetch('https://hire-onboardbackend-production.up.railway.app/api/remarks', {
 //                 method: 'POST',
 //                 headers: {
 //                     'Content-Type': 'application/json',
@@ -1385,7 +1385,7 @@ const CandidatesTab = () => {
     useEffect(() => {
         const fetchStages = async () => {
             try {
-                const response = await fetch('https://hire-onboardbackend-key.up.railway.app/api/stages/all');
+                const response = await fetch('https://hire-onboardbackend-production.up.railway.app/api/stages/all');
                 if (!response.ok) {
                     throw new Error('Failed to fetch stages');
                 }
@@ -1403,7 +1403,7 @@ const CandidatesTab = () => {
     useEffect(() => {
         const fetchStageOptions = async () => {
             try {
-                const response = await fetch('https://hire-onboardbackend-key.up.railway.app/api/stages/options');
+                const response = await fetch('https://hire-onboardbackend-production.up.railway.app/api/stages/options');
                 if (!response.ok) {
                     throw new Error('Failed to fetch stage options');
                 }
@@ -1789,7 +1789,7 @@ const CandidatesTab = () => {
 
     const handleSubmitRemarks = async () => {
         try {
-            const response = await fetch('https://hire-onboardbackend-key.up.railway.app/api/remarks', {
+            const response = await fetch('https://hire-onboardbackend-production.up.railway.app/api/remarks', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

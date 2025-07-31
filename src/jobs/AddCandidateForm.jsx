@@ -125,7 +125,7 @@
 //             }));
 
 //             // Fetch the full analysis data
-//             const analysisResponse = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/resumes/getResume/${response._id}`);
+//             const analysisResponse = await axios.get(`https://hire-onboardbackend-production.up.railway.app/api/resumes/getResume/${response._id}`);
 //             setAnalysisData(analysisResponse.data);
 
 //             setSnackbar({
@@ -1006,7 +1006,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
             }));
 
             // Fetch the full analysis data
-            const analysisResponse = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/resumes/getResume/${response._id}`);
+            const analysisResponse = await axios.get(`https://hire-onboardbackend-production.up.railway.app/api/resumes/getResume/${response._id}`);
             setAnalysisData(analysisResponse.data);
 
             setSnackbar({

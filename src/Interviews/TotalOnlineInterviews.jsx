@@ -79,7 +79,7 @@ const OnlineInterviews = ({ searchTerm, statusFilter, selectedDate }) => {
   useEffect(() => {
     const fetchInterviews = async () => {
       try {
-        const response = await axios.get('https://hire-onboardbackend-key.up.railway.app/api/interviews/schedule');
+        const response = await axios.get('https://hire-onboardbackend-production.up.railway.app/api/interviews/schedule');
         setInterviews(response.data.data);
       } catch (err) {
         setError('Failed to fetch interviews. Please try again.');

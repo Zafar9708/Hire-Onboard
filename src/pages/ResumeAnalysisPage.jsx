@@ -18,7 +18,7 @@ const ResumeAnalysisPage = () => {
   useEffect(() => {
     const fetchResumeData = async () => {
       try {
-        const response = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/resumes/getResume/${resumeId}`);
+        const response = await axios.get(`https://hire-onboardbackend-production.up.railway.app/api/resumes/getResume/${resumeId}`);
         setResumeData(response.data);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch resume data');

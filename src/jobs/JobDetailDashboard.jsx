@@ -93,7 +93,7 @@ const Dashboard = () => {
       setNotesLoading(true);
       const token = localStorage.getItem("access_token");
       console.log("Authorization header:", `Bearer ${token}`)
-      const response = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/notes/${jobId}`, {
+      const response = await axios.get(`https://hire-onboardbackend-production.up.railway.app/api/notes/${jobId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -116,11 +116,11 @@ const Dashboard = () => {
         await fetchNotes();
 
         if (jobId) {
-          const jobResponse = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/jobs/byId/${jobId}`);
+          const jobResponse = await axios.get(`https://hire-onboardbackend-production.up.railway.app/api/jobs/byId/${jobId}`);
           setJob(jobResponse.data.job);
 
           // Fetch pipeline data
-          const pipelineResponse = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/stages/by-job/${jobId}`);
+          const pipelineResponse = await axios.get(`https://hire-onboardbackend-production.up.railway.app/api/stages/by-job/${jobId}`);
           const candidates = pipelineResponse.data.candidates || [];
           setAppliedCandidat(candidates);
 
@@ -147,9 +147,9 @@ const Dashboard = () => {
         }
 
         const [onlineInterviewsRes, offlineInterviewsRes, upcomingInterviewsRes] = await Promise.all([
-          axios.get('https://hire-onboardbackend-key.up.railway.app/api/interviews/schedule'),
-          axios.get('https://hire-onboardbackend-key.up.railway.app/api/offline-interviews/get'),
-          axios.get('https://hire-onboardbackend-key.up.railway.app/api/interviews/upcoming')
+          axios.get('https://hire-onboardbackend-production.up.railway.app/api/interviews/schedule'),
+          axios.get('https://hire-onboardbackend-production.up.railway.app/api/offline-interviews/get'),
+          axios.get('https://hire-onboardbackend-production.up.railway.app/api/interviews/upcoming')
         ]);
 
         const offlineInterviewsCount = offlineInterviewsRes.data.data ? offlineInterviewsRes.data.data.length : 0;
@@ -195,7 +195,7 @@ const Dashboard = () => {
        console.log("Authorization header:", `Bearer ${token}`); 
         // Update existing note
         await axios.put(
-          `https://hire-onboardbackend-key.up.railway.app/api/notes/${editingNoteId}`,
+          `https://hire-onboardbackend-production.up.railway.app/api/notes/${editingNoteId}`,
           { content: newNote },
           {
             headers: {
@@ -208,7 +208,7 @@ const Dashboard = () => {
         const token = localStorage.getItem("access_token");
        console.log("Authorization header:", `Bearer ${token}`); 
         await axios.post(
-          `https://hire-onboardbackend-key.up.railway.app/api/notes/${jobId}`,
+          `https://hire-onboardbackend-production.up.railway.app/api/notes/${jobId}`,
           { content: newNote },
           {
             headers: {
@@ -235,7 +235,7 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem("access_token");
        console.log("Authorization header:", `Bearer ${token}`); 
-      await axios.delete(`https://hire-onboardbackend-key.up.railway.app/api/notes/${id}`, {
+      await axios.delete(`https://hire-onboardbackend-production.up.railway.app/api/notes/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

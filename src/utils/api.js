@@ -2,7 +2,7 @@
 import axios from "axios";
 
 // Base URL for the API
-const BASE_URL = "https://hire-onboardbackend-key.up.railway.app/api";
+const BASE_URL = "https://hire-onboardbackend-production.up.railway.app/api";
 
 // Create an axios instance
 const api = axios.create({
@@ -18,7 +18,7 @@ const api = axios.create({
     const token = localStorage.getItem("access_token");
     console.log("Authorization header:", `Bearer ${token}`); 
 
-    const response = await api.post("https://hire-onboardbackend-key.up.railway.app/api/jobs", jobData, {
+    const response = await api.post("https://hire-onboardbackend-production.up.railway.app/api/jobs", jobData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -108,7 +108,7 @@ export const fetchJobFormOptions = async () => {
   };
 export const getAllUsers = async () => {
     try {
-      const response = await api.get("https://hire-onboardbackend-key.up.railway.app/user/allUsers");
+      const response = await api.get("https://hire-onboardbackend-production.up.railway.app/user/allUsers");
       return response.data;
     } catch (err) {
       throw new Error(err.response?.data?.error || err.message);
@@ -117,7 +117,7 @@ export const getAllUsers = async () => {
 
 export const addNewLocation = async (locationName) => {
   try {
-    const response = await fetch('https://hire-onboardbackend-key.up.railway.app/api/locations', {
+    const response = await fetch('https://hire-onboardbackend-production.up.railway.app/api/locations', {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
@@ -142,7 +142,7 @@ export const addNewLocation = async (locationName) => {
 
 export const fetchLocations = async () => {
   try {
-    const response = await fetch('https://hire-onboardbackend-key.up.railway.app/api/locations');
+    const response = await fetch('https://hire-onboardbackend-production.up.railway.app/api/locations');
     if (!response.ok) throw new Error('Failed to fetch locations');
     const data = await response.json();
     return data.data; // Assuming your API returns { success: true, data: [...] }
@@ -168,7 +168,7 @@ export const uploadResume = async (file, jobId) => {
 };
 
 export const createCandidate = async (formData) => {
-    const response = await api.post('https://hire-onboardbackend-key.up.railway.app/api/candidates', formData, {
+    const response = await api.post('https://hire-onboardbackend-production.up.railway.app/api/candidates', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -189,7 +189,7 @@ export const fetchCandidateResume = async (candidateId) => {
 
 export const fetchAlljobs = async ()=>{
   try {
-    const response = await api.get(`https://hire-onboardbackend-key.up.railway.app/api/jobs`);
+    const response = await api.get(`https://hire-onboardbackend-production.up.railway.app/api/jobs`);
     return response.data;
   } catch (err) {
     throw new Error(err.response?.data?.error || err.message);
@@ -197,7 +197,7 @@ export const fetchAlljobs = async ()=>{
 };
 export const getAllLocations = async ()=>{
   try {
-    const response = await api.get(`https://hire-onboardbackend-key.up.railway.app/api/locations`);
+    const response = await api.get(`https://hire-onboardbackend-production.up.railway.app/api/locations`);
     return response.data;
   } catch (err) {
     throw new Error(err.response?.data?.error || err.message);
@@ -205,7 +205,7 @@ export const getAllLocations = async ()=>{
 };
 export const getAllDepartments = async ()=>{
   try {
-    const response = await api.get(`https://hire-onboardbackend-key.up.railway.app/api/departments`);
+    const response = await api.get(`https://hire-onboardbackend-production.up.railway.app/api/departments`);
     return response.data;
   } catch (err) {
     throw new Error(err.response?.data?.error || err.message);
@@ -213,7 +213,7 @@ export const getAllDepartments = async ()=>{
 };
 export const getAllRecuiter = async ()=>{
   try {
-    const response = await api.get(`https://hire-onboardbackend-key.up.railway.app/api/employees`);
+    const response = await api.get(`https://hire-onboardbackend-production.up.railway.app/api/employees`);
     return response.data;
   } catch (err) {
     throw new Error(err.response?.data?.error || err.message);
@@ -358,7 +358,7 @@ export const deleteStageRecord = async (stageChangeId) => {
 
 export const sendBulkEmails = async (emailData) => {
   try {
-      const response = await fetch('https://hire-onboardbackend-key.up.railway.app/api/candidates/send-bulk-emails', {
+      const response = await fetch('https://hire-onboardbackend-production.up.railway.app/api/candidates/send-bulk-emails', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -380,7 +380,7 @@ export const sendBulkEmails = async (emailData) => {
 // for stages
 export const getAllStages = async () => {
   try {
-    const response = await fetch('https://hire-onboardbackend-key.up.railway.app/api/stages/all');
+    const response = await fetch('https://hire-onboardbackend-production.up.railway.app/api/stages/all');
     if (!response.ok) {
       throw new Error('Failed to fetch stages');
     }
@@ -396,7 +396,7 @@ export const getAllStages = async () => {
 
 // Fetch only Sales Persons
 export const getAllEmployees = async () => {
-  const response = await fetch("https://hire-onboardbackend-key.up.railway.app/api/employees");
+  const response = await fetch("https://hire-onboardbackend-production.up.railway.app/api/employees");
   if (!response.ok) throw new Error("Failed to fetch employees");
   const data = await response.json();
   return data;

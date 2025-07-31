@@ -42,7 +42,7 @@ const FeedbackForm = () => {
         const fetchInterviewDetails = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`https://hire-onboardbackend-key.up.railway.app/api/interviews/${interviewId}`);
+                const response = await axios.get(`https://hire-onboardbackend-production.up.railway.app/api/interviews/${interviewId}`);
                 
                 if (!response.data || !response.data.success) {
                     throw new Error(response.data?.message || 'No interview data received');
@@ -88,7 +88,7 @@ const FeedbackForm = () => {
         
         try {
             const response = await axios.post(
-                `https://hire-onboardbackend-key.up.railway.app/api/feedback/${interviewId}/${interviewerId}`,
+                `https://hire-onboardbackend-production.up.railway.app/api/feedback/${interviewId}/${interviewerId}`,
                 formData,
                 {
                     headers: {

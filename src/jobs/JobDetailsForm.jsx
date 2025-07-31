@@ -93,7 +93,7 @@
 //   useEffect(() => {
 //     const fetchEmployees = async () => {
 //       try {
-//         const res = await fetch("https://hire-onboardbackend-key.up.railway.app/api/employees");
+//         const res = await fetch("https://hire-onboardbackend-production.up.railway.app/api/employees");
 //         const data = await res.json();
 //         if (Array.isArray(data)) {
 //           setAllUsers(data);
@@ -112,7 +112,7 @@
 //   useEffect(() => {
 //     const fetchClients = async () => {
 //       try {
-//         const res = await fetch("https://hire-onboardbackend-key.up.railway.app/api/clients");
+//         const res = await fetch("https://hire-onboardbackend-production.up.railway.app/api/clients");
 //         const data = await res.json();
 //         if (data.success && Array.isArray(data.clients)) {
 //           setClients(data.clients);
@@ -175,7 +175,7 @@
 
 //   const handleSaveNewSalesPerson = async () => {
 //     try {
-//       const response = await fetch("https://hire-onboardbackend-key.up.railway.app/api/employees", {
+//       const response = await fetch("https://hire-onboardbackend-production.up.railway.app/api/employees", {
 //         method: "POST",
 //         headers: { "Content-Type": "application/json" },
 //         body: JSON.stringify(newSalesPerson),
@@ -195,7 +195,7 @@
 //       setSalesPerson(newUserObj._id);
       
 //       try {
-//         await fetch("https://hire-onboardbackend-key.up.railway.app/api/send-welcome-email", {
+//         await fetch("https://hire-onboardbackend-production.up.railway.app/api/send-welcome-email", {
 //           method: "POST",
 //           headers: { "Content-Type": "application/json" },
 //           body: JSON.stringify({
@@ -230,7 +230,7 @@
 
 //   const handleSaveNewRecruiter = async () => {
 //     try {
-//       const response = await fetch("https://hire-onboardbackend-key.up.railway.app/api/employees", {
+//       const response = await fetch("https://hire-onboardbackend-production.up.railway.app/api/employees", {
 //         method: "POST",
 //         headers: { "Content-Type": "application/json" },
 //         body: JSON.stringify(newRecruiter),
@@ -265,7 +265,7 @@
 
 //   const handleSaveNewClient = async () => {
 //     try {
-//       const response = await fetch("https://hire-onboardbackend-key.up.railway.app/api/clients", {
+//       const response = await fetch("https://hire-onboardbackend-production.up.railway.app/api/clients", {
 //         method: "POST",
 //         headers: { "Content-Type": "application/json" },
 //         body: JSON.stringify({ name: newClientName }),
@@ -286,7 +286,7 @@
 
 //   const handleDeleteClient = async (clientId) => {
 //     try {
-//       const response = await fetch(`https://hire-onboardbackend-key.up.railway.app/api/clients/${clientId}`, {
+//       const response = await fetch(`https://hire-onboardbackend-production.up.railway.app/api/clients/${clientId}`, {
 //         method: "DELETE",
 //       });
 
@@ -733,14 +733,14 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
         setCurrencies(options.currencies || []);
 
         // Load employees
-        const employeesRes = await fetch("https://hire-onboardbackend-key.up.railway.app/api/employees");
+        const employeesRes = await fetch("https://hire-onboardbackend-production.up.railway.app/api/employees");
         const employeesData = await employeesRes.json();
         if (Array.isArray(employeesData)) {
           setAllUsers(employeesData);
         }
 
         // Load clients
-        const clientsRes = await fetch("https://hire-onboardbackend-key.up.railway.app/api/clients");
+        const clientsRes = await fetch("https://hire-onboardbackend-production.up.railway.app/api/clients");
         const clientsData = await clientsRes.json();
         if (clientsData.success && Array.isArray(clientsData.clients)) {
           setClients(clientsData.clients);
@@ -819,7 +819,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
         return;
       }
 
-      const response = await fetch("https://hire-onboardbackend-key.up.railway.app/api/clients", {
+      const response = await fetch("https://hire-onboardbackend-production.up.railway.app/api/clients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newClientName.trim() })
@@ -847,7 +847,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
   // Handle deleting a client
   const handleDeleteClient = async (clientId) => {
     try {
-      const response = await fetch(`https://hire-onboardbackend-key.up.railway.app/api/clients/${clientId}`, {
+      const response = await fetch(`https://hire-onboardbackend-production.up.railway.app/api/clients/${clientId}`, {
         method: "DELETE",
       });
 
@@ -883,7 +883,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
 
   const handleSaveNewSalesPerson = async () => {
     try {
-      const response = await fetch("https://hire-onboardbackend-key.up.railway.app/api/employees", {
+      const response = await fetch("https://hire-onboardbackend-production.up.railway.app/api/employees", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newSalesPerson),
@@ -903,7 +903,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
       setSalesPerson(newUserObj._id);
       
       try {
-        await fetch("https://hire-onboardbackend-key.up.railway.app/api/send-welcome-email", {
+        await fetch("https://hire-onboardbackend-production.up.railway.app/api/send-welcome-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -941,7 +941,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
 
   const handleSaveNewRecruiter = async () => {
     try {
-      const response = await fetch("https://hire-onboardbackend-key.up.railway.app/api/employees", {
+      const response = await fetch("https://hire-onboardbackend-production.up.railway.app/api/employees", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newRecruiter),
