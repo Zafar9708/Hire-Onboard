@@ -1,5 +1,7 @@
 
 
+
+
 // import React, { useState, useRef, useEffect } from "react";
 // import axios from "axios";
 // import {
@@ -109,7 +111,7 @@
 //         setIsLoading(true);
 //         try {
 //             const response = await uploadResume(file, jobId);
-
+            
 //             setFormData(prev => ({
 //                 ...prev,
 //                 firstName: response.firstName || prev.firstName,
@@ -137,7 +139,6 @@
 //             setSnackbar({
 //                 open: true,
 //                 message: error.response?.data?.message || "Resume Uploaded Successfully",
-//                 // severity: "error"
 //             });
 //         } finally {
 //             setIsLoading(false);
@@ -163,7 +164,7 @@
 
 //             for (const [key, value] of Object.entries(formData)) {
 //                 if (value === null || value === undefined) continue;
-
+                
 //                 if (key === "resumeFile") {
 //                     continue;
 //                 } else if (key === "additionalDocuments") {
@@ -178,13 +179,13 @@
 //             }
 
 //             const response = await onSubmit(formDataToSend);
-
+            
 //             setSnackbar({
 //                 open: true,
 //                 message: "Candidate created successfully",
 //                 severity: "success"
 //             });
-
+            
 //             setTimeout(() => onClose(), 1500);
 //         } catch (error) {
 //             setSnackbar({
@@ -647,7 +648,7 @@
 //                         )}
 //                     </Grid>
 
-//                     <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+//                    <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end", gap: 2 }}>
 //                         <Button 
 //                             onClick={onClose} 
 //                             variant="outlined" 
@@ -681,7 +682,7 @@
 //                 </Alert>
 //             </Snackbar>
 
-//             {/* Analysis Dialog */}
+//             {/* Analysis Dialog - Corrected Display */}
 //             <Dialog 
 //                 open={showAnalysisDialog} 
 //                 onClose={handleCloseAnalysisDialog} 
@@ -689,40 +690,57 @@
 //                 fullWidth
 //             >
 //                 <DialogTitle>Resume Analysis</DialogTitle>
-//                 {/* <DialogContent dividers>
-//                     {analysisData && (
+//                 <DialogContent dividers>
+//                     {analysisData && analysisData.resume && analysisData.resume.aiAnalysis && (
 //                         <Box>
+//                             {/* Overall Match Score */}
 //                             <Typography variant="h6" gutterBottom>
-//                                 Matching Score: {analysisData.resume.matchingScore}%
+//                                 Matching Score: {analysisData.resume.matchingScore || analysisData.resume.aiAnalysis.matchPercentage || 0}%
 //                             </Typography>
-
-//                             <Divider sx={{ my: 2 }} />
-
+                            
+//                             {/* Recommendation */}
+//                             {analysisData.resume.aiAnalysis.recommendation && (
+//                                 <>
+//                                     <Typography variant="subtitle1" gutterBottom>
+//                                         Recommendation: {analysisData.resume.aiAnalysis.recommendation}
+//                                     </Typography>
+//                                     <Divider sx={{ my: 2 }} />
+//                                 </>
+//                             )}
+                            
+//                             {/* Matching Skills - Display as received from backend */}
 //                             <Typography variant="subtitle1" gutterBottom>
 //                                 Matching Skills:
 //                             </Typography>
-//                             <Box sx={{ mb: 3 }}>
-//                                 {analysisData.resume.aiAnalysis.matchingSkills.map((skill, index) => (
-//                                     <Box key={index} sx={{ mb: 1 }}>
-//                                         <Typography variant="body2">
-//                                             {skill.skill} ({(skill.confidence * 100).toFixed(0)}% match)
-//                                         </Typography>
-//                                         <LinearProgress
-//                                             variant="determinate"
-//                                             value={skill.confidence * 100}
-//                                             sx={{ height: 8, borderRadius: 4 }}
-//                                         />
-//                                     </Box>
-//                                 ))}
-//                             </Box>
-
+//                             {analysisData.resume.aiAnalysis.matchingSkills?.length > 0 ? (
+//                                 <Box sx={{ mb: 3 }}>
+//                                     {analysisData.resume.aiAnalysis.matchingSkills.map((skill, index) => (
+//                                         <Box key={index} sx={{ mb: 1 }}>
+//                                             <Typography variant="body2">
+//                                                 {skill.skill} ({skill.confidence}% match)
+//                                             </Typography>
+//                                             <LinearProgress
+//                                                 variant="determinate"
+//                                                 value={skill.confidence} // Directly use the confidence value
+//                                                 sx={{ height: 8, borderRadius: 4 }}
+//                                             />
+//                                         </Box>
+//                                     ))}
+//                                 </Box>
+//                             ) : (
+//                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+//                                     No matching skills identified
+//                                 </Typography>
+//                             )}
+                            
 //                             <Divider sx={{ my: 2 }} />
-
+                            
+//                             {/* Missing Skills */}
 //                             <Typography variant="subtitle1" gutterBottom>
 //                                 Missing Skills:
 //                             </Typography>
 //                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
-//                                 {analysisData.resume.aiAnalysis.missingSkills.map((skill, index) => (
+//                                 {analysisData.resume.aiAnalysis.missingSkills?.map((skill, index) => (
 //                                     <Chip
 //                                         key={index}
 //                                         label={skill}
@@ -732,140 +750,45 @@
 //                                     />
 //                                 ))}
 //                             </Box>
-
+                            
+//                             {/* Education Match - only show if exists */}
+//                             {analysisData.resume.aiAnalysis.educationMatch && (
+//                                 <>
+//                                     <Divider sx={{ my: 2 }} />
+//                                     <Typography variant="subtitle1" gutterBottom>
+//                                         Education Match:
+//                                     </Typography>
+//                                     <Typography variant="body2" paragraph>
+//                                         {analysisData.resume.aiAnalysis.educationMatch}
+//                                     </Typography>
+//                                 </>
+//                             )}
+                            
+//                             {/* Experience Match - only show if exists */}
+//                             {analysisData.resume.aiAnalysis.experienceMatch && (
+//                                 <>
+//                                     <Divider sx={{ my: 2 }} />
+//                                     <Typography variant="subtitle1" gutterBottom>
+//                                         Experience Match:
+//                                     </Typography>
+//                                     <Typography variant="body2" paragraph>
+//                                         {analysisData.resume.aiAnalysis.experienceMatch}
+//                                     </Typography>
+//                                 </>
+//                             )}
+                            
 //                             <Divider sx={{ my: 2 }} />
-
-//                             <Typography variant="subtitle1" gutterBottom>
-//                                 Education Match:
-//                             </Typography>
-//                             <Typography variant="body2" paragraph>
-//                                 {analysisData.resume.aiAnalysis.educationMatch}
-//                             </Typography>
-
-//                             <Divider sx={{ my: 2 }} />
-
-//                             <Typography variant="subtitle1" gutterBottom>
-//                                 Experience Match:
-//                             </Typography>
-//                             <Typography variant="body2" paragraph>
-//                                 {analysisData.resume.aiAnalysis.experienceMatch}
-//                             </Typography>
-
-//                             <Divider sx={{ my: 2 }} />
-
+                            
+//                             {/* Analysis Summary */}
 //                             <Typography variant="subtitle1" gutterBottom>
 //                                 Analysis Summary:
 //                             </Typography>
 //                             <Typography variant="body2" paragraph sx={{ whiteSpace: 'pre-line' }}>
-//                                 {analysisData.resume.aiAnalysis.analysis}
+//                                 {analysisData.resume.aiAnalysis.analysis || "No analysis available"}
 //                             </Typography>
 //                         </Box>
 //                     )}
-//                 </DialogContent> */}
-
-//                 <DialogContent dividers>
-//   {analysisData && (
-//     <Box>
-//       {/* Handle both matchPercentage and matchingScore */}
-//       <Typography variant="h6" gutterBottom>
-//         Matching Score: {analysisData.resume.matchPercentage || analysisData.resume.matchingScore || 0}%
-//       </Typography>
-
-//       <Divider sx={{ my: 2 }} />
-
-//       {/* Show recommendation if exists */}
-//       {analysisData.resume.aiAnalysis.recommendation && (
-//         <>
-//           <Typography variant="subtitle1" gutterBottom>
-//             Recommendation:
-//           </Typography>
-//           <Typography variant="body2" paragraph>
-//             {analysisData.resume.aiAnalysis.recommendation}
-//           </Typography>
-//           <Divider sx={{ my: 2 }} />
-//         </>
-//       )}
-
-//       {/* Matching Skills - handle empty case */}
-//       <Typography variant="subtitle1" gutterBottom>
-//         Matching Skills:
-//       </Typography>
-//       {analysisData.resume.aiAnalysis.matchingSkills?.length > 0 ? (
-//         <Box sx={{ mb: 3 }}>
-//           {analysisData.resume.aiAnalysis.matchingSkills.map((skill, index) => (
-//             <Box key={index} sx={{ mb: 1 }}>
-//               <Typography variant="body2">
-//                 {skill.skill} ({(skill.confidence * 100).toFixed(0)}% match)
-//               </Typography>
-//               <LinearProgress
-//                 variant="determinate"
-//                 value={skill.confidence}
-//                 sx={{ height: 8, borderRadius: 4 }}
-//               />
-//             </Box>
-//           ))}
-//         </Box>
-//       ) : (
-//         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-//           No matching skills identified
-//         </Typography>
-//       )}
-
-//       <Divider sx={{ my: 2 }} />
-
-//       {/* Missing Skills - your backend does provide these */}
-//       <Typography variant="subtitle1" gutterBottom>
-//         Missing Skills:
-//       </Typography>
-//       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
-//         {analysisData.resume.aiAnalysis.missingSkills.map((skill, index) => (
-//           <Chip
-//             key={index}
-//             label={skill}
-//             color="error"
-//             variant="outlined"
-//             sx={{ mb: 1 }}
-//           />
-//         ))}
-//       </Box>
-
-//       {/* Only show education/experience if they have content */}
-//       {analysisData.resume.aiAnalysis.educationMatch && (
-//         <>
-//           <Divider sx={{ my: 2 }} />
-//           <Typography variant="subtitle1" gutterBottom>
-//             Education Match:
-//           </Typography>
-//           <Typography variant="body2" paragraph>
-//             {analysisData.resume.aiAnalysis.educationMatch}
-//           </Typography>
-//         </>
-//       )}
-
-//       {analysisData.resume.aiAnalysis.experienceMatch && (
-//         <>
-//           <Divider sx={{ my: 2 }} />
-//           <Typography variant="subtitle1" gutterBottom>
-//             Experience Match:
-//           </Typography>
-//           <Typography variant="body2" paragraph>
-//             {analysisData.resume.aiAnalysis.experienceMatch}
-//           </Typography>
-//         </>
-//       )}
-
-//       <Divider sx={{ my: 2 }} />
-
-//       {/* Always show analysis summary */}
-//       <Typography variant="subtitle1" gutterBottom>
-//         Analysis Summary:
-//       </Typography>
-//       <Typography variant="body2" paragraph sx={{ whiteSpace: 'pre-line' }}>
-//         {analysisData.resume.aiAnalysis.analysis}
-//       </Typography>
-//     </Box>
-//   )}
-// </DialogContent>
+//                 </DialogContent>
 //                 <DialogActions>
 //                     <Button onClick={handleCloseAnalysisDialog}>Close</Button>
 //                 </DialogActions>
@@ -877,7 +800,6 @@
 // export default AddCandidateForm;
 
 
-//----------
 
 
 
@@ -906,7 +828,9 @@ import {
     Chip,
     LinearProgress,
     Divider,
-    Stack
+    Stack,
+    Fade,
+    Backdrop
 } from "@mui/material";
 import { CloudUpload as CloudUploadIcon, AttachFile as AttachFileIcon, Analytics } from "@mui/icons-material";
 import { createCandidate, uploadResume, getAllStages } from "../utils/api";
@@ -923,6 +847,8 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
     });
     const [analysisData, setAnalysisData] = useState(null);
     const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
+    const [emailWarning, setEmailWarning] = useState(false);
+    const [duplicateEmailError, setDuplicateEmailError] = useState(false);
 
     const [formData, setFormData] = useState({
         firstName: "",
@@ -972,6 +898,10 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+        
+        if (name === "email" && duplicateEmailError) {
+            setDuplicateEmailError(false);
+        }
     };
 
     const handleResumeUpload = async (e) => {
@@ -988,9 +918,31 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
         }
 
         setIsLoading(true);
+        setEmailWarning(false);
+        setDuplicateEmailError(false);
+
         try {
             const response = await uploadResume(file, jobId);
             
+            if (response.error && response.duplicateEmail) {
+                setDuplicateEmailError(true);
+                setSnackbar({
+                    open: true,
+                    message: response.message || "This email already exists in our system",
+                    severity: "error"
+                });
+                return;
+            }
+
+            if (!response.email) {
+                setEmailWarning(true);
+                setSnackbar({
+                    open: true,
+                    message: "No email found in resume. Please add manually.",
+                    severity: "warning"
+                });
+            }
+
             setFormData(prev => ({
                 ...prev,
                 firstName: response.firstName || prev.firstName,
@@ -1005,7 +957,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                 resumeFile: file
             }));
 
-            // Fetch the full analysis data
             const analysisResponse = await axios.get(`https://hire-onboardbackend-production.up.railway.app/api/resumes/getResume/${response._id}`);
             setAnalysisData(analysisResponse.data);
 
@@ -1015,9 +966,20 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                 severity: "success"
             });
         } catch (error) {
+            let errorMessage = "Failed to upload resume";
+            if (error.response) {
+                if (error.response.status === 409) {
+                    errorMessage = error.response.data.message || "This email already exists in our system";
+                    setDuplicateEmailError(true);
+                } else {
+                    errorMessage = error.response.data.message || errorMessage;
+                }
+            }
+            
             setSnackbar({
                 open: true,
-                message: error.response?.data?.message || "Resume Uploaded Successfully",
+                message: errorMessage,
+                severity: "error"
             });
         } finally {
             setIsLoading(false);
@@ -1037,6 +999,15 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
     };
 
     const handleSubmit = async () => {
+        if (emailWarning && !formData.email) {
+            setSnackbar({
+                open: true,
+                message: "Please enter candidate email address",
+                severity: "error"
+            });
+            return;
+        }
+
         setIsLoading(true);
         try {
             const formDataToSend = new FormData();
@@ -1090,7 +1061,45 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
     };
 
     return (
-        <Box sx={{ width: '100%', maxWidth: 600, mx: "auto", mt: 2, p: 0 }}>
+        <Box sx={{ width: '100%', maxWidth: 600, mx: "auto", mt: 2, p: 0, position: 'relative' }}>
+            {/* Loading Overlay */}
+            <Backdrop
+                sx={{ 
+                    color: '#fff', 
+                    zIndex: (theme) => theme.zIndex.drawer + 1,
+                    position: 'absolute',
+                    borderRadius: '12px'
+                }}
+                open={isLoading}
+            >
+                <Fade in={isLoading}>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center',
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        p: 4,
+                        borderRadius: '12px',
+                        boxShadow: 3
+                    }}>
+                        <CircularProgress 
+                            size={60} 
+                            thickness={4}
+                            sx={{ 
+                                color: '#3f51b5',
+                                mb: 2
+                            }} 
+                        />
+                        <Typography variant="h6" color="text.primary">
+                            Adding Candidate...
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                            Please wait while we process your request
+                        </Typography>
+                    </Box>
+                </Fade>
+            </Backdrop>
+
             <Card sx={{ width: '100%', p: 0, m: 0 }}>
                 <CardContent sx={{ p: 3 }}>
                     {/* Resume Upload Section */}
@@ -1153,7 +1162,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                         required
                     />
 
-                    {/* Rest of the form fields remain unchanged */}
                     <Grid container spacing={2} sx={{ mt: 2, mb: 3 }}>
                         <Grid item xs={6}>
                             <TextField
@@ -1210,6 +1218,14 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                                 }}
                                 size="small"
                                 required
+                                error={duplicateEmailError}
+                                helperText={
+                                    duplicateEmailError ? 
+                                        "This email already exists in our system" :
+                                        emailWarning ? 
+                                            "No email found in resume. Please add manually." : 
+                                            ""
+                                }
                             />
                         </Grid>
                         <Grid item xs={6}>
@@ -1542,7 +1558,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                             variant="contained" 
                             color="primary" 
                             size="small"
-                            disabled={isLoading || !formData.resume}
+                            disabled={isLoading || !formData.resume || (emailWarning && !formData.email)}
                         >
                             {isLoading ? <CircularProgress size={24} /> : "Add Candidate"}
                         </Button>
@@ -1561,7 +1577,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                 </Alert>
             </Snackbar>
 
-            {/* Analysis Dialog - Corrected Display */}
             <Dialog 
                 open={showAnalysisDialog} 
                 onClose={handleCloseAnalysisDialog} 
@@ -1572,12 +1587,10 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                 <DialogContent dividers>
                     {analysisData && analysisData.resume && analysisData.resume.aiAnalysis && (
                         <Box>
-                            {/* Overall Match Score */}
                             <Typography variant="h6" gutterBottom>
                                 Matching Score: {analysisData.resume.matchingScore || analysisData.resume.aiAnalysis.matchPercentage || 0}%
                             </Typography>
                             
-                            {/* Recommendation */}
                             {analysisData.resume.aiAnalysis.recommendation && (
                                 <>
                                     <Typography variant="subtitle1" gutterBottom>
@@ -1587,7 +1600,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                                 </>
                             )}
                             
-                            {/* Matching Skills - Display as received from backend */}
                             <Typography variant="subtitle1" gutterBottom>
                                 Matching Skills:
                             </Typography>
@@ -1600,7 +1612,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                                             </Typography>
                                             <LinearProgress
                                                 variant="determinate"
-                                                value={skill.confidence} // Directly use the confidence value
+                                                value={skill.confidence}
                                                 sx={{ height: 8, borderRadius: 4 }}
                                             />
                                         </Box>
@@ -1614,7 +1626,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                             
                             <Divider sx={{ my: 2 }} />
                             
-                            {/* Missing Skills */}
                             <Typography variant="subtitle1" gutterBottom>
                                 Missing Skills:
                             </Typography>
@@ -1630,7 +1641,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                                 ))}
                             </Box>
                             
-                            {/* Education Match - only show if exists */}
                             {analysisData.resume.aiAnalysis.educationMatch && (
                                 <>
                                     <Divider sx={{ my: 2 }} />
@@ -1643,7 +1653,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                                 </>
                             )}
                             
-                            {/* Experience Match - only show if exists */}
                             {analysisData.resume.aiAnalysis.experienceMatch && (
                                 <>
                                     <Divider sx={{ my: 2 }} />
@@ -1658,7 +1667,6 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                             
                             <Divider sx={{ my: 2 }} />
                             
-                            {/* Analysis Summary */}
                             <Typography variant="subtitle1" gutterBottom>
                                 Analysis Summary:
                             </Typography>

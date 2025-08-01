@@ -443,3 +443,78 @@ export const previewCandidateResume = async (candidateId) => {
   }
 };
 
+
+// export const fetchResumeAnalysis = async (candidateId) => {
+//   try {
+//     const response = await fetch(`https://hire-onboardbackend-production.up.railway.app/api/candidates/resume/analysis/${candidateId}`, {
+//       method: 'GET',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Authorization': `Bearer ${localStorage.getItem('token')}`
+//       }
+//     });
+
+//     if (!response.ok) {
+//       throw new Error(`Failed to fetch analysis: ${response.status} ${response.statusText}`);
+//     }
+
+//     const { data } = await response.json();
+    
+//     // Transform the API response to match the expected format
+//     return {
+//       matchPercentage: data.resumeAnalysis?.matchPercentage || 0,
+//       status: data.resumeAnalysis?.status || 'Pending',
+//       recommendation: data.resumeAnalysis?.recommendation || 'Needs review',
+//       skills: {
+//         matching: data.resumeAnalysis?.skills?.matching?.map(skill => ({
+//           skill: skill.skill,
+//           confidence: skill.confidence
+//         })) || [],
+//         missing: [] // Add missing skills if available in your API
+//       },
+//       analysis: {
+//         overall: data.resumeAnalysis?.analysis?.overall || 'No overall analysis available',
+//         experience: data.resumeAnalysis?.analysis?.experience || 'No experience analysis available',
+//         education: data.resumeAnalysis?.analysis?.education || 'No education analysis available'
+//       }
+//     };
+//   } catch (error) {
+//     console.error('Error fetching resume analysis:', error);
+//     throw error;
+//   }
+// };
+
+export const fetchResumeAnalysis = async (candidateId) => {
+  try {
+    const response = await fetch(`https://hire-onboardbackend-production.up.railway.app/api/candidates/resume/analysis/${candidateId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch analysis: ${response.status} ${response.statusText}`);
+    }
+
+    const { data } = await response.json();
+    
+    // Return the complete API response structure
+    return {
+      candidateInfo: data.candidateInfo || {},
+      resumeAnalysis: {
+        ...data.resumeAnalysis,
+        skills: {
+          matching: data.resumeAnalysis?.skills?.matching || [],
+           missing: data.resumeAnalysis?.skills?.missing || []
+        },
+        analysis: data.resumeAnalysis?.analysis || {}
+      },
+      rawData: data // Include raw data for debugging
+    };
+  } catch (error) {
+    console.error('Error fetching resume analysis:', error);
+    throw error;
+  }
+};

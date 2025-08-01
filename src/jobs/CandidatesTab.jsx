@@ -1,4 +1,5 @@
 
+
 // import React, { useState, useEffect } from "react";
 // import {
 //     Box,
@@ -162,41 +163,42 @@
 //     // Helper function to get stage name
 //     const getStageName = (stage) => {
 //         if (!stage) return 'Sourced';
-        
+
 //         if (typeof stage === 'object' && stage.name) {
 //             return stage.name;
 //         }
-        
+
 //         if (typeof stage === 'string') {
 //             const foundStage = stages.find(s => s._id === stage);
 //             if (foundStage) return foundStage.name;
-            
+
 //             const foundOption = stageOptions.find(s => s._id === stage);
 //             return foundOption ? foundOption.name : 'Sourced';
 //         }
-        
+
 //         return 'Sourced';
 //     };
 
 //     // Fetch candidates from API
-//     useEffect(() => {
-//         const loadCandidates = async () => {
-//             try {
-//                 setLoading(true);
-//                 if (id) {
-//                     const data = await fetchCandidatesByJob(id);
-//                     setCandidates(data);
-//                 } else {
-//                     const data = await fetchCandidates();
-//                     setCandidates(data);
-//                 }
-//             } catch (err) {
-//                 setError(err.message);
-//                 showSnackbar(err.message, "error");
-//             } finally {
-//                 setLoading(false);
+//     const loadCandidates = async () => {
+//         try {
+//             setLoading(true);
+//             let data;
+//             if (id) {
+//                 data = await fetchCandidatesByJob(id);
+//             } else {
+//                 data = await fetchCandidates();
 //             }
-//         };
+//             setCandidates(data || []);
+//         } catch (err) {
+//             setError(err.message);
+//             showSnackbar(err.message, "error");
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
+
+//     useEffect(() => {
 //         loadCandidates();
 //     }, [id]);
 
@@ -233,7 +235,7 @@
 //                 if (candidateStageName !== filters.status.toLowerCase()) {
 //                     return false;
 //                 }
-                
+
 //                 if (filters.status.toLowerCase() === 'rejected' && rejectedFilter) {
 //                     if (candidate.rejectionType !== rejectedFilter) {
 //                         return false;
@@ -345,7 +347,8 @@
 //     const handleSubmitCandidate = async (formData) => {
 //         try {
 //             const newCandidate = await createCandidate(formData);
-//             setCandidates([...candidates, newCandidate]);
+//             // Instead of just adding to state, refresh the entire list
+//             await loadCandidates();
 //             showSnackbar("Candidate added successfully!");
 //             handleCloseAddCandidate();
 //         } catch (error) {
@@ -391,14 +394,9 @@
 //     const handleStageMove = async (formData) => {
 //         try {
 //             const updatedCandidate = await updateCandidate(currentCandidate, formData);
-            
-//             setCandidates(
-//                 candidates.map(candidate =>
-//                     candidate._id === currentCandidate
-//                         ? updatedCandidate
-//                         : candidate
-//                 ) 
-//             );
+
+//             // Refresh the candidates list after update
+//             await loadCandidates();
 
 //             showSnackbar("Candidate stage updated successfully!");
 //             setMoveDialogOpen(false);
@@ -416,8 +414,8 @@
 
 //             await Promise.all(updatePromises);
 
-//             const data = id ? await fetchCandidatesByJob(id) : await fetchCandidates();
-//             setCandidates(data);
+//             // Refresh the candidates list after bulk update
+//             await loadCandidates();
 
 //             setSelectedCandidates([]);
 //             setBulkMoveDialogOpen(false);
@@ -476,14 +474,14 @@
 //             try {
 //                 if (selectedCandidates.length === 1) {
 //                     await deleteCandidate(selectedCandidates[0]);
-//                     setCandidates((prev) => prev.filter((c) => c._id !== selectedCandidates[0]));
+//                     // Refresh the candidates list after deletion
+//                     await loadCandidates();
 //                 } else if (selectedCandidates.length > 1) {
 //                     for (const id of selectedCandidates) {
 //                         await deleteCandidate(id);
 //                     }
-//                     setCandidates((prev) =>
-//                         prev.filter((c) => !selectedCandidates.includes(c._id))
-//                     );
+//                     // Refresh the candidates list after bulk deletion
+//                     await loadCandidates();
 //                 }
 
 //                 setSelectedCandidates([]);
@@ -504,7 +502,7 @@
 //             ...filters,
 //             [filterName]: event.target.value
 //         });
-        
+
 //         if (filterName === 'status' && event.target.value.toLowerCase() !== 'rejected') {
 //             setRejectedFilter('');
 //         }
@@ -1268,7 +1266,9 @@
 // export default CandidatesTab;
 
 
-//------------
+//-----
+
+
 
 import React, { useState, useEffect } from "react";
 import {
@@ -1303,6 +1303,7 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
+
     Divider,
     Snackbar,
     Alert,
@@ -1317,13 +1318,20 @@ import {
     ArrowForward as StageIcon,
     NoteAdd as RemarksIcon,
     Email as EmailIcon,
+    Assessment as AnalysisIcon,
 } from "@mui/icons-material";
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import CancelIcon from '@mui/icons-material/Cancel';
+import { useTheme } from '@mui/material/styles';
+import CloseIcon from '@mui/icons-material/Close';
+
 import AddCandidateForm from "./AddCandidateForm";
 import ScheduleOnlineInterviewForm from "../Interviews/ScheduleOnlineInterviewForm";
 import ScheduleOfflineInterviewForm from "../Interviews/ScheduleOfflineInterviewForm";
 import MoveCandidateForm from "./MoveCandidateForm";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import CandidateDetailsPage from "../candidates/CandidateDetailsDialog";
+import CandidateResumeAnalysis from "../components/CandidateResumeAnalysis";
 import {
     fetchCandidates,
     createCandidate,
@@ -1331,7 +1339,8 @@ import {
     deleteCandidate,
     sendBulkEmails,
     fetchCandidatesByJob,
-    scheduleInterview
+    scheduleInterview,
+    fetchResumeAnalysis
 } from "../utils/api";
 
 const rejectionTypes = ["R1 Rejected", "R2 Rejected", "Client Rejected"];
@@ -1371,6 +1380,10 @@ const CandidatesTab = () => {
     const [stages, setStages] = useState([]);
     const [stageOptions, setStageOptions] = useState([]);
     const [rejectedFilter, setRejectedFilter] = useState('');
+    const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
+    const [selectedCandidateForAnalysis, setSelectedCandidateForAnalysis] = useState(null);
+    const [analysisData, setAnalysisData] = useState(null);
+    const [analysisLoading, setAnalysisLoading] = useState(false);
 
     // Filter state
     const [filters, setFilters] = useState({
@@ -1433,19 +1446,19 @@ const CandidatesTab = () => {
     // Helper function to get stage name
     const getStageName = (stage) => {
         if (!stage) return 'Sourced';
-        
+
         if (typeof stage === 'object' && stage.name) {
             return stage.name;
         }
-        
+
         if (typeof stage === 'string') {
             const foundStage = stages.find(s => s._id === stage);
             if (foundStage) return foundStage.name;
-            
+
             const foundOption = stageOptions.find(s => s._id === stage);
             return foundOption ? foundOption.name : 'Sourced';
         }
-        
+
         return 'Sourced';
     };
 
@@ -1481,7 +1494,7 @@ const CandidatesTab = () => {
             hired: 0,
             archived: 0,
             rejected: 0,
-            all: candidates.length 
+            all: candidates.length
         };
 
         candidates.forEach(candidate => {
@@ -1505,7 +1518,7 @@ const CandidatesTab = () => {
                 if (candidateStageName !== filters.status.toLowerCase()) {
                     return false;
                 }
-                
+
                 if (filters.status.toLowerCase() === 'rejected' && rejectedFilter) {
                     if (candidate.rejectionType !== rejectedFilter) {
                         return false;
@@ -1557,11 +1570,11 @@ const CandidatesTab = () => {
     const stageCounts = calculateStageCounts(candidates || []);
 
     const stageCardData = [
-        { 
-            stage: 'sourced', 
-            label: 'Sourced',  
-            count: stageCounts.all,  
-            totalCount: stageCounts.all 
+        {
+            stage: 'sourced',
+            label: 'Sourced',
+            count: stageCounts.all,
+            totalCount: stageCounts.all
         },
         { stage: 'interview', label: 'Interview', count: stageCounts.interview },
         { stage: 'preboarding', label: 'Preboarding', count: stageCounts.preboarding },
@@ -1617,7 +1630,6 @@ const CandidatesTab = () => {
     const handleSubmitCandidate = async (formData) => {
         try {
             const newCandidate = await createCandidate(formData);
-            // Instead of just adding to state, refresh the entire list
             await loadCandidates();
             showSnackbar("Candidate added successfully!");
             handleCloseAddCandidate();
@@ -1664,10 +1676,7 @@ const CandidatesTab = () => {
     const handleStageMove = async (formData) => {
         try {
             const updatedCandidate = await updateCandidate(currentCandidate, formData);
-            
-            // Refresh the candidates list after update
             await loadCandidates();
-
             showSnackbar("Candidate stage updated successfully!");
             setMoveDialogOpen(false);
         } catch (error) {
@@ -1678,13 +1687,11 @@ const CandidatesTab = () => {
 
     const handleBulkStageMove = async () => {
         try {
-            const updatePromises = selectedCandidates.map(candidateId => 
+            const updatePromises = selectedCandidates.map(candidateId =>
                 updateCandidate(candidateId, { stage: newStage })
             );
 
             await Promise.all(updatePromises);
-
-            // Refresh the candidates list after bulk update
             await loadCandidates();
 
             setSelectedCandidates([]);
@@ -1744,13 +1751,11 @@ const CandidatesTab = () => {
             try {
                 if (selectedCandidates.length === 1) {
                     await deleteCandidate(selectedCandidates[0]);
-                    // Refresh the candidates list after deletion
                     await loadCandidates();
                 } else if (selectedCandidates.length > 1) {
                     for (const id of selectedCandidates) {
                         await deleteCandidate(id);
                     }
-                    // Refresh the candidates list after bulk deletion
                     await loadCandidates();
                 }
 
@@ -1772,7 +1777,7 @@ const CandidatesTab = () => {
             ...filters,
             [filterName]: event.target.value
         });
-        
+
         if (filterName === 'status' && event.target.value.toLowerCase() !== 'rejected') {
             setRejectedFilter('');
         }
@@ -1780,6 +1785,26 @@ const CandidatesTab = () => {
 
     const handleRejectedFilterChange = (event) => {
         setRejectedFilter(event.target.value);
+    };
+
+    const handleOpenAnalysis = async (candidateId) => {
+        const candidate = candidates.find(c => c._id === candidateId);
+        if (!candidate) return;
+
+        setSelectedCandidateForAnalysis(candidate);
+        setAnalysisLoading(true);
+        setAnalysisDialogOpen(true);
+
+        try {
+            const analysisData = await fetchResumeAnalysis(candidateId);
+            setAnalysisData(analysisData);
+        } catch (error) {
+            console.error("Error fetching analysis data:", error);
+            showSnackbar("Failed to load analysis data", "error");
+            setAnalysisData(null);
+        } finally {
+            setAnalysisLoading(false);
+        }
     };
 
     const handleAddRemarks = () => {
@@ -1816,7 +1841,6 @@ const CandidatesTab = () => {
     };
 
     const handleStageCardClick = (stage) => {
-        // When "All Candidates" (sourced) is clicked, clear the status filter
         if (stage === 'sourced') {
             setFilters({
                 ...filters,
@@ -1929,8 +1953,8 @@ const CandidatesTab = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setBulkMoveDialogOpen(false)}>Cancel</Button>
-                    <Button 
-                        onClick={handleBulkStageMove} 
+                    <Button
+                        onClick={handleBulkStageMove}
                         variant="contained"
                         disabled={!newStage}
                     >
@@ -1971,8 +1995,8 @@ const CandidatesTab = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setEmailDialogOpen(false)}>Cancel</Button>
-                    <Button 
-                        onClick={handleSendBulkEmail} 
+                    <Button
+                        onClick={handleSendBulkEmail}
                         variant="contained"
                         disabled={isSendingEmail || !emailSubject || !emailBody}
                         startIcon={isSendingEmail ? <CircularProgress size={20} /> : null}
@@ -1998,9 +2022,9 @@ const CandidatesTab = () => {
                                     }
                                 }}
                                 sx={{
-                                    backgroundColor: (stage === 'sourced' && !filters.status) || 
-                                                   (stage !== 'sourced' && filters.status.toLowerCase() === stage) ? 
-                                                   "#e3f2fd" : "#f5f5f5",
+                                    backgroundColor: (stage === 'sourced' && !filters.status) ||
+                                        (stage !== 'sourced' && filters.status.toLowerCase() === stage) ?
+                                        "#e3f2fd" : "#f5f5f5",
                                     width: "150px",
                                     textAlign: "center",
                                     borderRadius: 2,
@@ -2055,7 +2079,7 @@ const CandidatesTab = () => {
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                         <FormControl size="small" sx={{ minWidth: 180 }}>
                             <InputLabel>Source</InputLabel>
-                            <Select 
+                            <Select
                                 label="Source"
                                 value={filters.source}
                                 onChange={handleFilterChange('source')}
@@ -2070,7 +2094,7 @@ const CandidatesTab = () => {
 
                         <FormControl size="small" sx={{ minWidth: 180 }}>
                             <InputLabel>Experience</InputLabel>
-                            <Select 
+                            <Select
                                 label="Experience"
                                 value={filters.experience}
                                 onChange={handleFilterChange('experience')}
@@ -2084,7 +2108,7 @@ const CandidatesTab = () => {
 
                         <FormControl size="small" sx={{ minWidth: 250 }}>
                             <InputLabel>Available to join (In Days)</InputLabel>
-                            <Select 
+                            <Select
                                 label="Available to join (In Days)"
                                 value={filters.availableToJoin}
                                 onChange={handleFilterChange('availableToJoin')}
@@ -2099,7 +2123,7 @@ const CandidatesTab = () => {
 
                         <FormControl size="small" sx={{ minWidth: 150 }}>
                             <InputLabel>Status</InputLabel>
-                            <Select 
+                            <Select
                                 label="Status"
                                 value={filters.status}
                                 onChange={handleFilterChange('status')}
@@ -2251,6 +2275,64 @@ const CandidatesTab = () => {
                 </DialogActions>
             </Dialog>
 
+            {/* Resume Analysis Dialog */}
+            <Dialog
+                open={analysisDialogOpen}
+                onClose={() => setAnalysisDialogOpen(false)}
+                maxWidth="md"
+                fullWidth
+                sx={{
+                    '& .MuiDialog-paper': {
+                        borderRadius: 3,
+                        maxHeight: '90vh'
+                    }
+                }}
+            >
+                <DialogTitle sx={{
+                    // backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '16px 24px'
+                }}>
+                    <Box display="flex" alignItems="center">
+                        <AnalysisIcon sx={{ mr: 1 }} />
+                        <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+                            Resume Analysis - {selectedCandidateForAnalysis?.firstName} {selectedCandidateForAnalysis?.lastName}
+                        </Typography>
+                    </Box>
+                    <IconButton
+                        edge="end"
+                        color="inherit"
+                        onClick={() => setAnalysisDialogOpen(false)}
+                        aria-label="close"
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent dividers sx={{ p: 0 }}>
+                    {analysisLoading ? (
+                        <Box sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            height: '200px'
+                        }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : (
+                        <CandidateResumeAnalysis
+                            open={analysisDialogOpen}
+                            onClose={() => setAnalysisDialogOpen(false)}
+                            candidate={selectedCandidateForAnalysis}
+                            analysisData={analysisData}
+                            loading={analysisLoading}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
+
             {/* Candidate Views */}
             {viewMode === "table" ? (
                 <Box
@@ -2329,7 +2411,7 @@ const CandidatesTab = () => {
                                     label={getStageName(candidate.stage)}
                                     color={
                                         getStageName(candidate.stage) === "Hired" ? "success" :
-                                        getStageName(candidate.stage) === "Archived" ? "default" : "primary"
+                                            getStageName(candidate.stage) === "Archived" ? "default" : "primary"
                                     }
                                     size="small"
                                     sx={{
@@ -2337,7 +2419,7 @@ const CandidatesTab = () => {
                                         fontWeight: "bold",
                                         backgroundColor:
                                             getStageName(candidate.stage) === "Hired" ? "success.light" :
-                                            getStageName(candidate.stage) === "Archived" ? "grey.500" : "primary.light",
+                                                getStageName(candidate.stage) === "Archived" ? "grey.500" : "primary.light",
                                         color: "white",
                                         borderRadius: 20,
                                         padding: "0.5rem 1rem",
@@ -2347,9 +2429,9 @@ const CandidatesTab = () => {
 
                                 {/* Rejection Details */}
                                 {getStageName(candidate.stage) === "Rejected" && candidate.rejectionType && (
-                                    <Box sx={{ 
-                                        backgroundColor: '#ffeeee', 
-                                        p: 1, 
+                                    <Box sx={{
+                                        backgroundColor: '#ffeeee',
+                                        p: 1,
                                         borderRadius: 1,
                                         borderLeft: '3px solid #f44336'
                                     }}>
@@ -2379,9 +2461,33 @@ const CandidatesTab = () => {
 
                                 {/* Action Buttons */}
                                 <Box
-                                    sx={{ display: "flex", justifyContent: "space-between", marginTop: 3 }}
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        marginTop: 3,
+                                        gap: 1
+                                    }}
                                     onClick={(e) => e.stopPropagation()}
                                 >
+                                    <Button
+                                        variant="contained"
+                                        startIcon={<AnalysisIcon />}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleOpenAnalysis(candidate._id);
+                                        }}
+                                        disabled={!candidate.resume}
+                                        sx={{
+                                            flex: 1,
+                                            textTransform: 'none',
+                                            backgroundColor: '#4caf50',
+                                            '&:hover': {
+                                                backgroundColor: '#388e3c',
+                                            }
+                                        }}
+                                    >
+                                        View Analysis
+                                    </Button>
                                     <IconButton
                                         className="action-button"
                                         onClick={(e) => {
@@ -2497,6 +2603,7 @@ const CandidatesTab = () => {
                                     <TableCell>{candidate.mobile || 'Not provided'}</TableCell>
                                     <TableCell>{candidate.owner || 'Not assigned'}</TableCell>
                                     <TableCell onClick={(e) => e.stopPropagation()}>
+                                       
                                         <IconButton
                                             className="action-button"
                                             onClick={(e) => handleInterviewClick(e, candidate._id)}
@@ -2515,6 +2622,16 @@ const CandidatesTab = () => {
                                         >
                                             <MoreIcon />
                                         </IconButton>
+                                         <Button
+                                            variant="outlined"
+                                            startIcon={<AnalysisIcon />}
+                                            onClick={() => handleOpenAnalysis(candidate._id)}
+                                            disabled={!candidate.resume}
+                                            size="small"
+                                            sx={{ mr: 1 }}
+                                        >
+                                           View Analysis
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
