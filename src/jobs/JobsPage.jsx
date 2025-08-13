@@ -1,3 +1,5 @@
+//-this is correct before bug
+
 
 
 // import React, { useState, useEffect } from "react";
@@ -49,7 +51,6 @@
 //   Group as GroupIcon,
 //   ViewModule as ViewModuleIcon,
 //   TableRows as TableRowsIcon,
-
 //   ArrowDropDown as ArrowDropDownIcon,
 //   FilterList as FilterListIcon,
 //   MoreVert as MoreVertIcon,
@@ -62,7 +63,7 @@
 // import GridViewIcon from '@mui/icons-material/GridView';
 // import ViewListIcon from '@mui/icons-material/ViewList';
 // import { useNavigate } from "react-router-dom";
-// import api, { fetchAlljobs, getAllUsers } from "../utils/api";
+// import api, { fetchAlljobs, getAllUsers,getAllLocations, getAllRecuiter, getAllDepartments } from "../utils/api";
 
 // const statusOptions = {
 //   'Active': ['Closed Own', 'Closed Lost', 'On Hold', 'Archived'],
@@ -73,8 +74,6 @@
 //   'Default': ['Active', 'Closed Own', 'Closed Lost', 'On Hold', 'Archived']
 // };
 
-// const departmentOptions = ["Developer", "Tester", "QA", "UI/UX", "DevOps", "Support"];
-// const locationOptions = ["Mumbai", "Gurgaon", "Delhi", "Bengaluru", "Pune"];
 // const businessUnitOptions = ["Internal", "External"];
 
 // const JobsPage = () => {
@@ -98,6 +97,8 @@
 //   const [recruiters, setRecruiters] = useState([]);
 //   const [salesPersons, setSalesPersons] = useState([]);
 //   const [clients, setClients] = useState([]);
+//   const [departments, setDepartments] = useState([]);
+//   const [locations, setLocations] = useState([]);
 //   const [statusChangeDialog, setStatusChangeDialog] = useState({
 //     open: false,
 //     newStatus: '',
@@ -128,11 +129,34 @@
 //         setLoading(true);
 
 //         // Fetch all data in parallel
-//         const [jobsResponse, usersResponse, clientsResponse] = await Promise.all([
+//         const [
+//           jobsResponse, 
+//           usersResponse, 
+//           clientsResponse,
+//           departmentsResponse,
+//           locationsResponse,
+//           employeesResponse
+//         ] = await Promise.all([
 //           fetchAlljobs(),
 //           getAllUsers(),
-//           api.get('/clients')
+//           api.get('/clients'),
+//           getAllDepartments(),
+//           getAllLocations(),
+//           getAllRecuiter()
 //         ]);
+
+//         // Set departments
+//         const departmentsData = await getAllDepartments();
+//         setDepartments(departmentsData);
+
+//         // Set locations
+//         const locationsData = locationsResponse.data || [];
+//         setLocations(locationsData);
+
+//         // Set recruiters (only HR/Recruiter role)
+//         const employeesData = employeesResponse.data || [];
+//         const recruiterEmployees = employeesData.filter(emp => emp.role === 'HR/Recruiter');
+//         setRecruiters(recruiterEmployees.map(emp => emp.name));
 
 //         // Validate jobs response
 //         const allJobs = jobsResponse?.jobs || [];
@@ -180,7 +204,7 @@
 
 //         const uniqueRecruiters = [...new Set([
 //           ...jobRecruiters,
-//           ...allUsers.filter(user => user.role === 'recruiter').map(user => user.username)
+//           ...recruiterEmployees.map(emp => emp.name)
 //         ])];
 
 //         const uniqueSalesPersons = [...new Set([
@@ -202,11 +226,12 @@
 //         setClients([]);
 //         setRecruiters([]);
 //         setSalesPersons([]);
+//         setDepartments([]);
+//         setLocations([]);
 //       } finally {
 //         setLoading(false);
 //       }
 //     };
-
 
 //     fetchData();
 //   }, [navigate]);
@@ -214,9 +239,12 @@
 //   const filtersConfig = [
 //     { label: "Status", id: "status", options: ["Active", "On Hold", "Closed Own", "Closed Lost"] },
 //     { label: "Business Unit", id: "businessUnit", options: businessUnitOptions },
-//     { label: "Department", id: "department", options: departmentOptions },
-//     { label: "Recruiter", id: "recruiter", options: recruiters },
-//     { label: "Location", id: "location", options: locationOptions },
+// { 
+//     label: "Department", 
+//     id: "department", 
+//     options: Array.isArray(departments) ? departments : [] 
+//   },    { label: "Recruiter", id: "recruiter", options: recruiters },
+//     { label: "Location", id: "location", options: locations.map(loc => loc.name) },
 //   ];
 
 //   useEffect(() => {
@@ -232,7 +260,7 @@
 //       result = result.filter(job => {
 //         const jobTitle = job.jobTitle || '';
 //         const jobNumber = job.formattedJobNumber || '';
-//         const location = (job.jobFormId?.location || '').toString();
+//         const locationNames = job.jobFormId?.locations ? getLocationNames(job.jobFormId.locations) : '';
 //         const department = job.department || '';
 //         const client = (job.jobFormId?.Client ? getClientName(job.jobFormId.Client) : '').toString();
 //         const salesPerson = (job.jobFormId?.salesPerson || '').toString();
@@ -247,7 +275,7 @@
 //         return (
 //           jobTitle.toLowerCase().includes(term) ||
 //           jobNumber.toLowerCase().includes(term) ||
-//           location.toLowerCase().includes(term) ||
+//           locationNames.toLowerCase().includes(term) ||
 //           department.toLowerCase().includes(term) ||
 //           client.toLowerCase().includes(term) ||
 //           salesPerson.toLowerCase().includes(term) ||
@@ -281,7 +309,8 @@
 //             case 'salesPerson':
 //               return job.jobFormId?.salesPerson === value;
 //             case 'location':
-//               return job.jobFormId?.location === value;
+//               const jobLocations = job.jobFormId?.locations || [];
+//               return jobLocations.some(loc => loc.name === value);
 //             default:
 //               return true;
 //           }
@@ -1164,8 +1193,8 @@
 
 // export default JobsPage;
 
-//----------
 
+//--this is after bug correct -----------
 
 
 import React, { useState, useEffect } from "react";
@@ -1228,16 +1257,16 @@ import {
 import { parseISO, format } from "date-fns";
 import GridViewIcon from '@mui/icons-material/GridView';
 import ViewListIcon from '@mui/icons-material/ViewList';
-import { useNavigate } from "react-router-dom";
-import api, { fetchAlljobs, getAllUsers,getAllLocations, getAllRecuiter, getAllDepartments } from "../utils/api";
+import { useNavigate, useLocation } from "react-router-dom";
+import api, { fetchAlljobs, getAllUsers, getAllLocations, getAllRecuiter, getAllDepartments } from "../utils/api";
 
 const statusOptions = {
-  'Active': ['Closed Own', 'Closed Lost', 'On Hold', 'Archived'],
-  'On Hold': ['Active', 'Closed Own', 'Closed Lost', 'Archived'],
-  'Closed Own': ['Active', 'On Hold', 'Closed Lost', 'Archived'],
-  'Closed Lost': ['Active', 'On Hold', 'Closed Own', 'Archived'],
+  'Active': ['Inactive', 'On Hold', 'Closed Own', 'Archived'],
+  'Inactive': ['Active', 'On Hold', 'Closed Own', 'Archived'],
+  'On Hold': ['Active', 'Inactive', 'Closed Own', 'Archived'],
+  'Closed Own': ['Active', 'Inactive', 'On Hold', 'Archived'],
   'Archived': ['Active'],
-  'Default': ['Active', 'Closed Own', 'Closed Lost', 'On Hold', 'Archived']
+  'Default': ['Active', 'Inactive', 'On Hold', 'Closed Own', 'Archived']
 };
 
 const businessUnitOptions = ["Internal", "External"];
@@ -1271,7 +1300,23 @@ const JobsPage = () => {
     reason: '',
     jobId: null
   });
+  
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Handle browser back button
+  useEffect(() => {
+    const handleBackButton = (e) => {
+      if (location.state?.from) {
+        navigate(location.state.from);
+      } else {
+        navigate('/dashboard');
+      }
+    };
+
+    window.addEventListener('popstate', handleBackButton);
+    return () => window.removeEventListener('popstate', handleBackButton);
+  }, [navigate, location.state]);
 
   const formatJobNumber = (index) => {
     const number = index + 1;
@@ -1289,12 +1334,21 @@ const JobsPage = () => {
     return locations.map(loc => loc.name).join(', ');
   };
 
+  const getJobStatus = (job) => {
+    const targetDate = job.jobFormId?.targetHireDate ? parseISO(job.jobFormId.targetHireDate) : null;
+    const isExpired = targetDate && new Date() > targetDate;
+    
+    if (isExpired) {
+      return 'Inactive';
+    }
+    return job.status || 'Active';
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
-        // Fetch all data in parallel
         const [
           jobsResponse, 
           usersResponse, 
@@ -1311,34 +1365,28 @@ const JobsPage = () => {
           getAllRecuiter()
         ]);
 
-        // Set departments
         const departmentsData = await getAllDepartments();
         setDepartments(departmentsData);
 
-        // Set locations
         const locationsData = locationsResponse.data || [];
         setLocations(locationsData);
 
-        // Set recruiters (only HR/Recruiter role)
         const employeesData = employeesResponse.data || [];
         const recruiterEmployees = employeesData.filter(emp => emp.role === 'HR/Recruiter');
         setRecruiters(recruiterEmployees.map(emp => emp.name));
 
-        // Validate jobs response
         const allJobs = jobsResponse?.jobs || [];
         if (!Array.isArray(allJobs)) {
           console.error('Invalid jobs data format:', jobsResponse);
           throw new Error('Invalid jobs data format');
         }
 
-        // Validate users response
         const allUsers = usersResponse?.users || [];
         if (!Array.isArray(allUsers)) {
           console.error('Invalid users data format:', usersResponse);
           throw new Error('Invalid users data format');
         }
 
-        // Validate clients response
         const allClients = clientsResponse?.data?.clients || [];
         if (!Array.isArray(allClients)) {
           console.error('Invalid clients data format:', clientsResponse);
@@ -1349,7 +1397,8 @@ const JobsPage = () => {
 
         const jobsWithNumbers = allJobs.map((job, index) => ({
           ...job,
-          formattedJobNumber: formatJobNumber(index)
+          formattedJobNumber: formatJobNumber(index),
+          status: getJobStatus(job)
         }));
 
         const activeJobs = jobsWithNumbers.filter(job => job.status !== 'Archived');
@@ -1403,13 +1452,14 @@ const JobsPage = () => {
   }, [navigate]);
 
   const filtersConfig = [
-    { label: "Status", id: "status", options: ["Active", "On Hold", "Closed Own", "Closed Lost"] },
+    { label: "Status", id: "status", options: ["Active", "Inactive", "On Hold", "Closed Own"] },
     { label: "Business Unit", id: "businessUnit", options: businessUnitOptions },
-{ 
-    label: "Department", 
-    id: "department", 
-    options: Array.isArray(departments) ? departments : [] 
-  },    { label: "Recruiter", id: "recruiter", options: recruiters },
+    { 
+      label: "Department", 
+      id: "department", 
+      options: Array.isArray(departments) ? departments : [] 
+    },
+    { label: "Recruiter", id: "recruiter", options: recruiters },
     { label: "Location", id: "location", options: locations.map(loc => loc.name) },
   ];
 
@@ -1455,13 +1505,6 @@ const JobsPage = () => {
         result = result.filter(job => {
           switch (key) {
             case 'status':
-              const targetDate = job.jobFormId?.targetHireDate ? parseISO(job.jobFormId.targetHireDate) : null;
-              const isExpired = targetDate && new Date() > targetDate;
-              if (value === 'Active') {
-                return (job.status === 'Active' || !job.status) && !isExpired;
-              } else if (value === 'Closed Lost') {
-                return job.status === 'Closed Lost' || isExpired;
-              }
               return job.status === value;
             case 'businessUnit':
               return job.jobFormId?.BusinessUnit === value.toLowerCase();
@@ -1487,11 +1530,7 @@ const JobsPage = () => {
     setFilteredJobs(result);
   }, [jobs, archivedJobs, showArchived, showPriority, searchTerm, filters, clients]);
 
-  const activeJobsCount = jobs.filter(job => {
-    const targetDate = job.jobFormId?.targetHireDate ? parseISO(job.jobFormId.targetHireDate) : null;
-    const isExpired = targetDate && new Date() > targetDate;
-    return (job.status === 'Active' || !job.status) && !isExpired;
-  }).length;
+  const activeJobsCount = jobs.filter(job => job.status === 'Active').length;
 
   const handleCreateJobClick = () => {
     navigate("/dashboard/jobs/createJob");
@@ -1580,7 +1619,7 @@ const JobsPage = () => {
   };
 
   const handleStatusChange = async (newStatus) => {
-    if (['Closed Own', 'Closed Lost', 'On Hold', 'Archived'].includes(newStatus)) {
+    if (['Closed Own', 'On Hold', 'Archived'].includes(newStatus)) {
       setStatusChangeDialog({
         open: true,
         newStatus,
@@ -1669,7 +1708,8 @@ const JobsPage = () => {
       const allJobs = response.data.jobs;
       const jobsWithNumbers = allJobs.map((job, index) => ({
         ...job,
-        formattedJobNumber: formatJobNumber(index)
+        formattedJobNumber: formatJobNumber(index),
+        status: getJobStatus(job)
       }));
 
       const activeJobs = jobsWithNumbers.filter(job => job.status !== 'Archived');
@@ -1703,7 +1743,8 @@ const JobsPage = () => {
 
       const duplicatedJob = {
         ...response.data.job,
-        formattedJobNumber: formatJobNumber(jobs.length)
+        formattedJobNumber: formatJobNumber(jobs.length),
+        status: getJobStatus(response.data.job)
       };
 
       setJobs([duplicatedJob, ...jobs]);
@@ -1719,9 +1760,9 @@ const JobsPage = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Active': return 'success';
+      case 'Inactive': return 'error';
       case 'On Hold': return 'warning';
       case 'Closed Own': return 'primary';
-      case 'Closed Lost': return 'error';
       case 'Archived': return 'default';
       default: return 'default';
     }
@@ -1729,16 +1770,6 @@ const JobsPage = () => {
 
   const getAvailableStatusChanges = (currentStatus) => {
     return statusOptions[currentStatus] || statusOptions['Default'];
-  };
-
-  const getJobStatus = (job) => {
-    const targetDate = job.jobFormId?.targetHireDate ? parseISO(job.jobFormId.targetHireDate) : null;
-    const isExpired = targetDate && new Date() > targetDate;
-
-    if (job.status) {
-      return job.status;
-    }
-    return isExpired ? 'Closed Lost' : 'Active';
   };
 
   const handleJobCardClick = (jobId) => {
@@ -1965,15 +1996,6 @@ const JobsPage = () => {
                   <MenuItem onClick={handleDuplicateJob}>
                     <ContentCopyIcon fontSize="small" sx={{ mr: 1 }} />
                     Duplicate Job
-                  </MenuItem>
-                  <MenuItem onClick={handleMenuClose}>On Hold</MenuItem>
-                  <MenuItem onClick={handleMenuClose}>Closed Own</MenuItem>
-                  <MenuItem onClick={() => {
-                    handleMenuClose();
-                    setShowArchived(true);
-                  }}>
-                    <ArchiveIcon fontSize="small" sx={{ mr: 1 }} />
-                    Archived
                   </MenuItem>
                 </Menu>
               </>

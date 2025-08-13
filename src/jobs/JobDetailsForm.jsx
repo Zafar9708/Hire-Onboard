@@ -1,3 +1,4 @@
+//---this is correct before bug--
 
 // import React, { useState, useEffect } from "react";
 // import {
@@ -20,7 +21,9 @@
 //   DialogContent,
 //   DialogActions,
 //   Chip,
-//   Autocomplete
+//   Autocomplete,
+//   Snackbar,
+//   Alert
 // } from "@mui/material";
 // import DatePicker from "react-datepicker";
 // import "react-datepicker/dist/react-datepicker.css";
@@ -28,7 +31,7 @@
 // import AddIcon from "@mui/icons-material/Add";
 // import AddLocationIcon from "@mui/icons-material/AddLocation";
 // import DeleteIcon from "@mui/icons-material/Delete";
-// import { fetchJobFormOptions } from "../utils/api";
+// import { fetchJobFormOptions, fetchLocations, addNewLocation } from "../utils/api";
 
 // const JobDetailsForm = ({ onContinue, initialData = {} }) => {
 //   // State initialization
@@ -66,6 +69,11 @@
 //   const [clients, setClients] = useState([]);
 //   const [newClientName, setNewClientName] = useState("");
 //   const [openAddClient, setOpenAddClient] = useState(false);
+//   const [snackbar, setSnackbar] = useState({
+//     open: false,
+//     message: "",
+//     severity: "success"
+//   });
 
 //   const hiringFlowSteps = initialData.hiringFlow || [
 //     "Technical Round",
@@ -73,92 +81,154 @@
 //     "HR Round"
 //   ];
 
+//   // Load all initial data
 //   useEffect(() => {
-//     const loadOptions = async () => {
+//     const loadData = async () => {
 //       try {
-//         const data = await fetchJobFormOptions();
-//         setJobTypes(data.jobTypes || []);
-//         setLocations(data.locations || []);
-//         setCurrencies(data.currencies || []);
-//       } catch (err) {
-//         console.error("Failed to fetch job form options:", err);
-//         setJobTypes([]);
-//         setLocations([]);
-//         setCurrencies([]);
-//       }
-//     };
-//     loadOptions();
-//   }, []);
+//         const [options, locationList] = await Promise.all([
+//           fetchJobFormOptions(),
+//           fetchLocations()
+//         ]);
+        
+//         setJobTypes(options.jobTypes || []);
+//         setLocations(locationList || []);
+//         setCurrencies(options.currencies || []);
 
-//   useEffect(() => {
-//     const fetchEmployees = async () => {
-//       try {
-//         const res = await fetch("https://hire-onboardbackend-production.up.railway.app/api/employees");
-//         const data = await res.json();
-//         if (Array.isArray(data)) {
-//           setAllUsers(data);
-//         } else {
-//           console.error("Invalid response from /api/employees");
-//           setAllUsers([]);
+//         // Load employees
+//         const employeesRes = await fetch("https://hire-onboardbackend-production.up.railway.app/api/employees");
+//         const employeesData = await employeesRes.json();
+//         if (Array.isArray(employeesData)) {
+//           setAllUsers(employeesData);
 //         }
-//       } catch (err) {
-//         console.error("Failed to fetch employees", err);
-//         setAllUsers([]);
-//       }
-//     };
-//     fetchEmployees();
-//   }, []);
 
-//   useEffect(() => {
-//     const fetchClients = async () => {
-//       try {
-//         const res = await fetch("https://hire-onboardbackend-production.up.railway.app/api/clients");
-//         const data = await res.json();
-//         if (data.success && Array.isArray(data.clients)) {
-//           setClients(data.clients);
-//         } else {
-//           console.error("Invalid response from /api/clients");
-//           setClients([]);
+//         // Load clients
+//         const clientsRes = await fetch("https://hire-onboardbackend-production.up.railway.app/api/clients");
+//         const clientsData = await clientsRes.json();
+//         if (clientsData.success && Array.isArray(clientsData.clients)) {
+//           setClients(clientsData.clients);
 //         }
-//       } catch (err) {
-//         console.error("Failed to fetch clients", err);
-//         setClients([]);
+
+//       } catch (error) {
+//         console.error("Failed to load data:", error);
+//         showSnackbar("Failed to load initial data", "error");
 //       }
 //     };
-//     fetchClients();
+
+//     loadData();
 //   }, []);
 
+//   // Handle form submission
 //   const handleSubmit = (action) => {
 //     const jobData = {
-//         jobType,
-//         locations: selectedLocations,
-//         openings: Number(openings) || 0,
-//         targetHireDate,
-//         currency,
-//         amount: Number(amount) || 0,
-//         allowReapply,
-//         reapplyDate: allowReapply ? Number(reapplyDate) || 0 : null,
-//         markPriority,
-//         hiringFlow: hiringFlowSteps,
-//         BusinessUnit: BusinessUnit.toLowerCase(),
-//         Client: BusinessUnit === "external" ? Client : undefined,
-//         salesPerson: BusinessUnit === "external" ? SalesPerson : undefined,
-//         recruitingPerson
+//       jobType,
+//       locations: selectedLocations,
+//       openings: Number(openings) || 0,
+//       targetHireDate,
+//       currency,
+//       amount: Number(amount) || 0,
+//       allowReapply,
+//       reapplyDate: allowReapply ? Number(reapplyDate) || 0 : null,
+//       markPriority,
+//       hiringFlow: hiringFlowSteps,
+//       BusinessUnit: BusinessUnit.toLowerCase(),
+//       Client: BusinessUnit === "external" ? Client : undefined,
+//       salesPerson: BusinessUnit === "external" ? SalesPerson : undefined,
+//       recruitingPerson
 //     };
 
 //     onContinue(jobData, action);
 //   };
 
-//   const handleAddLocation = () => {
-//     if (newLocation.trim() && !locations.includes(newLocation.trim())) {
-//       const updatedLocations = [...locations, newLocation.trim()];
-//       setLocations(updatedLocations);
-//       setSelectedLocations([...selectedLocations, newLocation.trim()]);
+//   // Handle adding a new location
+//   const handleAddLocation = async () => {
+//     try {
+//       if (!newLocation.trim()) {
+//         showSnackbar("Location name is required", "error");
+//         return;
+//       }
+
+//       // Check if location already exists
+//       const exists = locations.some(
+//         loc => loc.name.toLowerCase() === newLocation.trim().toLowerCase()
+//       );
+      
+//       if (exists) {
+//         showSnackbar("Location already exists", "error");
+//         return;
+//       }
+
+//       // Add new location via API
+//       const response = await addNewLocation(newLocation.trim());
+      
+//       // Update state
+//       setLocations(prev => [...prev, response.data]);
+//       setSelectedLocations(prev => [...prev, response.data._id]);
 //       setNewLocation("");
 //       setOpenAddLocation(false);
+//       showSnackbar("Location added successfully", "success");
+
+//     } catch (error) {
+//       console.error("Failed to add location:", error);
+//       showSnackbar(error.message || "Failed to add location", "error");
 //     }
 //   };
 
+//   // Handle adding a new client
+//   const handleSaveNewClient = async () => {
+//     try {
+//       if (!newClientName.trim()) {
+//         showSnackbar("Client name is required", "error");
+//         return;
+//       }
+
+//       const response = await fetch("https://hire-onboardbackend-production.up.railway.app/api/clients", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ name: newClientName.trim() })
+//       });
+
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         throw new Error(errorData.message || "Failed to create client");
+//       }
+
+//       const data = await response.json();
+//       if (data.success && data.client) {
+//         setClients(prev => [...prev, data.client]);
+//         setClient(data.client._id);
+//         setNewClientName("");
+//         setOpenAddClient(false);
+//         showSnackbar("Client added successfully", "success");
+//       }
+//     } catch (error) {
+//       console.error("Error creating client:", error);
+//       showSnackbar(error.message || "Failed to add client", "error");
+//     }
+//   };
+
+//   // Handle deleting a client
+//   const handleDeleteClient = async (clientId) => {
+//     try {
+//       const response = await fetch(`https://hire-onboardbackend-production.up.railway.app/api/clients/${clientId}`, {
+//         method: "DELETE",
+//       });
+
+//       if (!response.ok) {
+//         throw new Error("Failed to delete client");
+//       }
+
+//       setClients(prev => prev.filter(client => client._id !== clientId));
+//       if (Client === clientId) {
+//         setClient("");
+//       }
+//       showSnackbar("Client deleted successfully", "success");
+//     } catch (error) {
+//       console.error("Error deleting client:", error);
+//       showSnackbar(error.message || "Failed to delete client", "error");
+//     }
+//   };
+
+//   // Handle adding a new sales person
 //   const handleAddSalesPerson = () => {
 //     setOpenAddSalesPerson(true);
 //   };
@@ -209,11 +279,14 @@
 //       }
       
 //       handleCloseAddSalesPerson();
+//       showSnackbar("Sales person added successfully", "success");
 //     } catch (err) {
 //       console.error("Error creating salesperson:", err);
+//       showSnackbar(err.message || "Failed to add sales person", "error");
 //     }
 //   };
 
+//   // Handle adding a new recruiter
 //   const handleAddRecruiter = () => {
 //     setOpenAddRecruiter(true);
 //   };
@@ -249,58 +322,29 @@
 //       setAllUsers(prev => [...prev, newUserObj]);
 //       setRecruitingPerson(newUserObj.name);
 //       handleCloseAddRecruiter();
+//       showSnackbar("Recruiter added successfully", "success");
 //     } catch (err) {
 //       console.error("Error creating recruiter:", err);
+//       showSnackbar(err.message || "Failed to add recruiter", "error");
 //     }
 //   };
 
-//   const handleAddClient = () => {
-//     setOpenAddClient(true);
+//   // Snackbar helper functions
+//   const showSnackbar = (message, severity) => {
+//     setSnackbar({ open: true, message, severity });
 //   };
 
+//   const handleCloseSnackbar = () => {
+//     setSnackbar(prev => ({ ...prev, open: false }));
+//   };
+
+//   // Helper to close add client dialog
 //   const handleCloseAddClient = () => {
 //     setOpenAddClient(false);
 //     setNewClientName("");
 //   };
 
-//   const handleSaveNewClient = async () => {
-//     try {
-//       const response = await fetch("https://hire-onboardbackend-production.up.railway.app/api/clients", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ name: newClientName }),
-//       });
-
-//       if (!response.ok) throw new Error("Failed to create new client");
-
-//       const data = await response.json();
-//       if (data.success && data.client) {
-//         setClients(prev => [...prev, data.client]);
-//         setClient(data.client._id);
-//         handleCloseAddClient();
-//       }
-//     } catch (err) {
-//       console.error("Error creating client:", err);
-//     }
-//   };
-
-//   const handleDeleteClient = async (clientId) => {
-//     try {
-//       const response = await fetch(`https://hire-onboardbackend-production.up.railway.app/api/clients/${clientId}`, {
-//         method: "DELETE",
-//       });
-
-//       if (!response.ok) throw new Error("Failed to delete client");
-
-//       setClients(prev => prev.filter(client => client._id !== clientId));
-//       if (Client === clientId) {
-//         setClient("");
-//       }
-//     } catch (err) {
-//       console.error("Error deleting client:", err);
-//     }
-//   };
-
+//   // Helper to get sales person display name
 //   const getSalesPersonDisplay = (id) => {
 //     if (!id) return "";
 //     const person = allUsers.find(user => user._id === id);
@@ -312,6 +356,7 @@
 //       <Typography variant="h5" fontWeight={600} gutterBottom align="left">Job Details</Typography>
 //       <Divider sx={{ mb: 3 }} />
 
+//       {/* Business Unit and Client Section */}
 //       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
 //         <FormControl fullWidth>
 //           <InputLabel>Business Unit</InputLabel>
@@ -325,6 +370,7 @@
 //             <MenuItem value="external">External</MenuItem>
 //           </Select>
 //         </FormControl>
+        
 //         {BusinessUnit === "external" && (
 //           <FormControl fullWidth>
 //             <InputLabel>Client</InputLabel>
@@ -335,7 +381,7 @@
 //               required
 //               endAdornment={
 //                 <InputAdornment position="end">
-//                   <IconButton onClick={handleAddClient}>
+//                   <IconButton onClick={() => setOpenAddClient(true)}>
 //                     <AddIcon />
 //                   </IconButton>
 //                 </InputAdornment>
@@ -357,7 +403,7 @@
 //                   </Box>
 //                 </MenuItem>
 //               ))}
-//               <MenuItem onClick={handleAddClient} sx={{ justifyContent: "center" }}>
+//               <MenuItem onClick={() => setOpenAddClient(true)} sx={{ justifyContent: "center" }}>
 //                 <Button startIcon={<AddIcon />}>Add New Client</Button>
 //               </MenuItem>
 //             </Select>
@@ -365,6 +411,7 @@
 //         )}
 //       </Box>
 
+//       {/* Job Type and Locations Section */}
 //       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
 //         <FormControl fullWidth>
 //           <InputLabel>Job Type</InputLabel>
@@ -384,15 +431,29 @@
 //           <Autocomplete
 //             multiple
 //             options={locations}
-//             value={selectedLocations}
-//             onChange={(event, newValue) => setSelectedLocations(newValue)}
+//             value={locations.filter(loc => 
+//               selectedLocations.includes(loc._id)
+//             )}
+//             onChange={(event, newValue) => {
+//               setSelectedLocations(newValue.map(v => v._id));
+//             }}
+//             getOptionLabel={(option) => option.name}
 //             renderTags={(value, getTagProps) =>
 //               value.map((option, index) => (
-//                 <Chip label={option} {...getTagProps({ index })} key={option} />
+//                 <Chip 
+//                   label={option.name} 
+//                   {...getTagProps({ index })} 
+//                   key={option._id} 
+//                 />
 //               ))
 //             }
 //             renderInput={(params) => (
-//               <TextField {...params} label="Locations" placeholder="Select locations" />
+//               <TextField 
+//                 {...params} 
+//                 label="Locations" 
+//                 placeholder="Select locations" 
+//                 required
+//               />
 //             )}
 //           />
 //           <Button
@@ -405,6 +466,7 @@
 //         </FormControl>
 //       </Box>
 
+//       {/* Employment Details Section */}
 //       <Typography variant="h6" fontWeight={500} gutterBottom align="left">Employment Details</Typography>
 //       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
 //         <TextField
@@ -437,6 +499,7 @@
 //         />
 //       </Box>
 
+//       {/* Compensation Details Section */}
 //       <Typography variant="h6" fontWeight={500} gutterBottom align="left">Compensation Details</Typography>
 //       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
 //         <FormControl fullWidth>
@@ -465,6 +528,7 @@
 //         />
 //       </Box>
 
+//       {/* Team Details Section */}
 //       <Typography variant="h6" fontWeight={500} gutterBottom align="left">Team Details</Typography>
 //       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
 //         <FormControl fullWidth>
@@ -518,6 +582,7 @@
 //         </FormControl>
 //       </Box>
 
+//       {/* Additional Options Section */}
 //       <Typography variant="h6" fontWeight={500} gutterBottom align="left">Additional Options</Typography>
 //       <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 3, alignItems: "flex-start" }}>
 //         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -542,6 +607,7 @@
 //         />
 //       </Box>
 
+//       {/* Form Actions */}
 //       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
 //         <Button variant="outlined" onClick={() => handleSubmit("back")}>Back</Button>
 //         <Button
@@ -567,15 +633,28 @@
 //           <TextField
 //             autoFocus
 //             margin="dense"
-//             label="New Location"
+//             label="Location Name"
 //             fullWidth
 //             value={newLocation}
 //             onChange={(e) => setNewLocation(e.target.value)}
+//             onKeyPress={(e) => {
+//               if (e.key === 'Enter' && newLocation.trim()) {
+//                 handleAddLocation();
+//               }
+//             }}
+//             error={!newLocation.trim()}
+//             helperText={!newLocation.trim() ? "Location name is required" : ""}
 //           />
 //         </DialogContent>
 //         <DialogActions>
 //           <Button onClick={() => setOpenAddLocation(false)}>Cancel</Button>
-//           <Button onClick={handleAddLocation} disabled={!newLocation.trim()}>Add</Button>
+//           <Button 
+//             onClick={handleAddLocation} 
+//             disabled={!newLocation.trim()}
+//             variant="contained"
+//           >
+//             Add Location
+//           </Button>
 //         </DialogActions>
 //       </Dialog>
 
@@ -584,14 +663,41 @@
 //         <DialogTitle>Add New Sales Person</DialogTitle>
 //         <DialogContent sx={{ p: 3, minWidth: 400 }}>
 //           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-//             <TextField label="Name" name="name" value={newSalesPerson.name} onChange={handleNewSalesPersonChange} fullWidth required />
-//             <TextField label="Email" name="email" type="email" value={newSalesPerson.email} onChange={handleNewSalesPersonChange} fullWidth required />
-//             <TextField label="Role" name="role" value={newSalesPerson.role} fullWidth disabled />
+//             <TextField 
+//               label="Name" 
+//               name="name" 
+//               value={newSalesPerson.name} 
+//               onChange={handleNewSalesPersonChange} 
+//               fullWidth 
+//               required 
+//             />
+//             <TextField 
+//               label="Email" 
+//               name="email" 
+//               type="email" 
+//               value={newSalesPerson.email} 
+//               onChange={handleNewSalesPersonChange} 
+//               fullWidth 
+//               required 
+//             />
+//             <TextField 
+//               label="Role" 
+//               name="role" 
+//               value={newSalesPerson.role} 
+//               fullWidth 
+//               disabled 
+//             />
 //           </Box>
 //         </DialogContent>
 //         <DialogActions>
 //           <Button onClick={handleCloseAddSalesPerson}>Cancel</Button>
-//           <Button onClick={handleSaveNewSalesPerson} variant="contained" disabled={!newSalesPerson.name || !newSalesPerson.email}>Save</Button>
+//           <Button 
+//             onClick={handleSaveNewSalesPerson} 
+//             variant="contained" 
+//             disabled={!newSalesPerson.name || !newSalesPerson.email}
+//           >
+//             Save
+//           </Button>
 //         </DialogActions>
 //       </Dialog>
 
@@ -600,14 +706,41 @@
 //         <DialogTitle>Add New Recruiter</DialogTitle>
 //         <DialogContent sx={{ p: 3, minWidth: 400 }}>
 //           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-//             <TextField label="Name" name="name" value={newRecruiter.name} onChange={handleNewRecruiterChange} fullWidth required />
-//             <TextField label="Email" name="email" type="email" value={newRecruiter.email} onChange={handleNewRecruiterChange} fullWidth required />
-//             <TextField label="Role" name="role" value={newRecruiter.role} fullWidth disabled />
+//             <TextField 
+//               label="Name" 
+//               name="name" 
+//               value={newRecruiter.name} 
+//               onChange={handleNewRecruiterChange} 
+//               fullWidth 
+//               required 
+//             />
+//             <TextField 
+//               label="Email" 
+//               name="email" 
+//               type="email" 
+//               value={newRecruiter.email} 
+//               onChange={handleNewRecruiterChange} 
+//               fullWidth 
+//               required 
+//             />
+//             <TextField 
+//               label="Role" 
+//               name="role" 
+//               value={newRecruiter.role} 
+//               fullWidth 
+//               disabled 
+//             />
 //           </Box>
 //         </DialogContent>
 //         <DialogActions>
 //           <Button onClick={handleCloseAddRecruiter}>Cancel</Button>
-//           <Button onClick={handleSaveNewRecruiter} variant="contained" disabled={!newRecruiter.name || !newRecruiter.email}>Save</Button>
+//           <Button 
+//             onClick={handleSaveNewRecruiter} 
+//             variant="contained" 
+//             disabled={!newRecruiter.name || !newRecruiter.email}
+//           >
+//             Save
+//           </Button>
 //         </DialogActions>
 //       </Dialog>
 
@@ -622,21 +755,54 @@
 //             fullWidth
 //             value={newClientName}
 //             onChange={(e) => setNewClientName(e.target.value)}
-//             required
+//             onKeyPress={(e) => {
+//               if (e.key === 'Enter' && newClientName.trim()) {
+//                 handleSaveNewClient();
+//               }
+//             }}
+//             error={!newClientName.trim()}
+//             helperText={!newClientName.trim() ? "Client name is required" : ""}
 //           />
 //         </DialogContent>
 //         <DialogActions>
 //           <Button onClick={handleCloseAddClient}>Cancel</Button>
-//           <Button onClick={handleSaveNewClient} variant="contained" disabled={!newClientName.trim()}>Save</Button>
+//           <Button 
+//             onClick={handleSaveNewClient} 
+//             disabled={!newClientName.trim()}
+//             variant="contained"
+//           >
+//             Add Client
+//           </Button>
 //         </DialogActions>
 //       </Dialog>
+
+//       {/* Snackbar for notifications */}
+//       <Snackbar
+//         open={snackbar.open}
+//         autoHideDuration={6000}
+//         onClose={handleCloseSnackbar}
+//         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+//       >
+//         <Alert 
+//           onClose={handleCloseSnackbar} 
+//           severity={snackbar.severity}
+//           sx={{ width: '100%' }}
+//         >
+//           {snackbar.message}
+//         </Alert>
+//       </Snackbar>
 //     </Paper>
 //   );
 // };
 
 // export default JobDetailsForm;
 
-//-----------
+
+//--this is after bug fix-----------------------
+
+
+
+
 
 import React, { useState, useEffect } from "react";
 import {
@@ -677,7 +843,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
   const [jobType, setJobType] = useState(initialData.jobType || "");
   const [selectedLocations, setSelectedLocations] = useState(initialData.locations || []);
   const [openings, setOpenings] = useState(initialData.openings || "");
-  const [targetHireDate, setTargetHireDate] = useState(initialData.targetHireDate || null);
+  const [targetHireDate, setTargetHireDate] = useState(initialData.targetHireDate ? new Date(initialData.targetHireDate) : null);
   const [currency, setCurrency] = useState(initialData.currency || "");
   const [amount, setAmount] = useState(initialData.amount || "");
   const [allowReapply, setAllowReapply] = useState(initialData.allowReapply || false);
@@ -685,7 +851,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
   const [markPriority, setMarkPriority] = useState(initialData.markPriority || false);
   const [BusinessUnit, setBusinessUnit] = useState(initialData.BusinessUnit || "");
   const [Client, setClient] = useState(initialData.Client || "");
-  const [SalesPerson, setSalesPerson] = useState(initialData.SalesPerson || null);
+  const [SalesPerson, setSalesPerson] = useState(initialData.salesPerson || null);
   const [recruitingPerson, setRecruitingPerson] = useState(initialData.recruitingPerson || "");
   const [jobTypes, setJobTypes] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -982,11 +1148,9 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
     setNewClientName("");
   };
 
-  // Helper to get sales person display name
-  const getSalesPersonDisplay = (id) => {
-    if (!id) return "";
-    const person = allUsers.find(user => user._id === id);
-    return person ? person.name : "";
+  // Get selected locations for Autocomplete
+  const getSelectedLocations = () => {
+    return locations.filter(loc => selectedLocations.includes(loc._id));
   };
 
   return (
@@ -1069,9 +1233,7 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
           <Autocomplete
             multiple
             options={locations}
-            value={locations.filter(loc => 
-              selectedLocations.includes(loc._id)
-            )}
+            value={getSelectedLocations()}
             onChange={(event, newValue) => {
               setSelectedLocations(newValue.map(v => v._id));
             }}
@@ -1116,25 +1278,26 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
           required
           inputProps={{ min: 1 }}
         />
-        <DatePicker
-          selected={targetHireDate}
-          onChange={(date) => setTargetHireDate(date)}
-          customInput={
-            <TextField
-              label="Target Hire Date"
-              fullWidth
-              required
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton><CalendarTodayIcon /></IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              readOnly
-            />
-          }
-        />
+        <FormControl fullWidth>
+          <DatePicker
+            selected={targetHireDate}
+            onChange={(date) => setTargetHireDate(date)}
+            customInput={
+              <TextField
+                label="Target Hire Date"
+                fullWidth
+                required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton><CalendarTodayIcon /></IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            }
+          />
+        </FormControl>
       </Box>
 
       {/* Compensation Details Section */}
@@ -1147,6 +1310,12 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
             onChange={(e) => setCurrency(e.target.value)} 
             label="Currency" 
             required
+            sx={{
+              "& .MuiSelect-select": {
+                display: "flex",
+                alignItems: "center"
+              }
+            }}
           >
             {currencies.map(({ code, symbol }) => (
               <MenuItem key={code} value={code}>
@@ -1170,19 +1339,36 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
       <Typography variant="h6" fontWeight={500} gutterBottom align="left">Team Details</Typography>
       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
         <FormControl fullWidth>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <InputLabel>Sales Person</InputLabel>
-            <Button startIcon={<AddIcon />} onClick={handleAddSalesPerson} sx={{ ml: "auto" }}>Add New</Button>
-          </Box>
+          <InputLabel shrink={!!SalesPerson} sx={{ 
+            backgroundColor: 'background.paper',
+            px: 1,
+            transform: 'translate(14px, -9px) scale(0.75)',
+            "&.MuiInputLabel-shrink": {
+              transform: 'translate(14px, -9px) scale(0.75)'
+            }
+          }}>
+            Sales Person
+          </InputLabel>
           <Select
             value={SalesPerson || ''}
             onChange={(e) => setSalesPerson(e.target.value || null)}
             label="Sales Person"
             required={BusinessUnit === "external"}
-            renderValue={(selected) => {
-              if (!selected) return <em>Select Sales Person</em>;
-              const person = allUsers.find(user => user._id === selected);
-              return person ? `${person.name} (${person.email})` : selected;
+            displayEmpty
+            sx={{
+              "& .MuiSelect-select": {
+                display: "flex",
+                alignItems: "center",
+                paddingTop: "12px",
+                paddingBottom: "12px"
+              }
+            }}
+            MenuProps={{
+              PaperProps: {
+                style: {
+                  maxHeight: 300
+                }
+              }
             }}
           >
             <MenuItem value="" disabled>
@@ -1195,20 +1381,48 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
                   {user.name} ({user.email})
                 </MenuItem>
               ))}
+            <MenuItem onClick={handleAddSalesPerson} sx={{ justifyContent: "center" }}>
+              <Button startIcon={<AddIcon />}>Add New Sales Person</Button>
+            </MenuItem>
           </Select>
         </FormControl>
 
         <FormControl fullWidth>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <InputLabel>Recruiting Member</InputLabel>
-            <Button startIcon={<AddIcon />} onClick={handleAddRecruiter} sx={{ ml: "auto" }}>Add New</Button>
-          </Box>
+          <InputLabel shrink={!!recruitingPerson} sx={{ 
+            backgroundColor: 'background.paper',
+            px: 1,
+            transform: 'translate(14px, -9px) scale(0.75)',
+            "&.MuiInputLabel-shrink": {
+              transform: 'translate(14px, -9px) scale(0.75)'
+            }
+          }}>
+            Recruiting Member
+          </InputLabel>
           <Select
             value={recruitingPerson}
             onChange={(e) => setRecruitingPerson(e.target.value)}
             label="Recruiting Member"
             required
+            displayEmpty
+            sx={{
+              "& .MuiSelect-select": {
+                display: "flex",
+                alignItems: "center",
+                paddingTop: "12px",
+                paddingBottom: "12px"
+              }
+            }}
+            MenuProps={{
+              PaperProps: {
+                style: {
+                  maxHeight: 300
+                }
+              }
+            }}
           >
+            <MenuItem value="" disabled>
+              <em>Select Recruiting Member</em>
+            </MenuItem>
             {allUsers
               .filter((user) => user.role === "HR/Recruiter")
               .map((user) => (
@@ -1216,6 +1430,9 @@ const JobDetailsForm = ({ onContinue, initialData = {} }) => {
                   {user.name}
                 </MenuItem>
               ))}
+            <MenuItem onClick={handleAddRecruiter} sx={{ justifyContent: "center" }}>
+              <Button startIcon={<AddIcon />}>Add New Recruiter</Button>
+            </MenuItem>
           </Select>
         </FormControl>
       </Box>

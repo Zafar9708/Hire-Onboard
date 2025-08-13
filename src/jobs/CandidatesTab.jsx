@@ -1,4 +1,6 @@
 
+//--this is before bug---
+
 
 // import React, { useState, useEffect } from "react";
 // import {
@@ -33,6 +35,7 @@
 //     DialogTitle,
 //     DialogContent,
 //     DialogActions,
+
 //     Divider,
 //     Snackbar,
 //     Alert,
@@ -47,13 +50,20 @@
 //     ArrowForward as StageIcon,
 //     NoteAdd as RemarksIcon,
 //     Email as EmailIcon,
+//     Assessment as AnalysisIcon,
 // } from "@mui/icons-material";
+// import AssignmentIcon from '@mui/icons-material/Assignment';
+// import CancelIcon from '@mui/icons-material/Cancel';
+// import { useTheme } from '@mui/material/styles';
+// import CloseIcon from '@mui/icons-material/Close';
+
 // import AddCandidateForm from "./AddCandidateForm";
 // import ScheduleOnlineInterviewForm from "../Interviews/ScheduleOnlineInterviewForm";
 // import ScheduleOfflineInterviewForm from "../Interviews/ScheduleOfflineInterviewForm";
 // import MoveCandidateForm from "./MoveCandidateForm";
 // import { useLocation, useNavigate, useParams } from "react-router-dom";
 // import CandidateDetailsPage from "../candidates/CandidateDetailsDialog";
+// import CandidateResumeAnalysis from "../components/CandidateResumeAnalysis";
 // import {
 //     fetchCandidates,
 //     createCandidate,
@@ -61,7 +71,8 @@
 //     deleteCandidate,
 //     sendBulkEmails,
 //     fetchCandidatesByJob,
-//     scheduleInterview
+//     scheduleInterview,
+//     fetchResumeAnalysis
 // } from "../utils/api";
 
 // const rejectionTypes = ["R1 Rejected", "R2 Rejected", "Client Rejected"];
@@ -101,6 +112,10 @@
 //     const [stages, setStages] = useState([]);
 //     const [stageOptions, setStageOptions] = useState([]);
 //     const [rejectedFilter, setRejectedFilter] = useState('');
+//     const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
+//     const [selectedCandidateForAnalysis, setSelectedCandidateForAnalysis] = useState(null);
+//     const [analysisData, setAnalysisData] = useState(null);
+//     const [analysisLoading, setAnalysisLoading] = useState(false);
 
 //     // Filter state
 //     const [filters, setFilters] = useState({
@@ -211,7 +226,7 @@
 //             hired: 0,
 //             archived: 0,
 //             rejected: 0,
-//             all: candidates.length 
+//             all: candidates.length
 //         };
 
 //         candidates.forEach(candidate => {
@@ -287,11 +302,11 @@
 //     const stageCounts = calculateStageCounts(candidates || []);
 
 //     const stageCardData = [
-//         { 
-//             stage: 'sourced', 
-//             label: 'Sourced',  
-//             count: stageCounts.all,  
-//             totalCount: stageCounts.all 
+//         {
+//             stage: 'sourced',
+//             label: 'Sourced',
+//             count: stageCounts.all,
+//             totalCount: stageCounts.all
 //         },
 //         { stage: 'interview', label: 'Interview', count: stageCounts.interview },
 //         { stage: 'preboarding', label: 'Preboarding', count: stageCounts.preboarding },
@@ -347,7 +362,6 @@
 //     const handleSubmitCandidate = async (formData) => {
 //         try {
 //             const newCandidate = await createCandidate(formData);
-//             // Instead of just adding to state, refresh the entire list
 //             await loadCandidates();
 //             showSnackbar("Candidate added successfully!");
 //             handleCloseAddCandidate();
@@ -394,10 +408,7 @@
 //     const handleStageMove = async (formData) => {
 //         try {
 //             const updatedCandidate = await updateCandidate(currentCandidate, formData);
-
-//             // Refresh the candidates list after update
 //             await loadCandidates();
-
 //             showSnackbar("Candidate stage updated successfully!");
 //             setMoveDialogOpen(false);
 //         } catch (error) {
@@ -408,13 +419,11 @@
 
 //     const handleBulkStageMove = async () => {
 //         try {
-//             const updatePromises = selectedCandidates.map(candidateId => 
+//             const updatePromises = selectedCandidates.map(candidateId =>
 //                 updateCandidate(candidateId, { stage: newStage })
 //             );
 
 //             await Promise.all(updatePromises);
-
-//             // Refresh the candidates list after bulk update
 //             await loadCandidates();
 
 //             setSelectedCandidates([]);
@@ -474,13 +483,11 @@
 //             try {
 //                 if (selectedCandidates.length === 1) {
 //                     await deleteCandidate(selectedCandidates[0]);
-//                     // Refresh the candidates list after deletion
 //                     await loadCandidates();
 //                 } else if (selectedCandidates.length > 1) {
 //                     for (const id of selectedCandidates) {
 //                         await deleteCandidate(id);
 //                     }
-//                     // Refresh the candidates list after bulk deletion
 //                     await loadCandidates();
 //                 }
 
@@ -510,6 +517,26 @@
 
 //     const handleRejectedFilterChange = (event) => {
 //         setRejectedFilter(event.target.value);
+//     };
+
+//     const handleOpenAnalysis = async (candidateId) => {
+//         const candidate = candidates.find(c => c._id === candidateId);
+//         if (!candidate) return;
+
+//         setSelectedCandidateForAnalysis(candidate);
+//         setAnalysisLoading(true);
+//         setAnalysisDialogOpen(true);
+
+//         try {
+//             const analysisData = await fetchResumeAnalysis(candidateId);
+//             setAnalysisData(analysisData);
+//         } catch (error) {
+//             console.error("Error fetching analysis data:", error);
+//             showSnackbar("Failed to load analysis data", "error");
+//             setAnalysisData(null);
+//         } finally {
+//             setAnalysisLoading(false);
+//         }
 //     };
 
 //     const handleAddRemarks = () => {
@@ -546,7 +573,6 @@
 //     };
 
 //     const handleStageCardClick = (stage) => {
-//         // When "All Candidates" (sourced) is clicked, clear the status filter
 //         if (stage === 'sourced') {
 //             setFilters({
 //                 ...filters,
@@ -659,8 +685,8 @@
 //                 </DialogContent>
 //                 <DialogActions>
 //                     <Button onClick={() => setBulkMoveDialogOpen(false)}>Cancel</Button>
-//                     <Button 
-//                         onClick={handleBulkStageMove} 
+//                     <Button
+//                         onClick={handleBulkStageMove}
 //                         variant="contained"
 //                         disabled={!newStage}
 //                     >
@@ -701,8 +727,8 @@
 //                 </DialogContent>
 //                 <DialogActions>
 //                     <Button onClick={() => setEmailDialogOpen(false)}>Cancel</Button>
-//                     <Button 
-//                         onClick={handleSendBulkEmail} 
+//                     <Button
+//                         onClick={handleSendBulkEmail}
 //                         variant="contained"
 //                         disabled={isSendingEmail || !emailSubject || !emailBody}
 //                         startIcon={isSendingEmail ? <CircularProgress size={20} /> : null}
@@ -728,9 +754,9 @@
 //                                     }
 //                                 }}
 //                                 sx={{
-//                                     backgroundColor: (stage === 'sourced' && !filters.status) || 
-//                                                    (stage !== 'sourced' && filters.status.toLowerCase() === stage) ? 
-//                                                    "#e3f2fd" : "#f5f5f5",
+//                                     backgroundColor: (stage === 'sourced' && !filters.status) ||
+//                                         (stage !== 'sourced' && filters.status.toLowerCase() === stage) ?
+//                                         "#e3f2fd" : "#f5f5f5",
 //                                     width: "150px",
 //                                     textAlign: "center",
 //                                     borderRadius: 2,
@@ -785,7 +811,7 @@
 //                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
 //                         <FormControl size="small" sx={{ minWidth: 180 }}>
 //                             <InputLabel>Source</InputLabel>
-//                             <Select 
+//                             <Select
 //                                 label="Source"
 //                                 value={filters.source}
 //                                 onChange={handleFilterChange('source')}
@@ -800,7 +826,7 @@
 
 //                         <FormControl size="small" sx={{ minWidth: 180 }}>
 //                             <InputLabel>Experience</InputLabel>
-//                             <Select 
+//                             <Select
 //                                 label="Experience"
 //                                 value={filters.experience}
 //                                 onChange={handleFilterChange('experience')}
@@ -814,7 +840,7 @@
 
 //                         <FormControl size="small" sx={{ minWidth: 250 }}>
 //                             <InputLabel>Available to join (In Days)</InputLabel>
-//                             <Select 
+//                             <Select
 //                                 label="Available to join (In Days)"
 //                                 value={filters.availableToJoin}
 //                                 onChange={handleFilterChange('availableToJoin')}
@@ -829,7 +855,7 @@
 
 //                         <FormControl size="small" sx={{ minWidth: 150 }}>
 //                             <InputLabel>Status</InputLabel>
-//                             <Select 
+//                             <Select
 //                                 label="Status"
 //                                 value={filters.status}
 //                                 onChange={handleFilterChange('status')}
@@ -981,6 +1007,64 @@
 //                 </DialogActions>
 //             </Dialog>
 
+//             {/* Resume Analysis Dialog */}
+//             <Dialog
+//                 open={analysisDialogOpen}
+//                 onClose={() => setAnalysisDialogOpen(false)}
+//                 maxWidth="md"
+//                 fullWidth
+//                 sx={{
+//                     '& .MuiDialog-paper': {
+//                         borderRadius: 3,
+//                         maxHeight: '90vh'
+//                     }
+//                 }}
+//             >
+//                 <DialogTitle sx={{
+//                     // backgroundColor: theme.palette.primary.main,
+//                     color: 'white',
+//                     display: 'flex',
+//                     justifyContent: 'space-between',
+//                     alignItems: 'center',
+//                     padding: '16px 24px'
+//                 }}>
+//                     <Box display="flex" alignItems="center">
+//                         <AnalysisIcon sx={{ mr: 1 }} />
+//                         <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+//                             Resume Analysis - {selectedCandidateForAnalysis?.firstName} {selectedCandidateForAnalysis?.lastName}
+//                         </Typography>
+//                     </Box>
+//                     <IconButton
+//                         edge="end"
+//                         color="inherit"
+//                         onClick={() => setAnalysisDialogOpen(false)}
+//                         aria-label="close"
+//                     >
+//                         <CloseIcon />
+//                     </IconButton>
+//                 </DialogTitle>
+//                 <DialogContent dividers sx={{ p: 0 }}>
+//                     {analysisLoading ? (
+//                         <Box sx={{
+//                             display: 'flex',
+//                             justifyContent: 'center',
+//                             alignItems: 'center',
+//                             height: '200px'
+//                         }}>
+//                             <CircularProgress />
+//                         </Box>
+//                     ) : (
+//                         <CandidateResumeAnalysis
+//                             open={analysisDialogOpen}
+//                             onClose={() => setAnalysisDialogOpen(false)}
+//                             candidate={selectedCandidateForAnalysis}
+//                             analysisData={analysisData}
+//                             loading={analysisLoading}
+//                         />
+//                     )}
+//                 </DialogContent>
+//             </Dialog>
+
 //             {/* Candidate Views */}
 //             {viewMode === "table" ? (
 //                 <Box
@@ -1059,7 +1143,7 @@
 //                                     label={getStageName(candidate.stage)}
 //                                     color={
 //                                         getStageName(candidate.stage) === "Hired" ? "success" :
-//                                         getStageName(candidate.stage) === "Archived" ? "default" : "primary"
+//                                             getStageName(candidate.stage) === "Archived" ? "default" : "primary"
 //                                     }
 //                                     size="small"
 //                                     sx={{
@@ -1067,7 +1151,7 @@
 //                                         fontWeight: "bold",
 //                                         backgroundColor:
 //                                             getStageName(candidate.stage) === "Hired" ? "success.light" :
-//                                             getStageName(candidate.stage) === "Archived" ? "grey.500" : "primary.light",
+//                                                 getStageName(candidate.stage) === "Archived" ? "grey.500" : "primary.light",
 //                                         color: "white",
 //                                         borderRadius: 20,
 //                                         padding: "0.5rem 1rem",
@@ -1077,9 +1161,9 @@
 
 //                                 {/* Rejection Details */}
 //                                 {getStageName(candidate.stage) === "Rejected" && candidate.rejectionType && (
-//                                     <Box sx={{ 
-//                                         backgroundColor: '#ffeeee', 
-//                                         p: 1, 
+//                                     <Box sx={{
+//                                         backgroundColor: '#ffeeee',
+//                                         p: 1,
 //                                         borderRadius: 1,
 //                                         borderLeft: '3px solid #f44336'
 //                                     }}>
@@ -1109,9 +1193,33 @@
 
 //                                 {/* Action Buttons */}
 //                                 <Box
-//                                     sx={{ display: "flex", justifyContent: "space-between", marginTop: 3 }}
+//                                     sx={{
+//                                         display: "flex",
+//                                         justifyContent: "space-between",
+//                                         marginTop: 3,
+//                                         gap: 1
+//                                     }}
 //                                     onClick={(e) => e.stopPropagation()}
 //                                 >
+//                                     <Button
+//                                         variant="contained"
+//                                         startIcon={<AnalysisIcon />}
+//                                         onClick={(e) => {
+//                                             e.stopPropagation();
+//                                             handleOpenAnalysis(candidate._id);
+//                                         }}
+//                                         disabled={!candidate.resume}
+//                                         sx={{
+//                                             flex: 1,
+//                                             textTransform: 'none',
+//                                             backgroundColor: '#4caf50',
+//                                             '&:hover': {
+//                                                 backgroundColor: '#388e3c',
+//                                             }
+//                                         }}
+//                                     >
+//                                         View Analysis
+//                                     </Button>
 //                                     <IconButton
 //                                         className="action-button"
 //                                         onClick={(e) => {
@@ -1227,6 +1335,7 @@
 //                                     <TableCell>{candidate.mobile || 'Not provided'}</TableCell>
 //                                     <TableCell>{candidate.owner || 'Not assigned'}</TableCell>
 //                                     <TableCell onClick={(e) => e.stopPropagation()}>
+                                       
 //                                         <IconButton
 //                                             className="action-button"
 //                                             onClick={(e) => handleInterviewClick(e, candidate._id)}
@@ -1245,6 +1354,16 @@
 //                                         >
 //                                             <MoreIcon />
 //                                         </IconButton>
+//                                          <Button
+//                                             variant="outlined"
+//                                             startIcon={<AnalysisIcon />}
+//                                             onClick={() => handleOpenAnalysis(candidate._id)}
+//                                             disabled={!candidate.resume}
+//                                             size="small"
+//                                             sx={{ mr: 1 }}
+//                                         >
+//                                            View Analysis
+//                                         </Button>
 //                                     </TableCell>
 //                                 </TableRow>
 //                             ))}
@@ -1265,10 +1384,7 @@
 
 // export default CandidatesTab;
 
-
-//-----
-
-
+//---this is after bug fix-----
 
 import React, { useState, useEffect } from "react";
 import {
@@ -1303,7 +1419,6 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-
     Divider,
     Snackbar,
     Alert,
@@ -1349,7 +1464,7 @@ const CandidatesTab = () => {
     const location = useLocation();
     const { id } = useParams();
     const navigate = useNavigate();
-    const [viewMode, setViewMode] = useState("card");
+    const [viewMode, setViewMode] = useState("table"); // Changed default to "table"
     const [selectedCandidates, setSelectedCandidates] = useState([]);
     const [openAddCandidate, setOpenAddCandidate] = useState(false);
     const [interviewAnchorEl, setInterviewAnchorEl] = useState(null);
@@ -1904,11 +2019,11 @@ const CandidatesTab = () => {
                         onChange={(e, newMode) => newMode && setViewMode(newMode)}
                         size="small"
                     >
-                        <ToggleButton value="card">
-                            <CardViewIcon />
-                        </ToggleButton>
-                        <ToggleButton value="table">
+                        <ToggleButton value="table" aria-label="table view">
                             <TableViewIcon />
+                        </ToggleButton>
+                        <ToggleButton value="card" aria-label="card view">
+                            <CardViewIcon />
                         </ToggleButton>
                     </ToggleButtonGroup>
                     {location.pathname !== '/dashboard/candidates' && (
@@ -2335,6 +2450,117 @@ const CandidatesTab = () => {
 
             {/* Candidate Views */}
             {viewMode === "table" ? (
+                <TableContainer component={Paper}>
+                    <Table>
+                        <TableHead>
+                            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                <TableCell padding="checkbox">
+                                    <Checkbox
+                                        onChange={handleSelectAllCandidates}
+                                        checked={selectedCandidates.length === getFilteredCandidates().length}
+                                        sx={{ color: '#3f51b5' }}
+                                    />
+                                </TableCell>
+
+                                {[
+                                    "Name",
+                                    "Status",
+                                    "Experience",
+                                    "Source",
+                                    "Available to join",
+                                    "Email",
+                                    "Phone",
+                                    "Candidate Owner",
+                                    "Actions"
+                                ].map((label, index) => (
+                                    <TableCell
+                                        key={index}
+                                        sx={{
+                                            fontWeight: 'bold',
+                                            fontSize: '0.85rem',
+                                            color: '#333',
+                                            borderBottom: '2px solid #e0e0e0'
+                                        }}
+                                    >
+                                        {label}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {getFilteredCandidates().map((candidate) => (
+                                <TableRow
+                                    key={candidate._id}
+                                    hover
+                                    sx={{ cursor: "pointer" }}
+                                    onClick={() => handleNavigateToCandidate(candidate)}
+                                >
+                                    <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
+                                        <Checkbox
+                                            checked={selectedCandidates.includes(candidate._id)}
+                                            onChange={() => handleSelectCandidate(candidate._id)}
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        {`${candidate.firstName || ''} ${candidate.middleName || ''} ${candidate.lastName || ''}`.trim()}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Box>
+                                            {getStageName(candidate.stage)}
+                                            {getStageName(candidate.stage) === "Rejected" && candidate.rejectionType && (
+                                                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                                                    {candidate.rejectionType}
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell>{candidate.experience || '0'} years</TableCell>
+                                    <TableCell>{candidate.source || 'Unknown'}</TableCell>
+                                    <TableCell>{candidate.availableToJoin || '0'} days</TableCell>
+                                    <TableCell>
+                                        <Box>
+                                            <div>{candidate.email || 'Not provided'}</div>
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell>{candidate.mobile || 'Not provided'}</TableCell>
+                                    <TableCell>{candidate.owner || 'Not assigned'}</TableCell>
+                                    <TableCell onClick={(e) => e.stopPropagation()}>
+                                       
+                                        <IconButton
+                                            className="action-button"
+                                            onClick={(e) => handleInterviewClick(e, candidate._id)}
+                                        >
+                                            <InterviewIcon />
+                                        </IconButton>
+                                        <IconButton
+                                            className="action-button"
+                                            onClick={(e) => handleStageClick(e, candidate._id)}
+                                        >
+                                            <StageIcon />
+                                        </IconButton>
+                                        <IconButton
+                                            className="action-button"
+                                            onClick={(e) => handleRemarksClick(e, candidate._id)}
+                                        >
+                                            <MoreIcon />
+                                        </IconButton>
+                                         <Button
+                                            variant="outlined"
+                                            startIcon={<AnalysisIcon />}
+                                            onClick={() => handleOpenAnalysis(candidate._id)}
+                                            disabled={!candidate.resume}
+                                            size="small"
+                                            sx={{ mr: 1 }}
+                                        >
+                                           View Analysis
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            ) : (
                 <Box
                     sx={{
                         display: "grid",
@@ -2527,117 +2753,6 @@ const CandidatesTab = () => {
                         </Card>
                     ))}
                 </Box>
-            ) : (
-                <TableContainer component={Paper}>
-                    <Table>
-                        <TableHead>
-                            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                <TableCell padding="checkbox">
-                                    <Checkbox
-                                        onChange={handleSelectAllCandidates}
-                                        checked={selectedCandidates.length === getFilteredCandidates().length}
-                                        sx={{ color: '#3f51b5' }}
-                                    />
-                                </TableCell>
-
-                                {[
-                                    "Name",
-                                    "Status",
-                                    "Experience",
-                                    "Source",
-                                    "Available to join",
-                                    "Email",
-                                    "Phone",
-                                    "Candidate Owner",
-                                    "Actions"
-                                ].map((label, index) => (
-                                    <TableCell
-                                        key={index}
-                                        sx={{
-                                            fontWeight: 'bold',
-                                            fontSize: '0.85rem',
-                                            color: '#333',
-                                            borderBottom: '2px solid #e0e0e0'
-                                        }}
-                                    >
-                                        {label}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {getFilteredCandidates().map((candidate) => (
-                                <TableRow
-                                    key={candidate._id}
-                                    hover
-                                    sx={{ cursor: "pointer" }}
-                                    onClick={() => handleNavigateToCandidate(candidate)}
-                                >
-                                    <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
-                                        <Checkbox
-                                            checked={selectedCandidates.includes(candidate._id)}
-                                            onChange={() => handleSelectCandidate(candidate._id)}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        {`${candidate.firstName || ''} ${candidate.middleName || ''} ${candidate.lastName || ''}`.trim()}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Box>
-                                            {getStageName(candidate.stage)}
-                                            {getStageName(candidate.stage) === "Rejected" && candidate.rejectionType && (
-                                                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-                                                    {candidate.rejectionType}
-                                                </Typography>
-                                            )}
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell>{candidate.experience || '0'} years</TableCell>
-                                    <TableCell>{candidate.source || 'Unknown'}</TableCell>
-                                    <TableCell>{candidate.availableToJoin || '0'} days</TableCell>
-                                    <TableCell>
-                                        <Box>
-                                            <div>{candidate.email || 'Not provided'}</div>
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell>{candidate.mobile || 'Not provided'}</TableCell>
-                                    <TableCell>{candidate.owner || 'Not assigned'}</TableCell>
-                                    <TableCell onClick={(e) => e.stopPropagation()}>
-                                       
-                                        <IconButton
-                                            className="action-button"
-                                            onClick={(e) => handleInterviewClick(e, candidate._id)}
-                                        >
-                                            <InterviewIcon />
-                                        </IconButton>
-                                        <IconButton
-                                            className="action-button"
-                                            onClick={(e) => handleStageClick(e, candidate._id)}
-                                        >
-                                            <StageIcon />
-                                        </IconButton>
-                                        <IconButton
-                                            className="action-button"
-                                            onClick={(e) => handleRemarksClick(e, candidate._id)}
-                                        >
-                                            <MoreIcon />
-                                        </IconButton>
-                                         <Button
-                                            variant="outlined"
-                                            startIcon={<AnalysisIcon />}
-                                            onClick={() => handleOpenAnalysis(candidate._id)}
-                                            disabled={!candidate.resume}
-                                            size="small"
-                                            sx={{ mr: 1 }}
-                                        >
-                                           View Analysis
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
             )}
             {openDetailsDialog && (
                 <CandidateDetailsPage
